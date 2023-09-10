@@ -313,7 +313,6 @@ namespace http {
 		#define _MEASURE_TIME_COPY  0
 		#define _MEASURE_TIME_SEND  0
 		std::unique_lock<std::mutex> thrLockOutpQu{fcapshared::gThrMtxOutpQu, std::defer_lock};
-		std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		std::vector<unsigned char> frameData;
 		bool haveFrame = false;
@@ -341,16 +340,13 @@ namespace http {
 		while (true) {
 			// check if we need to stop
 			if (--toNeedToStop == 0) {
-				thrLockStop.lock();
-				if (fcapshared::gThrCondStop.wait_for(thrLockStop, 1ms, []{return fcapshared::gThrVarDoStop;})) {
-					needToStop = true;
-				}
-				thrLockStop.unlock();
+				needToStop = fcapshared::getNeedToStop();
 				if (needToStop) {
 					break;
 				}
 				toNeedToStop = 100;
 			}
+
 			// copy frame from queue
 			thrLockOutpQu.lock();
 			if (fcapshared::gThrCondOutpQu.wait_for(thrLockOutpQu, 1ms, []{return (! fcapshared::gThrVarOutpQueue.empty());})) {
@@ -386,6 +382,7 @@ namespace http {
 			if (needToStop) {
 				break;
 			}
+
 			// send frame to client
 			if (haveFrame) {
 				/**log(gThrIx, "__send frame");**/

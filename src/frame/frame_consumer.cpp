@@ -68,7 +68,6 @@ namespace fcons {
 	void FrameConsumer::runX2() {
 		const unsigned int _MAX_QUEUE_SIZE = 10;
 		std::unique_lock<std::mutex> thrLockInpQu{gThrMtxInpQu, std::defer_lock};
-		std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		cv::Mat frameL;
 		cv::Mat frameR;
@@ -91,10 +90,7 @@ namespace fcons {
 		needToStop = ! waitForCamStreams();
 		if (needToStop) {
 			log("camera streams not open. aborting.");
-			thrLockStop.lock();
-			fcapshared::gThrVarDoStop = true;
-			thrLockStop.unlock();
-			fcapshared::gThrCondStop.notify_all();
+			fcapshared::setNeedToStop();
 			return;
 		}
 
@@ -212,11 +208,7 @@ namespace fcons {
 
 				// check if we need to stop
 				if (--toNeedToStop == 0) {
-					thrLockStop.lock();
-					if (fcapshared::gThrCondStop.wait_for(thrLockStop, 1ms, []{return fcapshared::gThrVarDoStop;})) {
-						needToStop = true;
-					}
-					thrLockStop.unlock();
+					needToStop = fcapshared::getNeedToStop();
 					if (needToStop) {
 						/**log("Stopping...");**/
 						//

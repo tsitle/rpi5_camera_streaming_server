@@ -167,7 +167,6 @@ namespace fprod {
 	void FrameProducer::runX1(void) {
 		const unsigned int _MAX_EMPTY_FRAMES = 0;
 		std::unique_lock<std::mutex> thrLockInpQu{fcons::FrameConsumer::gThrMtxInpQu, std::defer_lock};
-		std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 
 		try {
@@ -186,11 +185,7 @@ namespace fprod {
 			/**log("Grabbing frames...");**/
 			while (true) {
 				if (--toNeedToStop == 0) {
-					thrLockStop.lock();
-					if (fcapshared::gThrCondStop.wait_for(thrLockStop, 1ms, []{return fcapshared::gThrVarDoStop;})) {
-						needToStop = true;
-					}
-					thrLockStop.unlock();
+					needToStop = fcapshared::getNeedToStop();
 					if (needToStop) {
 						/**log("Stopping to read frames");**/
 						break;
@@ -261,10 +256,7 @@ namespace fprod {
 				//
 				/*if (frameNr == fcapsettings::SETT_FPS * 5) {
 					log("Setting STOP flag...");
-					thrLockStop.lock();
-					fcapshared::gThrVarDoStop = true;
-					thrLockStop.unlock();
-					fcapshared::gThrCondStop.notify_all();
+					fcapshared::setNeedToStop();
 					//
 					break;
 				}*/
@@ -318,10 +310,7 @@ namespace fprod {
 		}
 
 		//
-		thrLockStop.lock();
-		fcapshared::gThrVarDoStop = true;
-		thrLockStop.unlock();
-		fcapshared::gThrCondStop.notify_all();
+		fcapshared::setNeedToStop();
 		//
 		log("ENDED");
 	}

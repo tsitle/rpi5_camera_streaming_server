@@ -10,13 +10,36 @@
 #include "frame/frame_consumer.hpp"
 #include "http/http_tcp_server.hpp"
 
+using namespace std::chrono_literals;
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 //
-bool fcapshared::gThrVarDoStop = false;
-std::mutex fcapshared::gThrMtxStop;
-std::condition_variable fcapshared::gThrCondStop;
+bool fcapshared::gThrVarNeedToStop = false;
+std::mutex fcapshared::gThrMtxNeedToStop;
+std::condition_variable fcapshared::gThrCondNeedToStop;
+
+void fcapshared::setNeedToStop() {
+	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxNeedToStop, std::defer_lock};
+
+	thrLock.lock();
+	fcapshared::gThrVarNeedToStop = true;
+	thrLock.unlock();
+	fcapshared::gThrCondNeedToStop.notify_all();
+}
+
+bool fcapshared::getNeedToStop() {
+	bool resB = false;
+	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxNeedToStop, std::defer_lock};
+
+	thrLock.lock();
+	if (fcapshared::gThrCondNeedToStop.wait_for(thrLock, 1ms, []{return fcapshared::gThrVarNeedToStop;})) {
+		resB = true;
+	}
+	thrLock.unlock();
+	return resB;
+}
 
 //
 bool fcapshared::gThrVarCamStreamsOpened = false;
@@ -68,12 +91,7 @@ void sigHandlerCtrlC(__attribute__((unused)) int s) {
 	#undef _UNUSED*/
 
 	log("Caught CTRL-C");
-
-	std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
-	thrLockStop.lock();
-	fcapshared::gThrVarDoStop = true;
-	thrLockStop.unlock();
-	fcapshared::gThrCondStop.notify_all();
+	fcapshared::setNeedToStop();
 }
 
 bool initSignalHandlers() {

@@ -36,7 +36,6 @@ namespace http {
 	}
 
 	void TcpServer::startListen() {
-		std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		bool needToStop = false;
 		int newSocket;
@@ -58,17 +57,6 @@ namespace http {
 		log(ss.str());
 
 		while (true) {
-			// check if we need to stop
-			thrLockStop.lock();
-			if (fcapshared::gThrCondStop.wait_for(thrLockStop, 1ms, []{return fcapshared::gThrVarDoStop;})) {
-				needToStop = true;
-			}
-			thrLockStop.unlock();
-			if (needToStop) {
-				break;
-			}
-
-			//
 			/**log("Waiting for a new connection...");**/
 			newSocket = acceptConnection();
 			if (newSocket < 0) {
@@ -76,11 +64,7 @@ namespace http {
 			}
 
 			// check if we need to stop
-			thrLockStop.lock();
-			if (fcapshared::gThrCondStop.wait_for(thrLockStop, 1ms, []{return fcapshared::gThrVarDoStop;})) {
-				needToStop = true;
-			}
-			thrLockStop.unlock();
+			needToStop = fcapshared::getNeedToStop();
 			if (needToStop) {
 				break;
 			}
@@ -135,13 +119,8 @@ namespace http {
 	}
 
 	void TcpServer::exitWithError(const std::string &errorMessage) {
-		std::unique_lock<std::mutex> thrLockStop{fcapshared::gThrMtxStop, std::defer_lock};
-
 		log("ERROR: " + errorMessage);
-		thrLockStop.lock();
-		fcapshared::gThrVarDoStop = true;
-		thrLockStop.unlock();
-		fcapshared::gThrCondStop.notify_all();
+		fcapshared::setNeedToStop();
 	}
 
 }  // namespace http

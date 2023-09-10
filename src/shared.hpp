@@ -10,9 +10,12 @@
 
 namespace fcapshared {
 
-	extern bool gThrVarDoStop;
-	extern std::mutex gThrMtxStop;
-	extern std::condition_variable gThrCondStop;
+	extern bool gThrVarNeedToStop;
+	extern std::mutex gThrMtxNeedToStop;
+	extern std::condition_variable gThrCondNeedToStop;
+
+	extern void setNeedToStop();
+	extern bool getNeedToStop();
 
 	//
 	extern bool gThrVarCamStreamsOpened;
