@@ -1,5 +1,5 @@
-#ifndef INCLUDED_SETTINGS
-#define INCLUDED_SETTINGS
+#ifndef SETTINGS_HPP_
+#define SETTINGS_HPP_
 
 #include <string>
 #include <opencv2/opencv.hpp>
@@ -17,8 +17,6 @@ namespace fcapsettings {
 	const cv::Size SETT_CAPTURE_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;
 	const cv::Size SETT_OUTPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;
 
-	const fcapconstants::OutputCamsEn SETT_OUTPUT_CAMS = fcapconstants::OutputCamsEn::CAM_BOTH;
-
 	const bool SETT_WRITE_PNG_TO_FILE_L = false;
 	const bool SETT_WRITE_PNG_TO_FILE_R = false;
 	const bool SETT_WRITE_PNG_TO_FILE_BLEND = false;
@@ -34,4 +32,4 @@ namespace fcapsettings {
 
 }  // namespace fcapsettings
 
-#endif
+#endif  // SETTINGS_HPP_

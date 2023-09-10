@@ -1,5 +1,5 @@
-#ifndef INCLUDED_CONSTANTS
-#define INCLUDED_CONSTANTS
+#ifndef CONSTANTS_HPP_
+#define CONSTANTS_HPP_
 
 #include <string>
 #include <opencv2/opencv.hpp>
@@ -29,6 +29,7 @@ namespace fcapconstants {
 	const std::string HTTP_CONTENT_TYPE_HTML = "text/html";
 	const std::string HTTP_CONTENT_TYPE_JPEG = "image/jpeg";
 	const std::string HTTP_CONTENT_TYPE_MULTIPART = "multipart/x-mixed-replace";
+	const std::string HTTP_CONTENT_TYPE_JSON = "application/json";
 
 	const std::string HTTP_BOUNDARY_SEPARATOR = "--FrameBoundary";
 
@@ -40,4 +41,4 @@ namespace fcapconstants {
 
 }  // namespace fcapconstants
 
-#endif
+#endif  // CONSTANTS_HPP_

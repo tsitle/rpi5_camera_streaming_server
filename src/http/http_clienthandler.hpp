@@ -22,9 +22,12 @@ namespace http {
 
 			static void _startThread_internal(const unsigned int thrIx, const int socket);
 			static void log(const unsigned int thrIx, const std::string &message);
+			//
 			void handleRequest(const char *buffer, const unsigned int bufSz);
+			std::string buildWebsite();
 			std::string buildResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
 			bool sendResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
+			//
 			void startStreaming();
 			bool sendFrame(unsigned char* pData, const unsigned int bufferSz);
 	};

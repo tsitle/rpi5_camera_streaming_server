@@ -33,6 +33,28 @@ fcapshared::RunningCltsStc fcapshared::gThrVarRunningCltsStc;
 std::unordered_map<unsigned int, bool> fcapshared::gThrVarRunningCltHndsMap;
 std::mutex fcapshared::gThrMtxRunningCltHnds;
 
+//
+fcapshared::RuntimeOptionsStc fcapshared::gThrVargRuntimeOptions;
+std::mutex fcapshared::gThrMtxRuntimeOptions;
+
+fcapshared::RuntimeOptionsStc fcapshared::getRuntimeOptions() {
+	fcapshared::RuntimeOptionsStc resStc;
+	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxRuntimeOptions, std::defer_lock};
+
+	thrLock.lock();
+	resStc = fcapshared::gThrVargRuntimeOptions;
+	thrLock.unlock();
+	return resStc;
+}
+
+void fcapshared::setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val) {
+	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxRuntimeOptions, std::defer_lock};
+
+	thrLock.lock();
+	fcapshared::gThrVargRuntimeOptions.outputCams = val;
+	thrLock.unlock();
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -54,17 +76,8 @@ void sigHandlerCtrlC(__attribute__((unused)) int s) {
 	fcapshared::gThrCondStop.notify_all();
 }
 
-/*void sigHandlerPipe(int s) {
-	log("Caught SIGPIPE");
-}*/
-
-// -----------------------------------------------------------------------------
-
-int main() {
-	fcapshared::gThrVarRunningCltsStc.runningHandlersCount = 0;
-	fcapshared::gThrVarRunningCltsStc.runningStreamsCount = 0;
-
-	//
+bool initSignalHandlers() {
+	// SIGINT
 	struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = sigHandlerCtrlC;
 	::sigemptyset(&sigIntHandler.sa_mask);
@@ -72,14 +85,27 @@ int main() {
 	::sigaction(SIGINT, &sigIntHandler, NULL);
 
 	// SIGPIPE will occur e.g. when a TCP client has closed the connection
-	/*
-	struct sigaction sigPipeHandler;
-	sigPipeHandler.sa_handler = sigHandlerPipe;
-	::sigemptyset(&sigPipeHandler.sa_mask);
-	sigPipeHandler.sa_flags = 0;
-	::sigaction(SIGPIPE, &sigPipeHandler, NULL);
-	*/
 	if (::signal(SIGPIPE, SIG_IGN) == SIG_ERR) {  // ignore SIGPIPE
+		log("Could not modify SIGPIPE");
+		return false;
+	}
+
+	return true;
+}
+
+void initGlobals() {
+	fcapshared::gThrVarRunningCltsStc.runningHandlersCount = 0;
+	fcapshared::gThrVarRunningCltsStc.runningStreamsCount = 0;
+
+	//
+	fcapshared::gThrVargRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
+}
+
+// -----------------------------------------------------------------------------
+
+int main() {
+	initGlobals();
+	if (! initSignalHandlers()) {
 		return -1;
 	}
 

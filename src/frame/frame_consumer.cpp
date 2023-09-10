@@ -77,6 +77,8 @@ namespace fcons {
 		unsigned int frameNr = 0;
 		char strBufPath[512];
 		char strBufFn[1024];
+		bool haveFrameL = false;
+		bool haveFrameR = false;
 		bool haveFrames = false;
 		bool needToStop = false;
 		bool willDiscard = false;
@@ -100,29 +102,40 @@ namespace fcons {
 		/**log("STARTED");**/
 		snprintf(strBufPath, sizeof(strBufPath), "%s", fcapsettings::SETT_PNG_PATH.c_str());
 		try {
+			unsigned int toOpts = 10;
+			fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+
 			while (true) {
+				// update runtime options
+				if (--toOpts == 0) {
+					opts = fcapshared::getRuntimeOptions();
+					//
+					toOpts = 10;
+				}
+
+				// read frames from queues
+				haveFrameL = false;
+				haveFrameR = false;
+				haveFrames = false;
 				thrLockInpQu.lock();
-				if (gThrCondInpQu.wait_for(thrLockInpQu, 1ms, []{
-							switch (fcapsettings::SETT_OUTPUT_CAMS) {
-								case fcapconstants::OutputCamsEn::CAM_L:
-									return (! gThrVarInpQueueL.empty());
-								case fcapconstants::OutputCamsEn::CAM_R:
-									return (! gThrVarInpQueueR.empty());
-								default:
-									return (! (gThrVarInpQueueL.empty() || gThrVarInpQueueR.empty()));
-							}
-						})) {
-					if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_R) {
+				if (gThrCondInpQu.wait_for(thrLockInpQu, 1ms, []{return ((! gThrVarInpQueueL.empty()) || (! gThrVarInpQueueR.empty()));})) {
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R && ! gThrVarInpQueueL.empty()) {
 						frameL = gThrVarInpQueueL.back();
 						gThrVarInpQueueL.pop_back();
+						haveFrameL = true;
 					}
 					//
-					if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_L) {
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L && ! gThrVarInpQueueR.empty()) {
 						frameR = gThrVarInpQueueR.back();
 						gThrVarInpQueueR.pop_back();
+						haveFrameR = true;
 					}
 					//
-					haveFrames = true;
+					if ((opts.outputCams == fcapconstants::OutputCamsEn::CAM_L && haveFrameL) ||
+							(opts.outputCams == fcapconstants::OutputCamsEn::CAM_R && haveFrameR) ||
+							(opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH && haveFrameL && haveFrameR)) {
+						haveFrames = true;
+					}
 				}
 				thrLockInpQu.unlock();
 
@@ -131,24 +144,24 @@ namespace fcons {
 					++frameNr;
 					willDiscard = true;
 					//
-					if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_R &&
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R &&
 							fcapsettings::SETT_WRITE_PNG_TO_FILE_L) {
 						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-L.png", strBufPath, frameNr);
 						cv::imwrite(std::string(strBufFn), frameL);
 						/**log("CapL: wrote frame to '" << strBufFn << "'");**/
 					}
-					if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_L &&
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L &&
 							fcapsettings::SETT_WRITE_PNG_TO_FILE_R) {
 						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-R.png", strBufPath, frameNr);
 						cv::imwrite(std::string(strBufFn), frameR);
 						/**log("CapR: wrote frame to '" << strBufFn << "'");**/
 					}
 					// process frames
-					if (fcapsettings::SETT_OUTPUT_CAMS == fcapconstants::OutputCamsEn::CAM_L) {
+					if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 						gFrameProcessor.processFrame(&frameL, NULL, &pFrameOut);
-					} else if (fcapsettings::SETT_OUTPUT_CAMS == fcapconstants::OutputCamsEn::CAM_R) {
+					} else if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 						gFrameProcessor.processFrame(NULL, &frameR, &pFrameOut);
-					} else if (fcapsettings::SETT_OUTPUT_CAMS == fcapconstants::OutputCamsEn::CAM_BOTH) {
+					} else if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 						pFrameOut = &blendedImg;
 						gFrameProcessor.processFrame(&frameL, &frameR, &pFrameOut);
 						//
@@ -193,9 +206,6 @@ namespace fcons {
 						}
 					}
 					thrLockInpQu.unlock();
-
-					//
-					haveFrames = false;
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				}

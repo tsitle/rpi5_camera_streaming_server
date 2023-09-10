@@ -179,6 +179,8 @@ namespace fprod {
 			bool haveClients = false;
 			unsigned int toHaveClients = 1;
 			unsigned int toNeedToStop = 100;
+			unsigned int toOpts = 10;
+			fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
 
 			/**auto timeStart = std::chrono::steady_clock::now();**/
 			/**log("Grabbing frames...");**/
@@ -210,8 +212,15 @@ namespace fprod {
 					continue;
 				}
 
+				// update runtime options
+				if (--toOpts == 0) {
+					opts = fcapshared::getRuntimeOptions();
+					//
+					toOpts = 10;
+				}
+
 				// grab frames
-				if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_R) {
+				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
 					gCapL >> frameL;
 					if (frameL.empty()) {
 						log("CapL: empty frame");
@@ -222,7 +231,7 @@ namespace fprod {
 						continue;
 					}
 				}
-				if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_L) {
+				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
 					gCapR >> frameR;
 					if (frameR.empty()) {
 						log("CapR: empty frame");
@@ -237,10 +246,10 @@ namespace fprod {
 
 				// store frames
 				thrLockInpQu.lock();
-				if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_R) {
+				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
 					fcons::FrameConsumer::gThrVarInpQueueL.push_back(frameL);
 				}
-				if (fcapsettings::SETT_OUTPUT_CAMS != fcapconstants::OutputCamsEn::CAM_L) {
+				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
 					fcons::FrameConsumer::gThrVarInpQueueR.push_back(frameR);
 				}
 				thrLockInpQu.unlock();

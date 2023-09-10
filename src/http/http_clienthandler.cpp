@@ -10,6 +10,7 @@
 #include "../settings.hpp"
 #include "../httpparser/httprequestparser.hpp"
 #include "../httpparser/request.hpp"
+#include "../httpparser/urlparser.hpp"
 #include "http_clienthandler.hpp"
 
 using namespace std::chrono_literals;
@@ -17,6 +18,19 @@ using namespace std::chrono_literals;
 namespace http {
 
 	const unsigned int BUFFER_SIZE = 32 * 1024;
+
+	const std::string URL_PSEUDO_HOST = "http://pseudohost";
+
+	const std::string SERVER_NAME = "HttpCamServer";
+	const std::string SERVER_VERSION = "0.1";
+
+	const std::string URL_PATH_ROOT = "/";
+	const std::string URL_PATH_STREAM = "/stream.mjpeg";
+	const std::string URL_PATH_FAVICON = "/favicon.ico";
+	const std::string URL_PATH_ENABLE_CAM_L = "/enable_cam_l";
+	const std::string URL_PATH_ENABLE_CAM_R = "/enable_cam_r";
+	const std::string URL_PATH_DISABLE_CAM_L = "/disable_cam_l";
+	const std::string URL_PATH_DISABLE_CAM_R = "/disable_cam_r";
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -96,13 +110,18 @@ namespace http {
 	void ClientHandler::handleRequest(const char *buffer, const unsigned int bufSz) {
 		bool success = false;
 		bool startStream = false;
+		bool returnJson = false;
 		unsigned int resHttpStat = 500;
 		std::ostringstream resHttpMsgStream;
 		std::string resHttpMsgString;
+		std::string requFullUri;
 		httpparser::Request request;
-		httpparser::HttpRequestParser parser;
+		httpparser::HttpRequestParser requparser;
+		httpparser::UrlParser urlparser;
+		fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+		fcapconstants::OutputCamsEn optsOutputCamsVal = opts.outputCams;
 
-		httpparser::HttpRequestParser::ParseResult res = parser.parse(request, buffer, buffer + bufSz);
+		httpparser::HttpRequestParser::ParseResult res = requparser.parse(request, buffer, buffer + bufSz);
 
 		if (res != httpparser::HttpRequestParser::ParsingCompleted) {
 			log(gThrIx, "Parsing failed");
@@ -110,47 +129,132 @@ namespace http {
 		}
 
 		/**log(gThrIx, request.inspect());**/
-		/**log(gThrIx, "uri: " + request.uri);**/
-		if (request.uri == "/") {
-			log(gThrIx, "200 Path=/");
-			resHttpMsgStream
-					<< "<!DOCTYPE html>"
-					<< "<html lang=\"en\">"
-					<< "<head>"
-						<< "<title>HttpCamServer</title>"
-					<< "</head>"
-					<< "<body>"
-						<< "<h1>HttpCamServer</h1>"
-						<< "<p>"
-							<< "<a href='/stream.mjpeg'>MJPEG Stream</a>"
-						<< "</p>"
-					<< "</body></html>";
+		requFullUri = URL_PSEUDO_HOST + request.uri;
+		if (! urlparser.parse(requFullUri)) {
+			/**log(gThrIx, "404 invalid path '" + request.uri + "'");**/
+			log(gThrIx, "404 invalid path");
+			resHttpStat = 404;
+		} else if (urlparser.path().compare(URL_PATH_ROOT) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << buildWebsite();
 			success = true;
-		} else if (request.uri == "/stream.mjpeg") {
-			log(gThrIx, "200 Path=/stream.mjpeg");
-			resHttpMsgStream << "OK";
+		} else if (urlparser.path().compare(URL_PATH_STREAM) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = true;
 			startStream = true;
-		} else if (request.uri == "/favicon.ico") {
-			log(gThrIx, "404 Path=/favicon.ico");
+		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_L) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			}
+			success = true;
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_R) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			}
+			success = true;
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_L) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_R;
+				success = true;
+			} else {
+				success = false;
+			}
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_R) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_L;
+				success = true;
+			} else {
+				success = false;
+			}
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_FAVICON) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpStat = 404;
 		} else {
-			/**log(gThrIx, "404 invalid path '" + request.uri + "'");**/
+			/**log(gThrIx, "404 invalid path '" + urlparser.path() + "'");**/
+			/**/log(gThrIx, "404 invalid query '" + urlparser.query() + "'");/**/
 			log(gThrIx, "404 invalid path");
 			resHttpStat = 404;
 		}
 
 		resHttpMsgString = resHttpMsgStream.str();
-		if (success) {
+		if (success || (! success && returnJson)) {
 			resHttpStat = 200;
 		}
 
 		//
 		if (success && startStream) {
 			startStreaming();
+		} else if (success && returnJson) {
+			if (optsOutputCamsVal != opts.outputCams) {
+				fcapshared::setRuntimeOptions_outputCams(optsOutputCamsVal);
+			}
+			//
+			resHttpMsgString = "{\"result\":\"success\"}";
+			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_JSON, &resHttpMsgString);
+		} else if (! success && returnJson) {
+			resHttpMsgString = "{\"result\":\"error\"}";
+			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_JSON, &resHttpMsgString);
 		} else {
 			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_HTML, &resHttpMsgString);
 		}
+	}
+
+	std::string ClientHandler::buildWebsite() {
+		std::ostringstream resS;
+		fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+
+		resS
+				<< "<!DOCTYPE html>"
+				<< "<html lang=\"en\">"
+				<< "<head>"
+					<< "<title>" << SERVER_NAME << "</title>"
+				<< "</head>"
+				<< "<body>"
+					<< "<h1>" << SERVER_NAME << "</h1>"
+					<< "<p>"
+						<< "<a href='" << URL_PATH_STREAM << "'>MJPEG Stream</a>"
+					<< "</p>";
+		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+			resS
+					<< "<p>"
+						<< "<a href='" << URL_PATH_ENABLE_CAM_L << "'>Enable left camera</a>"
+					<< "</p>";
+		} else {
+			resS
+					<< "<p>"
+						<< "<a href='" << URL_PATH_DISABLE_CAM_L << "'>Disable left camera</a>"
+					<< "</p>";
+		}
+		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+			resS
+					<< "<p>"
+						<< "<a href='" << URL_PATH_ENABLE_CAM_R << "'>Enable right camera</a>"
+					<< "</p>";
+		} else {
+			resS
+					<< "<p>"
+						<< "<a href='" << URL_PATH_DISABLE_CAM_R << "'>Disable right camera</a>"
+					<< "</p>";
+		}
+		resS
+					<< "<div style='margin-top:20px'>"
+						<< "<img src='" << URL_PATH_STREAM << "' width='800' height='450' />"
+					<< "</div>"
+				<< "</body></html>";
+		return resS.str();
 	}
 
 	std::string ClientHandler::buildResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
@@ -172,7 +276,7 @@ namespace http {
 		}
 		std::ostringstream ss;
 		ss << httpStatus << "\r\n";
-		ss << "Server: HttpCamServer/0.1" << "\r\n";
+		ss << "Server: " << SERVER_NAME << "/" << SERVER_VERSION << "\r\n";
 		ss << "Connection: close" << "\r\n";
 		ss << "Max-Age: 0" << "\r\n";
 		ss << "Expires: 0" << "\r\n";
@@ -196,10 +300,10 @@ namespace http {
 	bool ClientHandler::sendResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
 		std::string respMsg = buildResponse(httpStatusCode, pHttpContentType, pContent);
 
-		/**log(gThrIx, ">> " + respMsg);**/
+		/**log(gThrIx, "__>> " + respMsg);**/
 		long bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
 		if (bytesSent != (long)respMsg.size()) {
-			log(gThrIx, "Error sending response to client");
+			log(gThrIx, "__Error sending response to client");
 			return false;
 		}
 		return true;
@@ -250,7 +354,7 @@ namespace http {
 			// copy frame from queue
 			thrLockOutpQu.lock();
 			if (fcapshared::gThrCondOutpQu.wait_for(thrLockOutpQu, 1ms, []{return (! fcapshared::gThrVarOutpQueue.empty());})) {
-				/**log(gThrIx, "load frame");**/
+				/**log(gThrIx, "__load frame");**/
 				frameData = fcapshared::gThrVarOutpQueue.back();
 				#if _MEASURE_TIME_COPY == 1
 					auto timeStart = std::chrono::steady_clock::now();
@@ -264,13 +368,13 @@ namespace http {
 					pData = (unsigned char*)::realloc(pData, rsvdBufSz);
 				}
 				if (! pData) {
-					log(gThrIx, "malloc failed");
+					log(gThrIx, "__malloc failed");
 					needToStop = true;
 				} else {
 					::memcpy(pData, reinterpret_cast<unsigned char*>(&frameData[0]), bufSz);
 					#if _MEASURE_TIME_COPY == 1
 						auto timeEnd = std::chrono::steady_clock::now();
-						log(gThrIx, "copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+						log(gThrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 					#endif
 					fcapshared::gThrVarOutpQueue.pop_back();
 					//
@@ -284,7 +388,7 @@ namespace http {
 			}
 			// send frame to client
 			if (haveFrame) {
-				/**log(gThrIx, "send frame");**/
+				/**log(gThrIx, "__send frame");**/
 				//
 				++timeFpsFrames;
 				if (! timeFpsRun) {
@@ -294,7 +398,7 @@ namespace http {
 					timeFpsCur = std::chrono::steady_clock::now();
 					timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
 					if (timeFpsDiffMs >= 10000) {
-						log(gThrIx, "FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
+						log(gThrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
 						//
 						timeFpsStart = std::chrono::steady_clock::now();
 						timeFpsFrames = 0;
@@ -310,7 +414,7 @@ namespace http {
 				}
 				#if _MEASURE_TIME_SEND == 1
 					auto timeEnd = std::chrono::steady_clock::now();
-					log(gThrIx, "send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+					log(gThrIx, "__send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 				#endif
 				//
 				haveFrame = false;
@@ -335,9 +439,9 @@ namespace http {
 		bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
 		if (bytesSent != (long)respMsg.size()) {
 			if (bytesSent == -1) {
-				log(gThrIx, "Client connection closed");
+				log(gThrIx, "__Client connection closed");
 			} else {
-				log(gThrIx, "Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
+				log(gThrIx, "__Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
 			}
 			return false;
 		}
@@ -346,10 +450,9 @@ namespace http {
 		unsigned int remBufSz = bufferSz;
 		unsigned int curBufSz = BUFFER_SIZE;
 		unsigned char* pStartBuf = pData;
-		/**log(gThrIx, "data " + std::to_string(remBufSz) + " total");**/
 		/**char strBuf[1024];
-		snprintf(strBuf, sizeof(strBuf), "b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
-		std::cout << strBuf << std::endl;**/
+		snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
+		log(strBuf);**/
 		while (remBufSz != 0) {
 			if (curBufSz > remBufSz) {
 				curBufSz = remBufSz;
@@ -357,9 +460,9 @@ namespace http {
 			bytesSent = ::write(gClientSocket, pStartBuf, curBufSz);
 			if (bytesSent != (long)curBufSz) {
 				if (bytesSent == -1) {
-					log(gThrIx, "Client connection closed");
+					log(gThrIx, "__Client connection closed");
 				} else {
-					log(gThrIx, "Error sending response to client #DA (sent=" +
+					log(gThrIx, "__Error sending response to client #DA (sent=" +
 							std::to_string(bytesSent) + ", exp=" + std::to_string(curBufSz) + ", ts=" + std::to_string(sentTot) +
 							")");
 				}
@@ -369,7 +472,7 @@ namespace http {
 			remBufSz -= curBufSz;
 			pStartBuf += curBufSz;
 		}
-		/**log(gThrIx, "sent " + std::to_string(sentTot) + " total");**/
+		/**log(gThrIx, "__sent " + std::to_string(sentTot) + " total");**/
 		return true;
 	}
 
