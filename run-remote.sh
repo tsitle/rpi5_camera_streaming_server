@@ -1,12 +1,12 @@
 #!/bin/bash
 
 LVAR_REMOTE_HOST="octopi"
-LVAR_PATH="test-opencv_mpjeg_stream-cpp/test9-server_cam"
+LVAR_PATH="opencv_mjpeg_streaming_server"
 
 #rm build/*.png 2>/dev/null
 
 rsync -va --delete \
-        CMakeLists.txt comp.sh *.cpp *.hpp run.sh httpparser \
+        comp.sh run.sh src \
         $LVAR_REMOTE_HOST:$LVAR_PATH/ || exit 1
 
 ssh -t "$LVAR_REMOTE_HOST" "cd $LVAR_PATH; bash run.sh $@"
