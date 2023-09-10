@@ -1,5 +1,5 @@
-#ifndef INCLUDED_HTTP_TCP_SERVER
-#define INCLUDED_HTTP_TCP_SERVER
+#ifndef HTTP_TCP_SERVER_HPP_
+#define HTTP_TCP_SERVER_HPP_
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -37,4 +37,4 @@ namespace http {
 
 }  // namespace http
 
-#endif
+#endif  // HTTP_TCP_SERVER_HPP_

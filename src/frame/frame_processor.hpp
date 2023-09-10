@@ -1,5 +1,5 @@
-#ifndef INCLUDED_FRAME_PROCESSOR
-#define INCLUDED_FRAME_PROCESSOR
+#ifndef FRAME_PROCESSOR_HPP_
+#define FRAME_PROCESSOR_HPP_
 
 #include <string>
 #include <opencv2/opencv.hpp>
@@ -18,4 +18,4 @@ namespace fproc {
 
 }  // namespace fcons
 
-#endif
+#endif  // FRAME_PROCESSOR_HPP_

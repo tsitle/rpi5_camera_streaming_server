@@ -1,5 +1,5 @@
-#ifndef INCLUDED_FRAME_CONSUMER
-#define INCLUDED_FRAME_CONSUMER
+#ifndef FRAME_CONSUMER_HPP_
+#define FRAME_CONSUMER_HPP_
 
 #include <string>
 #include <thread>
@@ -43,4 +43,4 @@ namespace fcons {
 
 }  // namespace fcons
 
-#endif
+#endif  // FRAME_CONSUMER_HPP_

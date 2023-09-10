@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <thread>
 
-#include "shared.hpp"
-#include "settings.hpp"
+#include "../shared.hpp"
+#include "../settings.hpp"
 #include "frame_consumer.hpp"
 
 using namespace std::chrono_literals;

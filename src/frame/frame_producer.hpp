@@ -1,5 +1,5 @@
-#ifndef INCLUDED_FRAME_PRODUCER
-#define INCLUDED_FRAME_PRODUCER
+#ifndef FRAME_PRODUCER_HPP_
+#define FRAME_PRODUCER_HPP_
 
 #include <string>
 #include <thread>
@@ -37,4 +37,4 @@ namespace fprod {
 
 }  // namespace fprod
 
-#endif
+#endif  // FRAME_PRODUCER_HPP_

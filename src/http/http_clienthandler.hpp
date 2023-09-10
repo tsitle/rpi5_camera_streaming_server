@@ -1,5 +1,5 @@
-#ifndef INCLUDED_HTTP_CLIENTHANDLER
-#define INCLUDED_HTTP_CLIENTHANDLER
+#ifndef HTTP_CLIENTHANDLER_HPP_
+#define HTTP_CLIENTHANDLER_HPP_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,4 +31,4 @@ namespace http {
 
 }  // namespace http
 
-#endif
+#endif  // HTTP_CLIENTHANDLER_HPP_

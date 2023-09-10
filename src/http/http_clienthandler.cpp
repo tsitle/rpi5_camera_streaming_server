@@ -5,12 +5,12 @@
 #include <unistd.h>  // ::write()
 #include <opencv2/opencv.hpp>
 
-#include "shared.hpp"
+#include "../shared.hpp"
+#include "../constants.hpp"
+#include "../settings.hpp"
+#include "../httpparser/httprequestparser.hpp"
+#include "../httpparser/request.hpp"
 #include "http_clienthandler.hpp"
-#include "httpparser/httprequestparser.h"
-#include "httpparser/request.h"
-#include "constants.hpp"
-#include "settings.hpp"
 
 using namespace std::chrono_literals;
 

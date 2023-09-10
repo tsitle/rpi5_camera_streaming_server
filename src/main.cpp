@@ -6,9 +6,9 @@
 
 #include "shared.hpp"
 #include "settings.hpp"
-#include "frame_producer.hpp"
-#include "frame_consumer.hpp"
-#include "http_tcp_server.hpp"
+#include "frame/frame_producer.hpp"
+#include "frame/frame_consumer.hpp"
+#include "http/http_tcp_server.hpp"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
