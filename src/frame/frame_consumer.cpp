@@ -7,14 +7,10 @@
 
 using namespace std::chrono_literals;
 
-namespace fcons {
+namespace frame {
 
-	std::vector<cv::Mat> FrameConsumer::gThrVarInpQueueL;
-	std::vector<cv::Mat> FrameConsumer::gThrVarInpQueueR;
-	unsigned int FrameConsumer::gThrVarDroppedFramesInp = 0;
-	unsigned int FrameConsumer::gThrVarDroppedFramesOutp = 0;
-	std::mutex FrameConsumer::gThrMtxInpQu;
-	std::condition_variable FrameConsumer::gThrCondInpQu;
+	FrameQueueRaw FrameConsumer::gFrameQueueInpL;
+	FrameQueueRaw FrameConsumer::gFrameQueueInpR;
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -26,9 +22,13 @@ namespace fcons {
 
 	// -----------------------------------------------------------------------------
 
-	FrameConsumer::FrameConsumer() : gFrameProcessor() {
+	FrameConsumer::FrameConsumer() :
+			gFrameProcessor() {
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);
+		//
+		gFrameQueueInpL.setFrameSize(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height));
+		gFrameQueueInpR.setFrameSize(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height));
 	}
 
 	FrameConsumer::~FrameConsumer() {
@@ -66,11 +66,9 @@ namespace fcons {
 	}
 
 	void FrameConsumer::runX2() {
-		const unsigned int _MAX_QUEUE_SIZE = 10;
-		std::unique_lock<std::mutex> thrLockInpQu{gThrMtxInpQu, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
-		cv::Mat frameL;
-		cv::Mat frameR;
+		cv::Mat frameL(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
+		cv::Mat frameR(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
 		cv::Mat blendedImg;
 		cv::Mat *pFrameOut = NULL;
 		unsigned int frameNr = 0;
@@ -81,16 +79,14 @@ namespace fcons {
 		bool haveFrames = false;
 		bool needToStop = false;
 		bool willDiscard = false;
-		bool haveClients;
-		unsigned int quSzL;
-		unsigned int quSzR;
 		unsigned int toNeedToStop = 100;
+		unsigned int toFrameL = 100;
 
 		// wait for camera streams to be open
 		needToStop = ! waitForCamStreams();
 		if (needToStop) {
 			log("camera streams not open. aborting.");
-			fcapshared::setNeedToStop();
+			fcapshared::Shared::setFlagNeedToStop();
 			return;
 		}
 
@@ -99,43 +95,65 @@ namespace fcons {
 		snprintf(strBufPath, sizeof(strBufPath), "%s", fcapsettings::SETT_PNG_PATH.c_str());
 		try {
 			unsigned int toOpts = 10;
-			fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+			fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 
 			while (true) {
+				// check if we need to stop
+				if (--toNeedToStop == 0) {
+					needToStop = fcapshared::Shared::getFlagNeedToStop();
+					if (needToStop) {
+						/**log("Stopping...");**/
+						break;
+					}
+					//
+					toNeedToStop = fcapsettings::SETT_FPS;  // check every FPS * 50ms
+				}
+
 				// update runtime options
 				if (--toOpts == 0) {
-					opts = fcapshared::getRuntimeOptions();
+					opts = fcapshared::Shared::getRuntimeOptions();
 					//
 					toOpts = 10;
 				}
 
 				// read frames from queues
-				haveFrameL = false;
-				haveFrameR = false;
-				haveFrames = false;
-				thrLockInpQu.lock();
-				if (gThrCondInpQu.wait_for(thrLockInpQu, 1ms, []{return ((! gThrVarInpQueueL.empty()) || (! gThrVarInpQueueR.empty()));})) {
-					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R && ! gThrVarInpQueueL.empty()) {
-						frameL = gThrVarInpQueueL.back();
-						gThrVarInpQueueL.pop_back();
-						haveFrameL = true;
+				if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+					/**log("get L");**/
+					haveFrames = gFrameQueueInpL.getFrameFromQueue(frameL);
+				} else if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+					/**log("get R");**/
+					haveFrames = gFrameQueueInpR.getFrameFromQueue(frameR);
+				} else {
+					/**log("get B R");**/
+					haveFrameR = gFrameQueueInpR.getFrameFromQueue(frameR);
+					if (! haveFrameR) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
+						continue;
 					}
-					//
-					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L && ! gThrVarInpQueueR.empty()) {
-						frameR = gThrVarInpQueueR.back();
-						gThrVarInpQueueR.pop_back();
-						haveFrameR = true;
+					/**log("get B L");**/
+					haveFrameL = false;
+					while (! haveFrameL && toFrameL != 0) {
+						haveFrameL = gFrameQueueInpL.getFrameFromQueue(frameL);
+						if (! haveFrameL) {
+							--toFrameL;
+							std::this_thread::sleep_for(std::chrono::milliseconds((unsigned int)((1.0 / (float)(fcapsettings::SETT_FPS * 5)) * 1000.0)));
+						}
 					}
-					//
-					if ((opts.outputCams == fcapconstants::OutputCamsEn::CAM_L && haveFrameL) ||
-							(opts.outputCams == fcapconstants::OutputCamsEn::CAM_R && haveFrameR) ||
-							(opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH && haveFrameL && haveFrameR)) {
-						haveFrames = true;
+					toFrameL = 100;
+					if (! haveFrameL) {
+						/**/log("get B L giving up");/**/
+						continue;
 					}
+					haveFrames = true;
 				}
-				thrLockInpQu.unlock();
+				/**log("get done");**/
 
 				// handle frames
+				if (haveFrames && opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+					if (frameL.size() != frameR.size()) {
+						haveFrames = false;
+					}
+				}
 				if (haveFrames) {
 					++frameNr;
 					willDiscard = true;
@@ -176,65 +194,8 @@ namespace fcons {
 					if (willDiscard) {
 						log("discarded frame");
 					}
-
-					// flush queues so we don't waste RAM with old frames
-					///
-					thrLockRunningCltHnds.lock();
-					haveClients = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
-					thrLockRunningCltHnds.unlock();
-					///
-					thrLockInpQu.lock();
-					quSzL = gThrVarInpQueueL.size();
-					quSzR = gThrVarInpQueueR.size();
-					if (quSzL > _MAX_QUEUE_SIZE || quSzR > _MAX_QUEUE_SIZE) {
-						if (haveClients) {
-							gThrVarDroppedFramesInp += (quSzL > quSzR ? quSzL : quSzR);
-						}
-						/**log("Emptying queues"
-								", queueL=" + std::to_string(quSzL) +
-								", queueR=" + std::to_string(quSzR) +
-								" ...");**/
-						while (! gThrVarInpQueueL.empty()) {
-							gThrVarInpQueueL.pop_back();
-						}
-						while (! gThrVarInpQueueR.empty()) {
-							gThrVarInpQueueR.pop_back();
-						}
-					}
-					thrLockInpQu.unlock();
 				} else {
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				}
-
-				// check if we need to stop
-				if (--toNeedToStop == 0) {
-					needToStop = fcapshared::getNeedToStop();
-					if (needToStop) {
-						/**log("Stopping...");**/
-						//
-						thrLockRunningCltHnds.lock();
-						haveClients = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
-						thrLockRunningCltHnds.unlock();
-						//
-						unsigned int droppedL = 0;
-						unsigned int droppedR = 0;
-						thrLockInpQu.lock();
-						while (! gThrVarInpQueueL.empty()) {
-							++droppedL;
-							gThrVarInpQueueL.pop_back();
-						}
-						while (! gThrVarInpQueueR.empty()) {
-							++droppedR;
-							gThrVarInpQueueR.pop_back();
-						}
-						if (haveClients) {
-							gThrVarDroppedFramesInp += (droppedL > droppedR ? droppedL : droppedR);
-						}
-						thrLockInpQu.unlock();
-						break;
-					}
-					//
-					toNeedToStop = fcapsettings::SETT_FPS;  // check every FPS * 100ms
+					std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				}
 			}
 		} catch (std::exception& err) {
@@ -242,40 +203,16 @@ namespace fcons {
 		}
 
 		//
-		log("dropped fames inp=" + std::to_string(getDroppedFramesCountInp()));
-		log("dropped fames out=" + std::to_string(getDroppedFramesCountOutp()));
+		log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
+		log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
+		log("dropped fames out=" + std::to_string(fcapshared::gFrameQueueOutp.getDroppedFramesCount()));
 
 		//
 		log("ENDED");
 	}
 
-	unsigned int FrameConsumer::getDroppedFramesCountInp() {
-		unsigned int resI;
-		std::unique_lock<std::mutex> thrLockInpQu{gThrMtxInpQu, std::defer_lock};
-
-		thrLockInpQu.lock();
-		resI = gThrVarDroppedFramesInp;
-		thrLockInpQu.unlock();
-		return resI;
-	}
-
-	unsigned int FrameConsumer::getDroppedFramesCountOutp() {
-		unsigned int resI;
-		std::unique_lock<std::mutex> thrLockInpQu{gThrMtxInpQu, std::defer_lock};
-
-		thrLockInpQu.lock();
-		resI = gThrVarDroppedFramesOutp;
-		thrLockInpQu.unlock();
-		return resI;
-	}
-
 	void FrameConsumer::outputFrameToQueue(const cv::Mat &frame) {
-		const unsigned int _MAX_QUEUE_SIZE = 10;
-		std::unique_lock<std::mutex> thrLockInpQu{gThrMtxInpQu, std::defer_lock};
-		std::unique_lock<std::mutex> thrLockOutpQu{fcapshared::gThrMtxOutpQu, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
-		std::vector<unsigned char> jpegFrame;
-		unsigned int dropped = 0;
 		bool haveClients;
 
 		//
@@ -283,27 +220,16 @@ namespace fcons {
 		haveClients = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
 		thrLockRunningCltHnds.unlock();
 		if (! haveClients) {
+			/**log("output no clients");**/
 			return;
 		}
+
 		//
+		std::vector<unsigned char> jpegFrame;
 		cv::imencode(".jpg", frame, jpegFrame, gCompressionParams);
-		//
-		thrLockOutpQu.lock();
-		while (fcapshared::gThrVarOutpQueue.size() > _MAX_QUEUE_SIZE) {
-			/**log("discard frame output");**/
-			fcapshared::gThrVarOutpQueue.pop_back();
-			++dropped;
-		}
-		/**log("put frame");**/
-		fcapshared::gThrVarOutpQueue.push_back(jpegFrame);
-		thrLockOutpQu.unlock();
-		fcapshared::gThrCondOutpQu.notify_all();
-		//
-		if (dropped != 0) {
-			thrLockInpQu.lock();
-			gThrVarDroppedFramesOutp += dropped;
-			thrLockInpQu.unlock();
-		}
+		/**log("put frame beg");**/
+		fcapshared::gFrameQueueOutp.appendFrameToQueue(jpegFrame);
+		/**log("put frame end");**/
 	}
 
-}  // namespace fcons
+}  // namespace frame

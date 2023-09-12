@@ -19,6 +19,10 @@ find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-add_executable( HttpCamServer main.cpp http/http_tcp_server.cpp http/http_clienthandler.cpp frame/frame_producer.cpp frame/frame_consumer.cpp frame/frame_processor.cpp )
+add_executable( HttpCamServer
+    main.cpp shared.cpp
+    http/http_tcp_server.cpp http/http_clienthandler.cpp
+    frame/frame_producer.cpp frame/frame_consumer.cpp frame/frame_processor.cpp frame/frame_queue.cpp
+  )
 
 target_link_libraries( HttpCamServer PRIVATE ${OpenCV_LIBS} Threads::Threads )

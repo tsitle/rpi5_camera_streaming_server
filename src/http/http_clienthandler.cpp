@@ -17,7 +17,7 @@ using namespace std::chrono_literals;
 
 namespace http {
 
-	const unsigned int BUFFER_SIZE = 32 * 1024;
+	const uint32_t BUFFER_SIZE = 32 * 1024;
 
 	const std::string URL_PSEUDO_HOST = "http://pseudohost";
 
@@ -35,7 +35,7 @@ namespace http {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	ClientHandler::ClientHandler(const unsigned int thrIx, const int socket) :
+	ClientHandler::ClientHandler(const uint32_t thrIx, const int socket) :
 			gThrIx(thrIx),
 			gClientSocket(socket) {
 		char buffer[BUFFER_SIZE] = {0};
@@ -61,7 +61,7 @@ namespace http {
 			log(gThrIx, "Failed to read bytes from client socket connection");
 		} else {
 			/**log(gThrIx, "------ Received Request from client ------");**/
-			handleRequest(buffer, (unsigned int)bytesReceived);
+			handleRequest(buffer, (uint32_t)bytesReceived);
 		}
 	}
 
@@ -70,7 +70,7 @@ namespace http {
 		::close(gClientSocket);
 	}
 
-	std::thread ClientHandler::startThread(const unsigned int thrIx, const int socket) {
+	std::thread ClientHandler::startThread(const uint32_t thrIx, const int socket) {
 		std::thread threadClientObj(_startThread_internal, thrIx, socket);
 		threadClientObj.detach();
 		return threadClientObj;
@@ -79,7 +79,7 @@ namespace http {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void ClientHandler::_startThread_internal(const unsigned int thrIx, const int socket) {
+	void ClientHandler::_startThread_internal(const uint32_t thrIx, const int socket) {
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 
 		//
@@ -103,22 +103,22 @@ namespace http {
 		/**log(thrIx, "thread end");**/
 	}
 
-	void ClientHandler::log(const unsigned int thrIx, const std::string &message) {
+	void ClientHandler::log(const uint32_t thrIx, const std::string &message) {
 		std::cout << "CLIENT#" << std::to_string(thrIx) << ": " << message << std::endl;
 	}
 
-	void ClientHandler::handleRequest(const char *buffer, const unsigned int bufSz) {
+	void ClientHandler::handleRequest(const char *buffer, const uint32_t bufSz) {
 		bool success = false;
 		bool startStream = false;
 		bool returnJson = false;
-		unsigned int resHttpStat = 500;
+		uint32_t resHttpStat = 500;
 		std::ostringstream resHttpMsgStream;
 		std::string resHttpMsgString;
 		std::string requFullUri;
 		httpparser::Request request;
 		httpparser::HttpRequestParser requparser;
 		httpparser::UrlParser urlparser;
-		fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 		fcapconstants::OutputCamsEn optsOutputCamsVal = opts.outputCams;
 
 		httpparser::HttpRequestParser::ParseResult res = requparser.parse(request, buffer, buffer + bufSz);
@@ -199,7 +199,7 @@ namespace http {
 			startStreaming();
 		} else if (success && returnJson) {
 			if (optsOutputCamsVal != opts.outputCams) {
-				fcapshared::setRuntimeOptions_outputCams(optsOutputCamsVal);
+				fcapshared::Shared::setRuntimeOptions_outputCams(optsOutputCamsVal);
 			}
 			//
 			resHttpMsgString = "{\"result\":\"success\"}";
@@ -214,7 +214,7 @@ namespace http {
 
 	std::string ClientHandler::buildWebsite() {
 		std::ostringstream resS;
-		fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 
 		resS
 				<< "<!DOCTYPE html>"
@@ -257,7 +257,7 @@ namespace http {
 		return resS.str();
 	}
 
-	std::string ClientHandler::buildResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
+	std::string ClientHandler::buildResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
 		std::string httpStatus = "HTTP/1.1 ";
 		switch (httpStatusCode) {
 			case 200:
@@ -270,7 +270,7 @@ namespace http {
 				httpStatus += "500 Internal Server Error";
 		}
 
-		unsigned int cntSz = (pContent != NULL ? pContent->size() : 0);
+		uint32_t cntSz = (pContent != NULL ? pContent->size() : 0);
 		if (cntSz != 0) {
 			cntSz += 2;
 		}
@@ -297,7 +297,7 @@ namespace http {
 		return ss.str();
 	}
 
-	bool ClientHandler::sendResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
+	bool ClientHandler::sendResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
 		std::string respMsg = buildResponse(httpStatusCode, pHttpContentType, pContent);
 
 		/**log(gThrIx, "__>> " + respMsg);**/
@@ -312,22 +312,24 @@ namespace http {
 	void ClientHandler::startStreaming() {
 		#define _MEASURE_TIME_COPY  0
 		#define _MEASURE_TIME_SEND  0
-		std::unique_lock<std::mutex> thrLockOutpQu{fcapshared::gThrMtxOutpQu, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
-		std::vector<unsigned char> frameData;
 		bool haveFrame = false;
 		bool resB;
 		bool needToStop = false;
-		unsigned int bufSz = 0;
-		unsigned int rsvdBufSz = 0;
-		unsigned char* pData = NULL;
-		unsigned int toNeedToStop = 100;
+		uint32_t bufSz = 0;
+		uint32_t rsvdBufSz = 64 * 1024;
+		uint8_t* pData = (uint8_t*)::malloc(rsvdBufSz);
+		uint32_t toNeedToStop = 100;
 		auto timeFpsStart = std::chrono::steady_clock::now();
 		auto timeFpsCur = std::chrono::steady_clock::now();
 		bool timeFpsRun = false;
-		unsigned int timeFpsDiffMs;
-		unsigned int timeFpsFrames = 0;
+		uint32_t timeFpsDiffMs;
+		uint32_t timeFpsFrames = 0;
 
+		//
+		if (pData == NULL) {
+			return;
+		}
 		//
 		thrLockRunningCltHnds.lock();
 		++fcapshared::gThrVarRunningCltsStc.runningStreamsCount;
@@ -340,7 +342,7 @@ namespace http {
 		while (true) {
 			// check if we need to stop
 			if (--toNeedToStop == 0) {
-				needToStop = fcapshared::getNeedToStop();
+				needToStop = fcapshared::Shared::getFlagNeedToStop();
 				if (needToStop) {
 					break;
 				}
@@ -348,40 +350,16 @@ namespace http {
 			}
 
 			// copy frame from queue
-			thrLockOutpQu.lock();
-			if (fcapshared::gThrCondOutpQu.wait_for(thrLockOutpQu, 1ms, []{return (! fcapshared::gThrVarOutpQueue.empty());})) {
-				/**log(gThrIx, "__load frame");**/
-				frameData = fcapshared::gThrVarOutpQueue.back();
-				#if _MEASURE_TIME_COPY == 1
-					auto timeStart = std::chrono::steady_clock::now();
-				#endif
-				bufSz = frameData.size();
-				if (pData == NULL) {
-					rsvdBufSz = bufSz;
-					pData = (unsigned char*)::malloc(rsvdBufSz);
-				} else if (bufSz > rsvdBufSz) {
-					rsvdBufSz = bufSz;
-					pData = (unsigned char*)::realloc(pData, rsvdBufSz);
+			#if _MEASURE_TIME_COPY == 1
+				auto timeStart = std::chrono::steady_clock::now();
+			#endif
+			haveFrame = fcapshared::gFrameQueueOutp.getFrameFromQueue(&pData, rsvdBufSz, bufSz);
+			#if _MEASURE_TIME_COPY == 1
+				auto timeEnd = std::chrono::steady_clock::now();
+				if (haveFrame) {
+					log(gThrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 				}
-				if (! pData) {
-					log(gThrIx, "__malloc failed");
-					needToStop = true;
-				} else {
-					::memcpy(pData, reinterpret_cast<unsigned char*>(&frameData[0]), bufSz);
-					#if _MEASURE_TIME_COPY == 1
-						auto timeEnd = std::chrono::steady_clock::now();
-						log(gThrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-					#endif
-					fcapshared::gThrVarOutpQueue.pop_back();
-					//
-					haveFrame = true;
-				}
-			}
-			thrLockOutpQu.unlock();
-			//
-			if (needToStop) {
-				break;
-			}
+			#endif
 
 			// send frame to client
 			if (haveFrame) {
@@ -428,7 +406,7 @@ namespace http {
 		thrLockRunningCltHnds.unlock();
 	}
 
-	bool ClientHandler::sendFrame(unsigned char* pData, const unsigned int bufferSz) {
+	bool ClientHandler::sendFrame(uint8_t* pData, const uint32_t bufferSz) {
 		long bytesSent;
 
 		std::string respMsg = gRespMultipartPrefix + std::to_string(bufferSz) + "\r\n\r\n";
@@ -443,13 +421,13 @@ namespace http {
 			return false;
 		}
 		//
-		unsigned int sentTot = 0;
-		unsigned int remBufSz = bufferSz;
-		unsigned int curBufSz = BUFFER_SIZE;
-		unsigned char* pStartBuf = pData;
+		uint32_t sentTot = 0;
+		uint32_t remBufSz = bufferSz;
+		uint32_t curBufSz = BUFFER_SIZE;
+		uint8_t* pStartBuf = pData;
 		/**char strBuf[1024];
 		snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
-		log(strBuf);**/
+		log(gThrIx, strBuf);**/
 		while (remBufSz != 0) {
 			if (curBufSz > remBufSz) {
 				curBufSz = remBufSz;

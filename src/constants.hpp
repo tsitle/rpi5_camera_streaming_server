@@ -8,13 +8,14 @@ namespace fcapconstants {
 
 	const cv::Size PIPE_CAPTURE_SZ_1536X864 = cv::Size(1536, 864);
 	const cv::Size PIPE_CAPTURE_SZ_2304X1296 = cv::Size(2304, 1296);
-	const cv::Size PIPE_CAPTURE_SZ_4608X2592 = cv::Size(4608, 2592); // to big for Compuate Modul 4, two cameras and 1GB of RAM
+	//const cv::Size PIPE_CAPTURE_SZ_4608X2592 = cv::Size(4608, 2592);  // too big for Compute Modul 4, two cameras and 1GB of RAM (ERROR V4L2 v4l2_videodevice.cpp:1248 /dev/video14[19:cap]: Not enough buffers provided by V4L2VideoDevice)
 
 	const cv::Size PIPE_OUTPUT_SZ_640X360 = cv::Size(640, 360);
 	const cv::Size PIPE_OUTPUT_SZ_800X450 = cv::Size(800, 450);
 	const cv::Size PIPE_OUTPUT_SZ_1024X576 = cv::Size(1024, 576);
 	const cv::Size PIPE_OUTPUT_SZ_1280X720 = cv::Size(1280, 720);
 	const cv::Size PIPE_OUTPUT_SZ_1920X1080 = cv::Size(1920, 1080);
+	//const cv::Size PIPE_OUTPUT_SZ_2560x1440 = cv::Size(2560, 1440);  // too big for Compute Modul 4, two cameras and 1GB of RAM (ERROR V4L2 v4l2_videodevice.cpp:1248 /dev/video14[19:cap]: Not enough buffers provided by V4L2VideoDevice)
 
 	const std::string PIPE_FMT_S_BGR("BGR");
 	const std::string PIPE_FMT_S_BGRX("BGRx");

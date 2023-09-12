@@ -4,7 +4,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
-namespace fproc {
+namespace frame {
 
 	class FrameProcessor {
 		public:
@@ -16,6 +16,6 @@ namespace fproc {
 			void log(const std::string &message);
 	};
 
-}  // namespace fcons
+}  // namespace frame
 
 #endif  // FRAME_PROCESSOR_HPP_

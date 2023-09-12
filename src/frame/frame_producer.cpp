@@ -18,7 +18,7 @@
 
 using namespace std::chrono_literals;
 
-namespace fprod {
+namespace frame {
 
 	std::thread FrameProducer::startThread() {
 		std::thread threadObj(_startThread_internal);
@@ -26,6 +26,7 @@ namespace fprod {
 	}
 
 	// -----------------------------------------------------------------------------
+
 	FrameProducer::FrameProducer() {
 	}
 
@@ -166,7 +167,6 @@ namespace fprod {
 
 	void FrameProducer::runX1(void) {
 		const unsigned int _MAX_EMPTY_FRAMES = 0;
-		std::unique_lock<std::mutex> thrLockInpQu{fcons::FrameConsumer::gThrMtxInpQu, std::defer_lock};
 		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 
 		try {
@@ -179,13 +179,13 @@ namespace fprod {
 			unsigned int toHaveClients = 1;
 			unsigned int toNeedToStop = 100;
 			unsigned int toOpts = 10;
-			fcapshared::RuntimeOptionsStc opts = fcapshared::getRuntimeOptions();
+			fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 
 			/**auto timeStart = std::chrono::steady_clock::now();**/
 			/**log("Grabbing frames...");**/
 			while (true) {
 				if (--toNeedToStop == 0) {
-					needToStop = fcapshared::getNeedToStop();
+					needToStop = fcapshared::Shared::getFlagNeedToStop();
 					if (needToStop) {
 						/**log("Stopping to read frames");**/
 						break;
@@ -209,7 +209,7 @@ namespace fprod {
 
 				// update runtime options
 				if (--toOpts == 0) {
-					opts = fcapshared::getRuntimeOptions();
+					opts = fcapshared::Shared::getRuntimeOptions();
 					//
 					toOpts = 10;
 				}
@@ -240,23 +240,22 @@ namespace fprod {
 				++frameNr;
 
 				// store frames
-				thrLockInpQu.lock();
 				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
-					fcons::FrameConsumer::gThrVarInpQueueL.push_back(frameL);
+					/**log("app L");**/
+					FrameConsumer::gFrameQueueInpL.appendFrameToQueue(frameL);
 				}
 				if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
-					fcons::FrameConsumer::gThrVarInpQueueR.push_back(frameR);
+					/**log("app R");**/
+					FrameConsumer::gFrameQueueInpR.appendFrameToQueue(frameR);
 				}
-				thrLockInpQu.unlock();
-				fcons::FrameConsumer::gThrCondInpQu.notify_all();
 
 				//
-				std::this_thread::sleep_for(std::chrono::milliseconds((unsigned int)((1.0 / (float)fcapsettings::SETT_FPS) * 1000.0)) / 2);
+				std::this_thread::sleep_for(std::chrono::milliseconds((unsigned int)((1.0 / (float)(fcapsettings::SETT_FPS * 5)) * 1000.0)));
 
 				//
 				/*if (frameNr == fcapsettings::SETT_FPS * 5) {
 					log("Setting STOP flag...");
-					fcapshared::setNeedToStop();
+					fcapshared::Shared::setFlagNeedToStop();
 					//
 					break;
 				}*/
@@ -289,13 +288,8 @@ namespace fprod {
 				log("still waiting for queues...");
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-			thrLockInpQu.lock();
-			needToWait = ! (fcons::FrameConsumer::gThrVarInpQueueL.empty() && fcons::FrameConsumer::gThrVarInpQueueR.empty());
-			/*if (needToWait) {
-				log("queueL size=" + std::to_string(gThrVarInpQueueL.size()) +
-						", queueR size=" + std::to_string(gThrVarInpQueueR.size()));
-			}*/
-			thrLockInpQu.unlock();
+			needToWait = ! (FrameConsumer::gFrameQueueInpL.isQueueEmpty() &&
+					FrameConsumer::gFrameQueueInpR.isQueueEmpty());
 			//
 			if (needToWait) {
 				thrLockRunningCltHnds.lock();
@@ -310,9 +304,9 @@ namespace fprod {
 		}
 
 		//
-		fcapshared::setNeedToStop();
+		fcapshared::Shared::setFlagNeedToStop();
 		//
 		log("ENDED");
 	}
 
-}  // namespace fprod
+}  // namespace frame

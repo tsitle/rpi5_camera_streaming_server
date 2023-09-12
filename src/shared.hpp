@@ -7,15 +7,9 @@
 #include <opencv2/opencv.hpp>
 
 #include "constants.hpp"
+#include "frame/frame_queue.hpp"
 
 namespace fcapshared {
-
-	extern bool gThrVarNeedToStop;
-	extern std::mutex gThrMtxNeedToStop;
-	extern std::condition_variable gThrCondNeedToStop;
-
-	extern void setNeedToStop();
-	extern bool getNeedToStop();
 
 	//
 	extern bool gThrVarCamStreamsOpened;
@@ -23,9 +17,7 @@ namespace fcapshared {
 	extern std::condition_variable gThrCondCamStreamsOpened;
 
 	//
-	extern std::vector<std::vector<unsigned char>> gThrVarOutpQueue;
-	extern std::mutex gThrMtxOutpQu;
-	extern std::condition_variable gThrCondOutpQu;
+	extern frame::FrameQueueJpeg gFrameQueueOutp;
 
 	//
 	struct RunningCltsStc {
@@ -40,12 +32,25 @@ namespace fcapshared {
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
 	};
-	extern RuntimeOptionsStc gThrVargRuntimeOptions;
-	extern std::mutex gThrMtxRuntimeOptions;
 
-	//
-	extern RuntimeOptionsStc getRuntimeOptions();
-	extern void setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val);
+	class Shared {
+		public:
+			static void initGlobals();
+			//
+			static void setFlagNeedToStop();
+			static bool getFlagNeedToStop();
+			//
+			static RuntimeOptionsStc getRuntimeOptions();
+			static void setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val);
+
+		private:
+			static bool gThrVarNeedToStop;
+			static std::mutex gThrMtxNeedToStop;
+			static std::condition_variable gThrCondNeedToStop;
+			//
+			static RuntimeOptionsStc gThrVargRuntimeOptions;
+			static std::mutex gThrMtxRuntimeOptions;
+	};
 
 }  // namespace fcapshared
 

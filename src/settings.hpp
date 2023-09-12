@@ -11,11 +11,24 @@ namespace fcapsettings {
 	const unsigned int SETT_SERVER_PORT = 8090;
 
 	const unsigned int SETT_JPEG_QUALITY = 70;  // 0..100
-	const unsigned int SETT_FPS = 10;
+
+	/**
+	 * Single Camera:
+	 *   55 for Capt= 640,Outp= 640
+	 *   50 for Capt=1536,Outp= 640
+	 *   45 for Capt=1536,Outp= 800
+	 *   26 for Capt=2304,Outp= 640
+	 *   23 for Capt=1536,Outp=1280
+	 *   16 for Capt=1280,Outp=1280
+	 *   10 for Capt=2304,Outp=1296
+	 *    7 for Capt=2304,Outp=2304
+	 */
+	const unsigned int SETT_FPS = 23 / 2;
+
 	const std::string SETT_PNG_PATH = "/media/usbhd";
 
-	const cv::Size SETT_CAPTURE_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;
-	const cv::Size SETT_OUTPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;
+	const cv::Size SETT_CAPTURE_SZ = fcapconstants::PIPE_CAPTURE_SZ_1536X864;  // can also be a PIPE_OUTPUT_SZ_*
+	const cv::Size SETT_OUTPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;  // can also be a PIPE_CAPTURE_SZ_*
 
 	const bool SETT_WRITE_PNG_TO_FILE_L = false;
 	const bool SETT_WRITE_PNG_TO_FILE_R = false;

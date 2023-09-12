@@ -1,4 +1,3 @@
-#include <chrono>
 #include <iostream>
 #include <signal.h>
 #include <thread>
@@ -9,74 +8,6 @@
 #include "frame/frame_producer.hpp"
 #include "frame/frame_consumer.hpp"
 #include "http/http_tcp_server.hpp"
-
-using namespace std::chrono_literals;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-//
-bool fcapshared::gThrVarNeedToStop = false;
-std::mutex fcapshared::gThrMtxNeedToStop;
-std::condition_variable fcapshared::gThrCondNeedToStop;
-
-void fcapshared::setNeedToStop() {
-	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxNeedToStop, std::defer_lock};
-
-	thrLock.lock();
-	fcapshared::gThrVarNeedToStop = true;
-	thrLock.unlock();
-	fcapshared::gThrCondNeedToStop.notify_all();
-}
-
-bool fcapshared::getNeedToStop() {
-	bool resB = false;
-	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxNeedToStop, std::defer_lock};
-
-	thrLock.lock();
-	if (fcapshared::gThrCondNeedToStop.wait_for(thrLock, 1ms, []{return fcapshared::gThrVarNeedToStop;})) {
-		resB = true;
-	}
-	thrLock.unlock();
-	return resB;
-}
-
-//
-bool fcapshared::gThrVarCamStreamsOpened = false;
-std::mutex fcapshared::gThrMtxCamStreamsOpened;
-std::condition_variable fcapshared::gThrCondCamStreamsOpened;
-
-//
-std::vector<std::vector<unsigned char>> fcapshared::gThrVarOutpQueue;
-std::mutex fcapshared::gThrMtxOutpQu;
-std::condition_variable fcapshared::gThrCondOutpQu;
-
-//
-fcapshared::RunningCltsStc fcapshared::gThrVarRunningCltsStc;
-std::unordered_map<unsigned int, bool> fcapshared::gThrVarRunningCltHndsMap;
-std::mutex fcapshared::gThrMtxRunningCltHnds;
-
-//
-fcapshared::RuntimeOptionsStc fcapshared::gThrVargRuntimeOptions;
-std::mutex fcapshared::gThrMtxRuntimeOptions;
-
-fcapshared::RuntimeOptionsStc fcapshared::getRuntimeOptions() {
-	fcapshared::RuntimeOptionsStc resStc;
-	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxRuntimeOptions, std::defer_lock};
-
-	thrLock.lock();
-	resStc = fcapshared::gThrVargRuntimeOptions;
-	thrLock.unlock();
-	return resStc;
-}
-
-void fcapshared::setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val) {
-	std::unique_lock<std::mutex> thrLock{fcapshared::gThrMtxRuntimeOptions, std::defer_lock};
-
-	thrLock.lock();
-	fcapshared::gThrVargRuntimeOptions.outputCams = val;
-	thrLock.unlock();
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -91,7 +22,7 @@ void sigHandlerCtrlC(__attribute__((unused)) int s) {
 	#undef _UNUSED*/
 
 	log("Caught CTRL-C");
-	fcapshared::setNeedToStop();
+	fcapshared::Shared::setFlagNeedToStop();
 }
 
 bool initSignalHandlers() {
@@ -111,18 +42,10 @@ bool initSignalHandlers() {
 	return true;
 }
 
-void initGlobals() {
-	fcapshared::gThrVarRunningCltsStc.runningHandlersCount = 0;
-	fcapshared::gThrVarRunningCltsStc.runningStreamsCount = 0;
-
-	//
-	fcapshared::gThrVargRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
-}
-
 // -----------------------------------------------------------------------------
 
 int main() {
-	initGlobals();
+	fcapshared::Shared::initGlobals();
 	if (! initSignalHandlers()) {
 		return -1;
 	}
@@ -134,10 +57,10 @@ int main() {
 	}
 
 	// start frame producer thread
-	std::thread threadProdObj = fprod::FrameProducer::startThread();
+	std::thread threadProdObj = frame::FrameProducer::startThread();
 
 	// start frame consumer thread
-	std::thread threadConsObj = fcons::FrameConsumer::startThread();
+	std::thread threadConsObj = frame::FrameConsumer::startThread();
 
 	// start HTTP server
 	server.startListen();

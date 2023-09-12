@@ -5,7 +5,7 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 
-namespace fprod {
+namespace frame {
 
 	class FrameProducer {
 		public:
@@ -35,6 +35,6 @@ namespace fprod {
 			void runX1(void);
 	};
 
-}  // namespace fprod
+}  // namespace frame
 
 #endif  // FRAME_PRODUCER_HPP_

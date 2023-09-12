@@ -7,7 +7,7 @@
 
 using namespace std::chrono_literals;
 
-namespace fproc {
+namespace frame {
 
 	FrameProcessor::FrameProcessor() {
 	}
@@ -32,4 +32,4 @@ namespace fproc {
 		std::cout << "FPROC: " << message << std::endl;
 	}
 
-}  // namespace fproc
+}  // namespace frame

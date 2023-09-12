@@ -9,27 +9,27 @@ namespace http {
 
 	class ClientHandler {
 		public:
-			ClientHandler(const unsigned int thrIx, const int socket);
+			ClientHandler(const uint32_t thrIx, const int socket);
 			~ClientHandler();
-			static std::thread startThread(const unsigned int thrIx, const int socket);
+			static std::thread startThread(const uint32_t thrIx, const int socket);
 
 		private:
-			unsigned int gThrIx;
+			uint32_t gThrIx;
 			int gClientSocket;
 			std::string gRespMultipartPrefix;
 
 			//
 
-			static void _startThread_internal(const unsigned int thrIx, const int socket);
-			static void log(const unsigned int thrIx, const std::string &message);
+			static void _startThread_internal(const uint32_t thrIx, const int socket);
+			static void log(const uint32_t thrIx, const std::string &message);
 			//
-			void handleRequest(const char *buffer, const unsigned int bufSz);
+			void handleRequest(const char *buffer, const uint32_t bufSz);
 			std::string buildWebsite();
-			std::string buildResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
-			bool sendResponse(const unsigned int httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
+			std::string buildResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
+			bool sendResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
 			//
 			void startStreaming();
-			bool sendFrame(unsigned char* pData, const unsigned int bufferSz);
+			bool sendFrame(uint8_t* pData, const uint32_t bufferSz);
 	};
 
 }  // namespace http

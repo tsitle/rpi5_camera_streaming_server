@@ -57,16 +57,16 @@ namespace http {
 		log(ss.str());
 
 		while (true) {
+			// check if we need to stop
+			needToStop = fcapshared::Shared::getFlagNeedToStop();
+			if (needToStop) {
+				break;
+			}
+
 			/**log("Waiting for a new connection...");**/
 			newSocket = acceptConnection();
 			if (newSocket < 0) {
 				continue;
-			}
-
-			// check if we need to stop
-			needToStop = fcapshared::getNeedToStop();
-			if (needToStop) {
-				break;
 			}
 
 			//
@@ -120,7 +120,7 @@ namespace http {
 
 	void TcpServer::exitWithError(const std::string &errorMessage) {
 		log("ERROR: " + errorMessage);
-		fcapshared::setNeedToStop();
+		fcapshared::Shared::setFlagNeedToStop();
 	}
 
 }  // namespace http
