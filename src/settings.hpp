@@ -13,9 +13,9 @@ namespace fcapsettings {
 	const unsigned int SETT_JPEG_QUALITY = 70;  // 0..100
 
 	/**
-	 * Single Camera:
-	 *   55 for Capt= 640,Outp= 640
-	 *   50 for Capt=1536,Outp= 640
+	 * Single Camera:                Dual Cameras:
+	 *   57 for Capt= 640,Outp= 640
+	 *   50 for Capt=1536,Outp= 640    34
 	 *   45 for Capt=1536,Outp= 800
 	 *   26 for Capt=2304,Outp= 640
 	 *   23 for Capt=1536,Outp=1280
