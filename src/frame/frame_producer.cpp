@@ -3,6 +3,7 @@
 
 #include "../shared.hpp"
 #include "../settings.hpp"
+#include "../http/http_tcp_server.hpp"
 #include "frame_producer.hpp"
 #include "frame_consumer.hpp"
 
@@ -20,14 +21,15 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
-	std::thread FrameProducer::startThread() {
-		std::thread threadObj(_startThread_internal);
+	std::thread FrameProducer::startThread(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) {
+		std::thread threadObj(_startThread_internal, cbGetRunningHandlersCount);
 		return threadObj;
 	}
 
 	// -----------------------------------------------------------------------------
 
-	FrameProducer::FrameProducer() {
+	FrameProducer::FrameProducer(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) :
+			gCbGetRunningHandlersCount(cbGetRunningHandlersCount) {
 	}
 
 	FrameProducer::~FrameProducer() {
@@ -36,12 +38,12 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameProducer::_startThread_internal() {
+	void FrameProducer::_startThread_internal(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) {
 		if (! fcapsettings::SETT_OPEN_CAM_STREAMS) {
 			return;
 		}
 
-		FrameProducer frameProdObj = FrameProducer();
+		FrameProducer frameProdObj(cbGetRunningHandlersCount);
 
 		bool resB = frameProdObj.openStreams();
 		if (! resB) {
@@ -167,7 +169,6 @@ namespace frame {
 
 	void FrameProducer::runX1(void) {
 		const unsigned int _MAX_EMPTY_FRAMES = 0;
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 
 		try {
 			cv::Mat frameL;  // Mat is a 'n-dimensional dense array class'
@@ -196,9 +197,7 @@ namespace frame {
 
 				// only store frames if we have clients waiting for them
 				if (--toHaveClients == 0) {
-					thrLockRunningCltHnds.lock();
-					haveClients = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
-					thrLockRunningCltHnds.unlock();
+					haveClients = (gCbGetRunningHandlersCount() > 0);
 					//
 					toHaveClients = 10;
 				}
@@ -292,9 +291,7 @@ namespace frame {
 					FrameConsumer::gFrameQueueInpR.isQueueEmpty());
 			//
 			if (needToWait) {
-				thrLockRunningCltHnds.lock();
-				needToWait = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
-				thrLockRunningCltHnds.unlock();
+				needToWait = (gCbGetRunningHandlersCount() > 0);
 			}
 			//
 			if (needToWait && ++waitCnt == 10) {

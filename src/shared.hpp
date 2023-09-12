@@ -17,18 +17,6 @@ namespace fcapshared {
 	extern std::condition_variable gThrCondCamStreamsOpened;
 
 	//
-	extern frame::FrameQueueJpeg gFrameQueueOutp;
-
-	//
-	struct RunningCltsStc {
-		int runningHandlersCount;
-		int runningStreamsCount;
-	};
-	extern RunningCltsStc gThrVarRunningCltsStc;
-	extern std::unordered_map<unsigned int, bool> gThrVarRunningCltHndsMap;
-	extern std::mutex gThrMtxRunningCltHnds;
-
-	//
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
 	};

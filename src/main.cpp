@@ -57,10 +57,13 @@ int main() {
 	}
 
 	// start frame producer thread
-	std::thread threadProdObj = frame::FrameProducer::startThread();
+	std::thread threadProdObj = frame::FrameProducer::startThread(server.getRunningHandlersCount);
 
 	// start frame consumer thread
-	std::thread threadConsObj = frame::FrameConsumer::startThread();
+	std::thread threadConsObj = frame::FrameConsumer::startThread(
+			server.getRunningHandlersCount,
+			server.broadcastFrameToStreamingClients
+		);
 
 	// start HTTP server
 	server.startListen();
@@ -83,24 +86,13 @@ int main() {
 		log("done.");
 	}**/
 	///
-	std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 	int runningClts = 1;
 	log("Wait for threads #CLIENT...");
 	while (runningClts > 0) {
-		thrLockRunningCltHnds.lock();
-		runningClts = fcapshared::gThrVarRunningCltsStc.runningHandlersCount;
-		thrLockRunningCltHnds.unlock();
+		runningClts = server.getRunningHandlersCount();
 		//
 		if (runningClts > 0) {
 			log("still waiting for threads... (" + std::to_string(runningClts) + " running)");
-			thrLockRunningCltHnds.lock();
-			for (auto const& it : fcapshared::gThrVarRunningCltHndsMap) {
-				if (! it.second) {
-					continue;
-				}
-				log("  running #" + std::to_string(it.first));
-			}
-			thrLockRunningCltHnds.unlock();
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
 	}

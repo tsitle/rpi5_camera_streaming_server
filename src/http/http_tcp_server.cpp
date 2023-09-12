@@ -12,6 +12,9 @@ using namespace std::chrono_literals;
 
 namespace http {
 
+	RunningCltsStc TcpServer::gThrVarRunningCltsStc;
+	std::mutex TcpServer::gThrMtxRunningCltHnds;
+
 	TcpServer::TcpServer(std::string ipAddress, int port) :
 			gServerIpAddr(ipAddress),
 			gServerPort(port),
@@ -21,6 +24,8 @@ namespace http {
 			gServerLenSocketAddr(sizeof(gServerSocketAddress)),
 			gThreadCount(0),
 			gCanListen(false) {
+		initRunningHandlersStc();
+		//
 		gServerSocketAddress.sin_family = AF_INET;
 		gServerSocketAddress.sin_port = ::htons(gServerPort);
 		gServerSocketAddress.sin_addr.s_addr = ::inet_addr(gServerIpAddr.c_str());
@@ -36,10 +41,9 @@ namespace http {
 	}
 
 	void TcpServer::startListen() {
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		bool needToStop = false;
 		int newSocket;
-		unsigned thrIx;
+		uint32_t thrIx;
 
 		if (! gCanListen) {
 			exitWithError("cannot listen to socket");
@@ -72,8 +76,131 @@ namespace http {
 			//
 			/**log("Starting new handler thread...");**/
 			thrIx = ++gThreadCount;
-			ClientHandler::startThread(thrIx, newSocket);
+			ClientHandler::startThread(
+					thrIx,
+					newSocket,
+					addRunningHandler,
+					removeRunningHandler,
+					incStreamingClientCount,
+					decStreamingClientCount,
+					getFrameFromQueueForClient
+				);
 		}
+	}
+
+	void TcpServer::initRunningHandlersStc() {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRunningCltsStc.runningHandlersCount = 0;
+		gThrVarRunningCltsStc.runningStreamsCount = 0;
+		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
+			gThrVarRunningCltsStc.frameQueues[x].isActive = false;
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = NULL;
+		}
+		thrLock.unlock();
+	}
+
+	uint32_t TcpServer::getRunningHandlersCount() {
+		uint32_t resI;
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		resI = gThrVarRunningCltsStc.runningHandlersCount;
+		thrLock.unlock();
+		return resI;
+	}
+
+	void TcpServer::addRunningHandler(const uint32_t thrIx) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		++gThrVarRunningCltsStc.runningHandlersCount;
+		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+			if (gThrVarRunningCltsStc.frameQueues[x].isActive) {
+				continue;
+			}
+			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = thrIx;
+			gThrVarRunningCltsStc.frameQueues[x].isActive = true;
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg();
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->setFrameSize(
+					cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height)
+				);
+			break;
+		}
+		thrLock.unlock();
+	}
+
+	void TcpServer::removeRunningHandler(const uint32_t thrIx) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		if (gThrVarRunningCltsStc.runningHandlersCount != 0) {
+			--gThrVarRunningCltsStc.runningHandlersCount;
+		}
+		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx) {
+				continue;
+			}
+			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
+			gThrVarRunningCltsStc.frameQueues[x].isActive = false;
+			delete gThrVarRunningCltsStc.frameQueues[x].pFrameQueue;
+			break;
+		}
+		thrLock.unlock();
+	}
+
+	bool TcpServer::incStreamingClientCount() {
+		bool resB;
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		resB = (gThrVarRunningCltsStc.runningStreamsCount < fcapsettings::SETT_MAX_STREAMING_CLIENTS);
+		if (resB) {
+			++gThrVarRunningCltsStc.runningStreamsCount;
+		}
+		thrLock.unlock();
+		return resB;
+	}
+
+	void TcpServer::decStreamingClientCount() {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		if (gThrVarRunningCltsStc.runningStreamsCount != 0) {
+			--gThrVarRunningCltsStc.runningStreamsCount;
+		}
+		thrLock.unlock();
+	}
+
+	void TcpServer::broadcastFrameToStreamingClients(std::vector<unsigned char> &frameJpeg) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+			if (! gThrVarRunningCltsStc.frameQueues[x].isActive) {
+				continue;
+			}
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->appendFrameToQueue(frameJpeg);
+		}
+		thrLock.unlock();
+	}
+
+	bool TcpServer::getFrameFromQueueForClient(const uint32_t thrIx, uint8_t** ppData, uint32_t &dataRsvdSz, uint32_t &dataSzOut) {
+		bool resB = false;
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx) {
+				continue;
+			}
+			resB = gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->getFrameFromQueue(ppData, dataRsvdSz, dataSzOut);
+			break;
+		}
+		thrLock.unlock();
+		return resB;
 	}
 
 	// -----------------------------------------------------------------------------

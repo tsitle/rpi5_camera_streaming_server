@@ -1,7 +1,6 @@
 #include <chrono>
 
 #include "shared.hpp"
-#include "settings.hpp"
 
 using namespace std::chrono_literals;
 
@@ -11,14 +10,6 @@ namespace fcapshared {
 	bool gThrVarCamStreamsOpened = false;
 	std::mutex gThrMtxCamStreamsOpened;
 	std::condition_variable gThrCondCamStreamsOpened;
-
-	//
-	frame::FrameQueueJpeg gFrameQueueOutp;
-
-	//
-	RunningCltsStc gThrVarRunningCltsStc;
-	std::unordered_map<unsigned int, bool> gThrVarRunningCltHndsMap;
-	std::mutex gThrMtxRunningCltHnds;
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -36,13 +27,6 @@ namespace fcapshared {
 	// -----------------------------------------------------------------------------
 
 	void Shared::initGlobals() {
-		fcapshared::gThrVarRunningCltsStc.runningHandlersCount = 0;
-		fcapshared::gThrVarRunningCltsStc.runningStreamsCount = 0;
-
-		//
-		fcapshared::gFrameQueueOutp.setFrameSize(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height));
-
-		//
 		gThrVargRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 	}
 

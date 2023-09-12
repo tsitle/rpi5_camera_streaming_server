@@ -15,15 +15,25 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	std::thread FrameConsumer::startThread() {
-		std::thread threadObj(_startThread_internal);
+	std::thread FrameConsumer::startThread(
+			http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+			http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients) {
+		std::thread threadObj(
+				_startThread_internal,
+				cbGetRunningHandlersCount,
+				cbBroadcastFrameToStreamingClients
+			);
 		return threadObj;
 	}
 
 	// -----------------------------------------------------------------------------
 
-	FrameConsumer::FrameConsumer() :
-			gFrameProcessor() {
+	FrameConsumer::FrameConsumer(
+			http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+			http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients) :
+				gFrameProcessor(),
+				gCbGetRunningHandlersCount(cbGetRunningHandlersCount),
+				gCbBroadcastFrameToStreamingClients(cbBroadcastFrameToStreamingClients) {
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);
 		//
@@ -37,12 +47,14 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameConsumer::_startThread_internal() {
+	void FrameConsumer::_startThread_internal(
+			http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+			http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients) {
 		if (! fcapsettings::SETT_OPEN_CAM_STREAMS) {
 			return;
 		}
 
-		FrameConsumer frameConsObj = FrameConsumer();
+		FrameConsumer frameConsObj(cbGetRunningHandlersCount, cbBroadcastFrameToStreamingClients);
 		frameConsObj.runX2();
 	}
 
@@ -66,7 +78,6 @@ namespace frame {
 	}
 
 	void FrameConsumer::runX2() {
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		cv::Mat frameL(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
 		cv::Mat frameR(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
 		cv::Mat blendedImg;
@@ -205,20 +216,16 @@ namespace frame {
 		//
 		log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
 		log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
-		log("dropped fames out=" + std::to_string(fcapshared::gFrameQueueOutp.getDroppedFramesCount()));
 
 		//
 		log("ENDED");
 	}
 
 	void FrameConsumer::outputFrameToQueue(const cv::Mat &frame) {
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		bool haveClients;
 
 		//
-		thrLockRunningCltHnds.lock();
-		haveClients = (fcapshared::gThrVarRunningCltsStc.runningStreamsCount > 0);
-		thrLockRunningCltHnds.unlock();
+		haveClients = (gCbGetRunningHandlersCount() > 0);
 		if (! haveClients) {
 			/**log("output no clients");**/
 			return;
@@ -228,7 +235,7 @@ namespace frame {
 		std::vector<unsigned char> jpegFrame;
 		cv::imencode(".jpg", frame, jpegFrame, gCompressionParams);
 		/**log("put frame beg");**/
-		fcapshared::gFrameQueueOutp.appendFrameToQueue(jpegFrame);
+		gCbBroadcastFrameToStreamingClients(jpegFrame);
 		/**log("put frame end");**/
 	}
 

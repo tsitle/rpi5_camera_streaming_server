@@ -23,7 +23,7 @@ namespace fcapsettings {
 	 *   10 for Capt=2304,Outp=1296
 	 *    7 for Capt=2304,Outp=2304
 	 */
-	const unsigned int SETT_FPS = 23 / 2;
+	const unsigned int SETT_FPS = 23;
 
 	const std::string SETT_PNG_PATH = "/media/usbhd";
 
@@ -42,6 +42,8 @@ namespace fcapsettings {
 
 	const unsigned int SETT_CAM_NR_LEFT = 1;
 	const unsigned int SETT_CAM_NR_RIGHT = 0;
+
+	const uint32_t SETT_MAX_STREAMING_CLIENTS = 4;
 
 }  // namespace fcapsettings
 

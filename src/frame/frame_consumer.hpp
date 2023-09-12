@@ -5,6 +5,8 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 
+#include "../constants.hpp"
+#include "../http/http_tcp_server.hpp"
 #include "frame_processor.hpp"
 #include "frame_queue.hpp"
 
@@ -15,18 +17,26 @@ namespace frame {
 			static FrameQueueRaw gFrameQueueInpL;
 			static FrameQueueRaw gFrameQueueInpR;
 
-			static std::thread startThread();
+			static std::thread startThread(
+					http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+					http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients);
 			//
-			FrameConsumer();
+			FrameConsumer(
+					http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+					http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients);
 			~FrameConsumer();
 
 		private:
 			std::vector<int> gCompressionParams;
 			FrameProcessor gFrameProcessor;
+			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;
+			http::CbBroadcastFrameToStreamingClients gCbBroadcastFrameToStreamingClients;
 
 			//
 
-			static void _startThread_internal();
+			static void _startThread_internal(
+					http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
+					http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients);
 			//
 			void log(const std::string &message);
 			bool waitForCamStreams();

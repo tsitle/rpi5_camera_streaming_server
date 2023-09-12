@@ -35,11 +35,24 @@ namespace http {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	ClientHandler::ClientHandler(const uint32_t thrIx, const int socket) :
-			gThrIx(thrIx),
-			gClientSocket(socket) {
+	ClientHandler::ClientHandler(
+			const uint32_t thrIx,
+			const int socket,
+			CbAddRunningHandler cbAddRunningHandler,
+			CbRemoveRunningHandler cbRemoveRunningHandler,
+			CbIncStreamingClientCount cbIncStreamingClientCount,
+			CbDecStreamingClientCount cbDecStreamingClientCount,
+			CbGetFrameFromQueue cbGetFrameFromQueue) :
+				gThrIx(thrIx),
+				gClientSocket(socket),
+				gCbIncStreamingClientCount(cbIncStreamingClientCount),
+				gCbDecStreamingClientCount(cbDecStreamingClientCount),
+				gCbGetFrameFromQueue(cbGetFrameFromQueue) {
 		char buffer[BUFFER_SIZE] = {0};
 		struct timeval tv;
+
+		//
+		cbAddRunningHandler(thrIx);
 
 		//
 		std::ostringstream ss;
@@ -63,6 +76,9 @@ namespace http {
 			/**log(gThrIx, "------ Received Request from client ------");**/
 			handleRequest(buffer, (uint32_t)bytesReceived);
 		}
+
+		//
+		cbRemoveRunningHandler(thrIx);
 	}
 
 	ClientHandler::~ClientHandler() {
@@ -70,8 +86,24 @@ namespace http {
 		::close(gClientSocket);
 	}
 
-	std::thread ClientHandler::startThread(const uint32_t thrIx, const int socket) {
-		std::thread threadClientObj(_startThread_internal, thrIx, socket);
+	std::thread ClientHandler::startThread(
+			const uint32_t thrIx,
+			const int socket,
+			CbAddRunningHandler cbAddRunningHandler,
+			CbRemoveRunningHandler cbRemoveRunningHandler,
+			CbIncStreamingClientCount cbIncStreamingClientCount,
+			CbDecStreamingClientCount cbDecStreamingClientCount,
+			CbGetFrameFromQueue cbGetFrameFromQueue) {
+		std::thread threadClientObj(
+				_startThread_internal,
+				thrIx,
+				socket,
+				cbAddRunningHandler,
+				cbRemoveRunningHandler,
+				cbIncStreamingClientCount,
+				cbDecStreamingClientCount,
+				cbGetFrameFromQueue
+			);
 		threadClientObj.detach();
 		return threadClientObj;
 	}
@@ -79,27 +111,27 @@ namespace http {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void ClientHandler::_startThread_internal(const uint32_t thrIx, const int socket) {
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
-
-		//
-		thrLockRunningCltHnds.lock();
-		++fcapshared::gThrVarRunningCltsStc.runningHandlersCount;
-		fcapshared::gThrVarRunningCltHndsMap[thrIx] = true;
-		thrLockRunningCltHnds.unlock();
-
-		//
-		ClientHandler chnd = ClientHandler(thrIx, socket);
+	void ClientHandler::_startThread_internal(
+			const uint32_t thrIx,
+			const int socket,
+			CbAddRunningHandler cbAddRunningHandler,
+			CbRemoveRunningHandler cbRemoveRunningHandler,
+			CbIncStreamingClientCount cbIncStreamingClientCount,
+			CbDecStreamingClientCount cbDecStreamingClientCount,
+			CbGetFrameFromQueue cbGetFrameFromQueue) {
+		ClientHandler chnd = ClientHandler(
+				thrIx,
+				socket,
+				cbAddRunningHandler,
+				cbRemoveRunningHandler,
+				cbIncStreamingClientCount,
+				cbDecStreamingClientCount,
+				cbGetFrameFromQueue);
 		/**
 		// Debugging shutdown procedure:
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000 * (thrIx + 1)));
 		**/
 
-		//
-		thrLockRunningCltHnds.lock();
-		--fcapshared::gThrVarRunningCltsStc.runningHandlersCount;
-		fcapshared::gThrVarRunningCltHndsMap[thrIx] = false;
-		thrLockRunningCltHnds.unlock();
 		/**log(thrIx, "thread end");**/
 	}
 
@@ -120,6 +152,7 @@ namespace http {
 		httpparser::UrlParser urlparser;
 		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 		fcapconstants::OutputCamsEn optsOutputCamsVal = opts.outputCams;
+		bool isNewStreamingClientAccepted;
 
 		httpparser::HttpRequestParser::ParseResult res = requparser.parse(request, buffer, buffer + bufSz);
 
@@ -139,10 +172,17 @@ namespace http {
 			resHttpMsgStream << buildWebsite();
 			success = true;
 		} else if (urlparser.path().compare(URL_PATH_STREAM) == 0) {
-			log(gThrIx, "200 Path=" + urlparser.path());
-			resHttpMsgStream << "dummy";  // won't actually be sent
-			success = true;
-			startStream = true;
+			isNewStreamingClientAccepted = gCbIncStreamingClientCount();
+			if (! isNewStreamingClientAccepted) {
+				log(gThrIx, "500 Path=" + urlparser.path());
+				log(gThrIx, "__cannot accept new streaming clients at the moment");
+				resHttpMsgStream << "too many clients";
+			} else {
+				log(gThrIx, "200 Path=" + urlparser.path());
+				resHttpMsgStream << "dummy";  // won't actually be sent
+				success = true;
+				startStream = true;
+			}
 		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_L) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
@@ -312,7 +352,6 @@ namespace http {
 	void ClientHandler::startStreaming() {
 		#define _MEASURE_TIME_COPY  0
 		#define _MEASURE_TIME_SEND  0
-		std::unique_lock<std::mutex> thrLockRunningCltHnds{fcapshared::gThrMtxRunningCltHnds, std::defer_lock};
 		bool haveFrame = false;
 		bool resB;
 		bool needToStop = false;
@@ -326,17 +365,14 @@ namespace http {
 		uint32_t timeFpsDiffMs;
 		uint32_t timeFpsFrames = 0;
 
-		//
 		if (pData == NULL) {
+			gCbDecStreamingClientCount();
 			return;
 		}
 		//
-		thrLockRunningCltHnds.lock();
-		++fcapshared::gThrVarRunningCltsStc.runningStreamsCount;
-		thrLockRunningCltHnds.unlock();
-		//
 		resB = sendResponse(200, &fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, NULL);
 		if (! resB) {
+			gCbDecStreamingClientCount();
 			return;
 		}
 		while (true) {
@@ -353,7 +389,7 @@ namespace http {
 			#if _MEASURE_TIME_COPY == 1
 				auto timeStart = std::chrono::steady_clock::now();
 			#endif
-			haveFrame = fcapshared::gFrameQueueOutp.getFrameFromQueue(&pData, rsvdBufSz, bufSz);
+			haveFrame = gCbGetFrameFromQueue(gThrIx, &pData, rsvdBufSz, bufSz);
 			#if _MEASURE_TIME_COPY == 1
 				auto timeEnd = std::chrono::steady_clock::now();
 				if (haveFrame) {
@@ -401,9 +437,7 @@ namespace http {
 			::free(pData);
 		}
 		//
-		thrLockRunningCltHnds.lock();
-		--fcapshared::gThrVarRunningCltsStc.runningStreamsCount;
-		thrLockRunningCltHnds.unlock();
+		gCbDecStreamingClientCount();
 	}
 
 	bool ClientHandler::sendFrame(uint8_t* pData, const uint32_t bufferSz) {

@@ -5,22 +5,25 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 
+#include "../http/http_tcp_server.hpp"
+
 namespace frame {
 
 	class FrameProducer {
 		public:
-			static std::thread startThread();
+			static std::thread startThread(http::CbGetRunningHandlersCount cbGetRunningHandlersCount);
 			//
-			FrameProducer();
+			FrameProducer(http::CbGetRunningHandlersCount cbGetRunningHandlersCount);
 			~FrameProducer();
 
 		private:
 			cv::VideoCapture gCapL;
 			cv::VideoCapture gCapR;
+			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;
 
 			//
 
-			static void _startThread_internal();
+			static void _startThread_internal(http::CbGetRunningHandlersCount cbGetRunningHandlersCount);
 			//
 			void log(const std::string &message);
 			std::string pipe_format_x_to_str(const unsigned int formatX);
