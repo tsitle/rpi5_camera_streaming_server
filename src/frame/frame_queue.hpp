@@ -7,7 +7,7 @@
 
 namespace frame {
 
-	const uint8_t QUEUE_SIZE = 3;
+	const uint8_t QUEUE_SIZE = 5;
 
 	class FrameQueue {
 		public:
@@ -24,7 +24,9 @@ namespace frame {
 			uint8_t* gPEntries[QUEUE_SIZE];
 			uint32_t gEntriesRsvdSz[QUEUE_SIZE];
 			uint32_t gEntriesUsedSz[QUEUE_SIZE];
-			uint8_t gCount;
+			uint8_t gCountInBuf;
+			uint8_t gIxToStore;
+			uint8_t gIxToOutput;
 			uint32_t gDroppedFrames;
 			cv::Size gFrameSz;
 			std::mutex gThrMtx;
