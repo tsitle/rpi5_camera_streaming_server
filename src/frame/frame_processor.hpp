@@ -4,6 +4,8 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
+#include "../shared.hpp"
+
 namespace frame {
 
 	class FrameProcessor {
@@ -13,6 +15,10 @@ namespace frame {
 			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut);
 
 		private:
+			fcapshared::StaticOptionsStc gStaticOptionsStc;
+
+			//
+
 			void log(const std::string &message);
 	};
 

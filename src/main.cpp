@@ -46,15 +46,15 @@ bool initSignalHandlers() {
 
 int main() {
 	fcapshared::Shared::initGlobals();
-	if (! initSignalHandlers()) {
-		return -1;
-	}
-
-	//
 	if (! fcapshared::Shared::readConfigFile()) {
 		return -1;
 	}
 	fcapshared::StaticOptionsStc staticOptionsStc = fcapshared::Shared::getStaticOptions();
+
+	//
+	if (! initSignalHandlers()) {
+		return -1;
+	}
 
 	// create HTTP server
 	http::TcpServer server = http::TcpServer("0.0.0.0", staticOptionsStc.serverPort);

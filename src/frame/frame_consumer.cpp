@@ -39,9 +39,6 @@ namespace frame {
 		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);
-		//
-		gFrameQueueInpL.setFrameSize(gStaticOptionsStc.resolutionOutput);
-		gFrameQueueInpR.setFrameSize(gStaticOptionsStc.resolutionOutput);
 	}
 
 	FrameConsumer::~FrameConsumer() {
@@ -107,7 +104,7 @@ namespace frame {
 						break;
 					}
 					//
-					toNeedToStop = gStaticOptionsStc.fps;  // check every FPS * 50ms
+					toNeedToStop = gStaticOptionsStc.cameraFps;  // check every FPS * 50ms
 				}
 
 				// update runtime options
@@ -137,12 +134,12 @@ namespace frame {
 						haveFrameL = gFrameQueueInpL.getFrameFromQueue(frameL);
 						if (! haveFrameL) {
 							--toFrameL;
-							std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)((1.0 / (float)(gStaticOptionsStc.fps * 5)) * 1000.0)));
+							std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)((1.0 / (float)(gStaticOptionsStc.cameraFps * 5)) * 1000.0)));
 						}
 					}
 					toFrameL = 100;
 					if (! haveFrameL) {
-						/**/log("get B L giving up");/**/
+						/**log("get B L giving up");**/
 						continue;
 					}
 					haveFrames = true;

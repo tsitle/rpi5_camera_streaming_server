@@ -42,7 +42,8 @@ namespace fcapconstants {
 
 	enum class CamSourceEn {
 		GSTREAMER = 0,
-		UNSPECIFIED = 1
+		MJPEG = 1,
+		UNSPECIFIED = 2
 	};
 
 	enum class CamIdEn {
@@ -54,6 +55,7 @@ namespace fcapconstants {
 	const std::string CONFFILE_CAMID_1 = "cam1";
 
 	const std::string CONFFILE_CAMSRC_GSTR = "gstreamer";
+	const std::string CONFFILE_CAMSRC_MJPEG = "mjpeg";
 	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
 }  // namespace fcapconstants

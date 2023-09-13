@@ -113,7 +113,6 @@ namespace http {
 
 	void TcpServer::addRunningHandler(const uint32_t thrIx) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
-		fcapshared::StaticOptionsStc staticOptionsStc = fcapshared::Shared::getStaticOptions();
 
 		thrLock.lock();
 		++gThrVarRunningCltsStc.runningHandlersCount;
@@ -124,7 +123,6 @@ namespace http {
 			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = thrIx;
 			gThrVarRunningCltsStc.frameQueues[x].isActive = true;
 			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg();
-			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->setFrameSize(staticOptionsStc.resolutionOutput);
 			break;
 		}
 		thrLock.unlock();

@@ -12,8 +12,7 @@ namespace frame {
 			gCountInBuf(0),
 			gIxToStore(0),
 			gIxToOutput(0),
-			gDroppedFrames(0),
-			gFrameSz(0, 0) {
+			gDroppedFrames(0) {
 		#define _UNUSED(x) (void)(x)
 		_UNUSED(gIsForJpegs);
 		#undef _UNUSED
@@ -38,14 +37,6 @@ namespace frame {
 			gEntriesUsedSz[x] = 0;
 		}
 		gCountInBuf = 0;
-		thrLock.unlock();
-	}
-
-	void FrameQueue::setFrameSize(cv::Size frameSz) {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
-
-		thrLock.lock();
-		gFrameSz = cv::Size(frameSz);
 		thrLock.unlock();
 	}
 
@@ -121,21 +112,31 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 
 	FrameQueueRaw::FrameQueueRaw() :
-			FrameQueue(false) {
+			FrameQueue(false),
+			gFrameSz(0, 0) {
 	}
 
 	FrameQueueRaw::~FrameQueueRaw() {
 	}
 
 	void FrameQueueRaw::appendFrameToQueue(cv::Mat &frameRaw) {
-		if (frameRaw.type() != CV_8UC3) {
+		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+
+		/**if (frameRaw.type() != CV_8UC3) {
 			std::cout << "invalid type " << std::to_string(frameRaw.type()) << std::endl;
 			return;
-		}
+		}**/
 		/**std::cout << "fR.t=" << std::to_string(frameRaw.total()) <<
 				", fR.c=" << std::to_string(frameRaw.channels()) <<
 				", fR.e=" << std::to_string(frameRaw.elemSize()) <<
 				std::endl;**/
+		thrLock.lock();
+		if (gFrameSz.width == 0) {
+			gFrameSz.width = frameRaw.cols;
+			gFrameSz.height = frameRaw.rows;
+		}
+		thrLock.unlock();
+		//
 		uint32_t newEntrySz = (uint32_t)(frameRaw.total() * frameRaw.channels());
 		appendFrameToQueueBytes(reinterpret_cast<unsigned char*>(&frameRaw.data[0]), newEntrySz);
 	}

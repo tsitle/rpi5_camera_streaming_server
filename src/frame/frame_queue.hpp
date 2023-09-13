@@ -13,7 +13,6 @@ namespace frame {
 		public:
 			FrameQueue(bool isForJpegs);
 			~FrameQueue();
-			void setFrameSize(cv::Size frameSz);
 			bool isQueueEmpty();
 			uint32_t getDroppedFramesCount();
 
@@ -28,7 +27,6 @@ namespace frame {
 			uint8_t gIxToStore;
 			uint8_t gIxToOutput;
 			uint32_t gDroppedFrames;
-			cv::Size gFrameSz;
 			std::mutex gThrMtx;
 			std::condition_variable gThrCond;
 
@@ -43,6 +41,9 @@ namespace frame {
 			~FrameQueueRaw();
 			void appendFrameToQueue(cv::Mat &frameRaw);
 			bool getFrameFromQueue(cv::Mat &frameRawOut);
+
+		private:
+			cv::Size gFrameSz;
 	};
 
 	class FrameQueueJpeg : public FrameQueue {

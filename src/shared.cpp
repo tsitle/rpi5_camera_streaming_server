@@ -65,22 +65,19 @@ namespace fcapshared {
 				if (gThrVargStaticOptions.serverPort == 0) {
 					throw std::invalid_argument("invalid value for server_port");
 				}
-				gThrVargStaticOptions.resolutionCapture = getSizeFromString((std::string)defConfJson["resolution"]["capture"], "resolution[capture]");
-				gThrVargStaticOptions.resolutionOutput = getSizeFromString((std::string)defConfJson["resolution"]["output"], "resolution[output]");
-				gThrVargStaticOptions.fps = (uint8_t)defConfJson["fps"];
-				if (gThrVargStaticOptions.fps == 0) {
-					throw std::invalid_argument("invalid value for fps");
-				}
+				gThrVargStaticOptions.resolutionOutput = getSizeFromString((std::string)defConfJson["resolution_output"], "resolution_output");
 				gThrVargStaticOptions.camL = getCamIdFromString((std::string)defConfJson["camera_assignment"]["left"], "camera_assignment[left]");
 				gThrVargStaticOptions.camR = getCamIdFromString((std::string)defConfJson["camera_assignment"]["right"], "camera_assignment[right]");
 				gThrVargStaticOptions.camSourceType = getCamSourceFromString((std::string)defConfJson["camera_source"]["type"], "camera_source[type]");
 				gThrVargStaticOptions.camSource0 = (std::string)defConfJson["camera_source"]["cam0"];
-				if (gThrVargStaticOptions.camSource0.length() == 0) {
-					throw std::invalid_argument("invalid value for camera_source[cam0]");
-				}
 				gThrVargStaticOptions.camSource1 = (std::string)defConfJson["camera_source"]["cam1"];
-				if (gThrVargStaticOptions.camSource1.length() == 0) {
-					throw std::invalid_argument("invalid value for camera_source[cam1]");
+				if (gThrVargStaticOptions.camSource0.length() == 0 && gThrVargStaticOptions.camSource1.length() == 0) {
+					throw std::invalid_argument("need at least one of camera_source[cam0|cam1]");
+				}
+				gThrVargStaticOptions.gstreamerResolutionCapture = getSizeFromString((std::string)defConfJson["camera_source"]["gstreamer"]["resolution_capture"], "gstreamer[resolution_capture]");
+				gThrVargStaticOptions.cameraFps = (uint8_t)defConfJson["camera_source"]["fps"];
+				if (gThrVargStaticOptions.cameraFps == 0) {
+					throw std::invalid_argument("invalid value for gstreamer[fps]");
 				}
 				gThrVargStaticOptions.pngOutputPath = (std::string)defConfJson["png_output_path"];
 				gThrVargStaticOptions.outputPngs = (bool)defConfJson["output_pngs"];
@@ -176,9 +173,9 @@ namespace fcapshared {
 
 		thrLock.lock();
 		gThrVargStaticOptions.serverPort = fcapsettings::SETT_DEFAULT_SERVER_PORT;
-		gThrVargStaticOptions.resolutionCapture = fcapsettings::SETT_DEFAULT_CAPTURE_SZ;
+		gThrVargStaticOptions.gstreamerResolutionCapture = fcapsettings::SETT_DEFAULT_CAPTURE_SZ;
 		gThrVargStaticOptions.resolutionOutput = fcapsettings::SETT_DEFAULT_OUTPUT_SZ;
-		gThrVargStaticOptions.fps = fcapsettings::SETT_DEFAULT_FPS;
+		gThrVargStaticOptions.cameraFps = fcapsettings::SETT_DEFAULT_FPS;
 		gThrVargStaticOptions.camL = fcapconstants::CamIdEn::CAM_0;
 		gThrVargStaticOptions.camR = fcapconstants::CamIdEn::CAM_1;
 		gThrVargStaticOptions.camSourceType = fcapconstants::CamSourceEn::UNSPECIFIED;
@@ -194,19 +191,11 @@ namespace fcapshared {
 
 		ss << "{"
 				<< "\"server_port\": " << std::to_string(fcapsettings::SETT_DEFAULT_SERVER_PORT) << ","
-				<< "\"resolution\": {"
-						<< "\"capture\": \""
-								<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.width)
-								<< "x"
-								<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.height)
-								<< "\","
-						<< "\"output\": \""
+				<< "\"resolution_output\": \""
 								<< std::to_string(fcapsettings::SETT_DEFAULT_OUTPUT_SZ.width)
 								<< "x"
 								<< std::to_string(fcapsettings::SETT_DEFAULT_OUTPUT_SZ.height)
-								<< "\""
-					<< "},"
-				<< "\"fps\": " << std::to_string(fcapsettings::SETT_DEFAULT_FPS) << ","
+								<< "\","
 				<< "\"camera_assignment\": {"
 						<< "\"left\": \"" << fcapconstants::CONFFILE_CAMID_0 << "\","
 						<< "\"right\": \"" << fcapconstants::CONFFILE_CAMID_1 << "\""
@@ -214,7 +203,15 @@ namespace fcapshared {
 				<< "\"camera_source\": {"
 						<< "\"type\": \"" << fcapconstants::CONFFILE_CAMSRC_UNSPEC << "\","
 						<< "\"cam0\": \"\","
-						<< "\"cam1\": \"\""
+						<< "\"cam1\": \"\","
+						<< "\"fps\": " << std::to_string(fcapsettings::SETT_DEFAULT_FPS) << ","
+						<< "\"gstreamer\": {"
+								<< "\"resolution_capture\": \""
+										<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.width)
+										<< "x"
+										<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.height)
+										<< "\""
+							<< "}"
 					<< "},"
 				<< "\"png_output_path\": \"\","
 				<< "\"output_pngs\": false"
@@ -253,6 +250,9 @@ namespace fcapshared {
 	fcapconstants::CamSourceEn Shared::getCamSourceFromString(const std::string &x, const std::string &nameArg) {
 		if (x.compare(fcapconstants::CONFFILE_CAMSRC_GSTR) == 0) {
 			return fcapconstants::CamSourceEn::GSTREAMER;
+		}
+		if (x.compare(fcapconstants::CONFFILE_CAMSRC_MJPEG) == 0) {
+			return fcapconstants::CamSourceEn::MJPEG;
 		}
 		if (x.compare(fcapconstants::CONFFILE_CAMSRC_UNSPEC) == 0) {
 			return fcapconstants::CamSourceEn::UNSPECIFIED;

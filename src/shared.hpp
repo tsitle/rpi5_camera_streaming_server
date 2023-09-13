@@ -17,9 +17,9 @@ namespace fcapshared {
 
 	struct StaticOptionsStc {
 		uint16_t serverPort;
-		cv::Size resolutionCapture;
+		cv::Size gstreamerResolutionCapture;
 		cv::Size resolutionOutput;
-		uint8_t fps;
+		uint8_t cameraFps;
 		fcapconstants::CamIdEn camL;
 		fcapconstants::CamIdEn camR;
 		fcapconstants::CamSourceEn camSourceType;
