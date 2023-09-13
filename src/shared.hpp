@@ -11,12 +11,6 @@
 
 namespace fcapshared {
 
-	//
-	extern bool gThrVarCamStreamsOpened;
-	extern std::mutex gThrMtxCamStreamsOpened;
-	extern std::condition_variable gThrCondCamStreamsOpened;
-
-	//
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
 	};

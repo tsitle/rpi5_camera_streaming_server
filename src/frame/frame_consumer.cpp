@@ -4,6 +4,7 @@
 #include "../shared.hpp"
 #include "../settings.hpp"
 #include "frame_consumer.hpp"
+#include "frame_producer.hpp"
 
 using namespace std::chrono_literals;
 
@@ -64,19 +65,6 @@ namespace frame {
 		std::cout << "FCONS: " << message << std::endl;
 	}
 
-	bool FrameConsumer::waitForCamStreams() {
-		std::unique_lock<std::mutex> thrLockCamStreamsOpened{fcapshared::gThrMtxCamStreamsOpened, std::defer_lock};
-		bool camStreamsOpen = false;
-
-		thrLockCamStreamsOpened.lock();
-		if (fcapshared::gThrCondCamStreamsOpened.wait_for(thrLockCamStreamsOpened, 30s, []{return fcapshared::gThrVarCamStreamsOpened;})) {
-			camStreamsOpen = true;
-		}
-		thrLockCamStreamsOpened.unlock();
-
-		return camStreamsOpen;
-	}
-
 	void FrameConsumer::runX2() {
 		cv::Mat frameL(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
 		cv::Mat frameR(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
@@ -94,7 +82,7 @@ namespace frame {
 		unsigned int toFrameL = 100;
 
 		// wait for camera streams to be open
-		needToStop = ! waitForCamStreams();
+		needToStop = ! FrameProducer::waitForCamStreams();
 		if (needToStop) {
 			log("camera streams not open. aborting.");
 			fcapshared::Shared::setFlagNeedToStop();

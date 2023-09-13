@@ -7,14 +7,6 @@ using namespace std::chrono_literals;
 namespace fcapshared {
 
 	//
-	bool gThrVarCamStreamsOpened = false;
-	std::mutex gThrMtxCamStreamsOpened;
-	std::condition_variable gThrCondCamStreamsOpened;
-
-	// -----------------------------------------------------------------------------
-	// -----------------------------------------------------------------------------
-
-	//
 	bool Shared::gThrVarNeedToStop = false;
 	std::mutex Shared::gThrMtxNeedToStop;
 	std::condition_variable Shared::gThrCondNeedToStop;

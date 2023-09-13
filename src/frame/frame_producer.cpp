@@ -21,6 +21,12 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
+	bool FrameProducer::gThrVarCamStreamsOpened = false;
+	std::mutex FrameProducer::gThrMtxCamStreamsOpened;
+	std::condition_variable FrameProducer::gThrCondCamStreamsOpened;
+
+	// -----------------------------------------------------------------------------
+
 	std::thread FrameProducer::startThread(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) {
 		std::thread threadObj(_startThread_internal, cbGetRunningHandlersCount);
 		return threadObj;
@@ -33,6 +39,14 @@ namespace frame {
 	}
 
 	FrameProducer::~FrameProducer() {
+	}
+
+	bool FrameProducer::waitForCamStreams() {
+		return _getFlagCamStreamsOpened(std::chrono::milliseconds(30000));
+	}
+
+	bool FrameProducer::getFlagCamStreamsOpened() {
+		return _getFlagCamStreamsOpened(std::chrono::milliseconds(1));
 	}
 
 	// -----------------------------------------------------------------------------
@@ -50,14 +64,30 @@ namespace frame {
 			return;
 		}
 		//
-		std::unique_lock<std::mutex> thrLockCamStreamsOpened{fcapshared::gThrMtxCamStreamsOpened, std::defer_lock};
-
-		thrLockCamStreamsOpened.lock();
-		fcapshared::gThrVarCamStreamsOpened = true;
-		thrLockCamStreamsOpened.unlock();
-		fcapshared::gThrCondCamStreamsOpened.notify_all();
+		setFlagCamStreamsOpened(true);
 		//
 		frameProdObj.runX1();
+	}
+
+	void FrameProducer::setFlagCamStreamsOpened(const bool state) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxCamStreamsOpened, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarCamStreamsOpened = state;
+		thrLock.unlock();
+		gThrCondCamStreamsOpened.notify_all();
+	}
+
+	bool FrameProducer::_getFlagCamStreamsOpened(const std::chrono::milliseconds dur) {
+		bool resB = false;
+		std::unique_lock<std::mutex> thrLock{gThrMtxCamStreamsOpened, std::defer_lock};
+
+		thrLock.lock();
+		if (gThrCondCamStreamsOpened.wait_for(thrLock, dur, []{return gThrVarCamStreamsOpened;})) {
+			resB = true;
+		}
+		thrLock.unlock();
+		return resB;
 	}
 
 	// -----------------------------------------------------------------------------

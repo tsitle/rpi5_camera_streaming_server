@@ -39,7 +39,6 @@ namespace frame {
 					http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients);
 			//
 			void log(const std::string &message);
-			bool waitForCamStreams();
 			void runX2();
 			void outputFrameToQueue(const cv::Mat &frame);
 	};

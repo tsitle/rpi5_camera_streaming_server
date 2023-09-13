@@ -18,7 +18,7 @@ namespace frame {
 			uint32_t getDroppedFramesCount();
 
 		private:
-			bool gIsForJpegs;
+			__attribute__((unused)) bool gIsForJpegs;
 
 		protected:
 			uint8_t* gPEntries[QUEUE_SIZE];
