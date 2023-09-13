@@ -27,6 +27,11 @@ OPENCV_RELEASE="opencv-4.8.0"
 
 #
 
+if [ ! -f "${OPENCV_RELEASE}.tar.gz" ]; then
+	echo "You'll need to download '' from 'https://github.com/opencv/opencv/releases' first." >>/dev/stderr
+	exit 1
+fi
+
 sudo apt-get update || exit 1
 sudo apt-get install -y \
 		g++ \
