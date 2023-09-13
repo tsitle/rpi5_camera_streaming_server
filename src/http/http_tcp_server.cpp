@@ -15,7 +15,7 @@ namespace http {
 	RunningCltsStc TcpServer::gThrVarRunningCltsStc;
 	std::mutex TcpServer::gThrMtxRunningCltHnds;
 
-	TcpServer::TcpServer(std::string ipAddress, int port) :
+	TcpServer::TcpServer(std::string ipAddress, uint16_t port) :
 			gServerIpAddr(ipAddress),
 			gServerPort(port),
 			gServerSocket(),
@@ -41,7 +41,7 @@ namespace http {
 
 	void TcpServer::startListen() {
 		bool needToStop = false;
-		int newSocket;
+		int32_t newSocket;
 		uint32_t thrIx;
 
 		if (! gCanListen) {
@@ -113,6 +113,7 @@ namespace http {
 
 	void TcpServer::addRunningHandler(const uint32_t thrIx) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+		fcapshared::StaticOptionsStc staticOptionsStc = fcapshared::Shared::getStaticOptions();
 
 		thrLock.lock();
 		++gThrVarRunningCltsStc.runningHandlersCount;
@@ -123,9 +124,7 @@ namespace http {
 			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = thrIx;
 			gThrVarRunningCltsStc.frameQueues[x].isActive = true;
 			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg();
-			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->setFrameSize(
-					cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height)
-				);
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue->setFrameSize(staticOptionsStc.resolutionOutput);
 			break;
 		}
 		thrLock.unlock();
@@ -218,7 +217,7 @@ namespace http {
 		}
 
 		// make socket non-blocking
-		int flags = ::fcntl(gServerSocket, F_GETFL);
+		int32_t flags = ::fcntl(gServerSocket, F_GETFL);
 		::fcntl(gServerSocket, F_SETFL, flags| O_NONBLOCK);
 
 		return true;
@@ -228,8 +227,8 @@ namespace http {
 		::close(gServerSocket);
 	}
 
-	int TcpServer::acceptConnection() {
-		int new_socket = ::accept(gServerSocket, (sockaddr*)&gServerSocketAddress, &gServerLenSocketAddr);
+	int32_t TcpServer::acceptConnection() {
+		int32_t new_socket = ::accept(gServerSocket, (sockaddr*)&gServerSocketAddress, &gServerLenSocketAddr);
 		if (new_socket < 0) {
 			/*
 			exitWithError("Server failed to accept incoming connection");

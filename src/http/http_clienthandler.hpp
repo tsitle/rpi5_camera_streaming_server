@@ -13,7 +13,7 @@ namespace http {
 		public:
 			ClientHandler(
 					const uint32_t thrIx,
-					const int socket,
+					const int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -22,7 +22,7 @@ namespace http {
 			~ClientHandler();
 			static std::thread startThread(
 					const uint32_t thrIx,
-					const int socket,
+					const int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -31,7 +31,7 @@ namespace http {
 
 		private:
 			uint32_t gThrIx;
-			int gClientSocket;
+			int32_t gClientSocket;
 			std::string gRespMultipartPrefix;
 			CbIncStreamingClientCount gCbIncStreamingClientCount;
 			CbDecStreamingClientCount gCbDecStreamingClientCount;
@@ -41,7 +41,7 @@ namespace http {
 
 			static void _startThread_internal(
 					const uint32_t thrIx,
-					const int socket,
+					const int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,

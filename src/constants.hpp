@@ -6,6 +6,10 @@
 
 namespace fcapconstants {
 
+	const std::string CONFIG_FILENAME = "config.json";
+
+	const uint16_t IMAGE_SIZE_MAX = 4608;
+
 	const cv::Size PIPE_CAPTURE_SZ_1536X864 = cv::Size(1536, 864);
 	const cv::Size PIPE_CAPTURE_SZ_2304X1296 = cv::Size(2304, 1296);
 	//const cv::Size PIPE_CAPTURE_SZ_4608X2592 = cv::Size(4608, 2592);  // too big for Compute Modul 4, two cameras and 1GB of RAM (ERROR V4L2 v4l2_videodevice.cpp:1248 /dev/video14[19:cap]: Not enough buffers provided by V4L2VideoDevice)
@@ -20,12 +24,8 @@ namespace fcapconstants {
 	const std::string PIPE_FMT_S_BGR("BGR");
 	const std::string PIPE_FMT_S_BGRX("BGRx");
 
-	const unsigned int PIPE_FMT_X_BGR = 0;
-	const unsigned int PIPE_FMT_X_BGRX = 1;
-
-	// Pi Camera v3 with IMX708 sensor over I2C
-	const std::string GSTREAMER_CAMNAME_ZERO("/base/soc/i2c0mux/i2c@0/imx708@1a");
-	const std::string GSTREAMER_CAMNAME_ONE("/base/soc/i2c0mux/i2c@1/imx708@1a");
+	const uint8_t PIPE_FMT_X_BGR = 0;
+	const uint8_t PIPE_FMT_X_BGRX = 1;
 
 	const std::string HTTP_CONTENT_TYPE_HTML = "text/html";
 	const std::string HTTP_CONTENT_TYPE_JPEG = "image/jpeg";
@@ -39,6 +39,22 @@ namespace fcapconstants {
 		CAM_R = 1,
 		CAM_BOTH = 2
 	};
+
+	enum class CamSourceEn {
+		GSTREAMER = 0,
+		UNSPECIFIED = 1
+	};
+
+	enum class CamIdEn {
+		CAM_0 = 0,
+		CAM_1 = 1
+	};
+
+	const std::string CONFFILE_CAMID_0 = "cam0";
+	const std::string CONFFILE_CAMID_1 = "cam1";
+
+	const std::string CONFFILE_CAMSRC_GSTR = "gstreamer";
+	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
 }  // namespace fcapconstants
 

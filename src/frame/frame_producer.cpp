@@ -36,6 +36,7 @@ namespace frame {
 
 	FrameProducer::FrameProducer(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) :
 			gCbGetRunningHandlersCount(cbGetRunningHandlersCount) {
+		gStaticOptionsStc = fcapshared::Shared::getStaticOptions();
 	}
 
 	FrameProducer::~FrameProducer() {
@@ -96,7 +97,7 @@ namespace frame {
 		std::cout << "FPROD: " << message << std::endl;
 	}
 
-	std::string FrameProducer::pipe_format_x_to_str(const unsigned int formatX) {
+	std::string FrameProducer::pipe_format_x_to_str(const uint8_t formatX) {
 		std::string formatStr;
 		switch (formatX) {
 			case fcapconstants::PIPE_FMT_X_BGR:
@@ -111,28 +112,23 @@ namespace frame {
 		return formatStr;
 	}
 
-	std::string FrameProducer::build_gstreamer_pipeline(
-				const unsigned int camNr,
-				const unsigned int formatX1,
-				const unsigned int formatX2,
-				const unsigned int fps,
-				const cv::Size captureSz,
-				const cv::Size outputSz) {
-		const std::string format1Str = pipe_format_x_to_str(formatX1);
-		const std::string format2Str = pipe_format_x_to_str(formatX2);
+	std::string FrameProducer::build_gstreamer_pipeline(const std::string camSource) {
+		const std::string format1Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT1);
+		const std::string format2Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT2);
 
 		std::string pipeline = "libcamerasrc auto-focus-mode=AfModeContinuous camera-name=";
-		if (camNr == 0) {
-			pipeline += fcapconstants::GSTREAMER_CAMNAME_ZERO;
-		} else {
-			pipeline += fcapconstants::GSTREAMER_CAMNAME_ONE;
-		}
-		pipeline += " ! video/x-raw,format=" + format1Str + ",width=" + std::to_string(captureSz.width) + ",height=" + std::to_string(captureSz.height) + ",framerate=" + std::to_string(fps) + "/1";
+		pipeline += camSource;
+		pipeline += " ! video/x-raw,format=" + format1Str +
+				",width=" + std::to_string(gStaticOptionsStc.resolutionCapture.width) +
+				",height=" + std::to_string(gStaticOptionsStc.resolutionCapture.height) +
+				",framerate=" + std::to_string(gStaticOptionsStc.fps) + "/1";
 		if (format1Str.compare(format2Str) != 0) {
 			pipeline += " ! videoconvert";
 		}
 		pipeline += " ! videoscale";
-		pipeline += " ! video/x-raw,format=" + format2Str + ",width=" + std::to_string(outputSz.width) + ",height=" + std::to_string(outputSz.height);
+		pipeline += " ! video/x-raw,format=" + format2Str +
+				",width=" + std::to_string(gStaticOptionsStc.resolutionOutput.width) +
+				",height=" + std::to_string(gStaticOptionsStc.resolutionOutput.height);
 		pipeline += " ! appsink";
 		return pipeline;
 	}
@@ -140,25 +136,13 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 
 	bool FrameProducer::openStreams() {
-		std::string pipeline = build_gstreamer_pipeline(
-				fcapsettings::SETT_CAM_NR_LEFT,
-				fcapsettings::SETT_PIPE_FMT1,
-				fcapsettings::SETT_PIPE_FMT2,
-				fcapsettings::SETT_FPS,
-				fcapsettings::SETT_CAPTURE_SZ,
-				fcapsettings::SETT_OUTPUT_SZ
-			);
+		std::string camSource = (gStaticOptionsStc.camL == fcapconstants::CamIdEn::CAM_0 ? gStaticOptionsStc.camSource0 : gStaticOptionsStc.camSource1);
+		std::string pipeline = build_gstreamer_pipeline(camSource);
 		log("CapL: Opening GStreamer '" + pipeline + "'...");
 		gCapL.open(pipeline, cv::CAP_GSTREAMER);
 
-		pipeline = build_gstreamer_pipeline(
-				fcapsettings::SETT_CAM_NR_RIGHT,
-				fcapsettings::SETT_PIPE_FMT1,
-				fcapsettings::SETT_PIPE_FMT2,
-				fcapsettings::SETT_FPS,
-				fcapsettings::SETT_CAPTURE_SZ,
-				fcapsettings::SETT_OUTPUT_SZ
-			);
+		camSource = (gStaticOptionsStc.camR == fcapconstants::CamIdEn::CAM_0 ? gStaticOptionsStc.camSource0 : gStaticOptionsStc.camSource1);
+		pipeline = build_gstreamer_pipeline(camSource);
 		log("CapR: Opening GStreamer '" + pipeline + "'...");
 		gCapR.open(pipeline, cv::CAP_GSTREAMER);
 
@@ -198,18 +182,18 @@ namespace frame {
 	}
 
 	void FrameProducer::runX1(void) {
-		const unsigned int _MAX_EMPTY_FRAMES = 0;
+		const uint32_t _MAX_EMPTY_FRAMES = 0;
 
 		try {
 			cv::Mat frameL;  // Mat is a 'n-dimensional dense array class'
 			cv::Mat frameR;
-			unsigned int frameNr = 0;
-			unsigned int emptyFrameCnt = 0;
+			uint32_t frameNr = 0;
+			uint32_t emptyFrameCnt = 0;
 			bool needToStop = false;
 			bool haveClients = false;
-			unsigned int toHaveClients = 1;
-			unsigned int toNeedToStop = 100;
-			unsigned int toOpts = 10;
+			uint32_t toHaveClients = 1;
+			uint32_t toNeedToStop = 100;
+			uint32_t toOpts = 10;
 			fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 
 			/**auto timeStart = std::chrono::steady_clock::now();**/
@@ -222,7 +206,7 @@ namespace frame {
 						break;
 					}
 					//
-					toNeedToStop = fcapsettings::SETT_FPS;  // check every FPS * 100ms
+					toNeedToStop = gStaticOptionsStc.fps;  // check every FPS * 100ms
 				}
 
 				// only store frames if we have clients waiting for them
@@ -279,10 +263,10 @@ namespace frame {
 				}
 
 				//
-				std::this_thread::sleep_for(std::chrono::milliseconds((unsigned int)((1.0 / (float)(fcapsettings::SETT_FPS * 5)) * 1000.0)));
+				std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)((1.0 / (float)(gStaticOptionsStc.fps * 5)) * 1000.0)));
 
 				//
-				/*if (frameNr == fcapsettings::SETT_FPS * 5) {
+				/*if (frameNr == gStaticOptionsStc.fps * 5) {
 					log("Setting STOP flag...");
 					fcapshared::Shared::setFlagNeedToStop();
 					//
@@ -311,7 +295,7 @@ namespace frame {
 		//
 		log("Wait for queues...");
 		bool needToWait = true;
-		unsigned int waitCnt = 0;
+		uint32_t waitCnt = 0;
 		while (needToWait) {
 			if (waitCnt != 0) {
 				log("still waiting for queues...");

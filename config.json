@@ -1,0 +1,19 @@
+{
+	"server_port": 8090,
+	"resolution": {
+		"capture": "1536x864",
+		"output": "1280x720"
+	},
+	"fps": 30,
+	"camera_assignment": {
+		"left": "cam1",
+		"right": "cam0"
+	},
+	"camera_source": {
+		"type": "gstreamer",
+		"cam0": "/base/soc/i2c0mux/i2c@0/imx708@1a",
+		"cam1": "/base/soc/i2c0mux/i2c@1/imx708@1a"
+	},
+	"png_output_path": "/media/usbhd",
+	"output_pngs": false
+}

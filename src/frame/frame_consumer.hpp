@@ -27,6 +27,7 @@ namespace frame {
 			~FrameConsumer();
 
 		private:
+			fcapshared::StaticOptionsStc gStaticOptionsStc;
 			std::vector<int> gCompressionParams;
 			FrameProcessor gFrameProcessor;
 			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;

@@ -50,8 +50,14 @@ int main() {
 		return -1;
 	}
 
+	//
+	if (! fcapshared::Shared::readConfigFile()) {
+		return -1;
+	}
+	fcapshared::StaticOptionsStc staticOptionsStc = fcapshared::Shared::getStaticOptions();
+
 	// create HTTP server
-	http::TcpServer server = http::TcpServer("0.0.0.0", (int)fcapsettings::SETT_SERVER_PORT);
+	http::TcpServer server = http::TcpServer("0.0.0.0", staticOptionsStc.serverPort);
 	if (! server.isSocketOk()) {
 		return -1;
 	}
@@ -86,7 +92,7 @@ int main() {
 		log("done.");
 	}**/
 	///
-	int runningClts = 1;
+	uint32_t runningClts = 1;
 	log("Wait for threads #CLIENT...");
 	while (runningClts > 0) {
 		runningClts = server.getRunningHandlersCount();

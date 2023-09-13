@@ -35,11 +35,13 @@ namespace frame {
 				gFrameProcessor(),
 				gCbGetRunningHandlersCount(cbGetRunningHandlersCount),
 				gCbBroadcastFrameToStreamingClients(cbBroadcastFrameToStreamingClients) {
+		gStaticOptionsStc = fcapshared::Shared::getStaticOptions();
+		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);
 		//
-		gFrameQueueInpL.setFrameSize(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height));
-		gFrameQueueInpR.setFrameSize(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height));
+		gFrameQueueInpL.setFrameSize(gStaticOptionsStc.resolutionOutput);
+		gFrameQueueInpR.setFrameSize(gStaticOptionsStc.resolutionOutput);
 	}
 
 	FrameConsumer::~FrameConsumer() {
@@ -66,11 +68,11 @@ namespace frame {
 	}
 
 	void FrameConsumer::runX2() {
-		cv::Mat frameL(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
-		cv::Mat frameR(cv::Size(fcapsettings::SETT_OUTPUT_SZ.width, fcapsettings::SETT_OUTPUT_SZ.height), CV_8UC3);
+		cv::Mat frameL(gStaticOptionsStc.resolutionOutput, CV_8UC3);
+		cv::Mat frameR(gStaticOptionsStc.resolutionOutput, CV_8UC3);
 		cv::Mat blendedImg;
 		cv::Mat *pFrameOut = NULL;
-		unsigned int frameNr = 0;
+		uint32_t frameNr = 0;
 		char strBufPath[512];
 		char strBufFn[1024];
 		bool haveFrameL = false;
@@ -78,8 +80,8 @@ namespace frame {
 		bool haveFrames = false;
 		bool needToStop = false;
 		bool willDiscard = false;
-		unsigned int toNeedToStop = 100;
-		unsigned int toFrameL = 100;
+		uint32_t toNeedToStop = 100;
+		uint32_t toFrameL = 100;
 
 		// wait for camera streams to be open
 		needToStop = ! FrameProducer::waitForCamStreams();
@@ -91,9 +93,9 @@ namespace frame {
 
 		//
 		/**log("STARTED");**/
-		snprintf(strBufPath, sizeof(strBufPath), "%s", fcapsettings::SETT_PNG_PATH.c_str());
+		snprintf(strBufPath, sizeof(strBufPath), "%s", gStaticOptionsStc.pngOutputPath.c_str());
 		try {
-			unsigned int toOpts = 10;
+			uint32_t toOpts = 10;
 			fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
 
 			while (true) {
@@ -105,7 +107,7 @@ namespace frame {
 						break;
 					}
 					//
-					toNeedToStop = fcapsettings::SETT_FPS;  // check every FPS * 50ms
+					toNeedToStop = gStaticOptionsStc.fps;  // check every FPS * 50ms
 				}
 
 				// update runtime options
@@ -135,7 +137,7 @@ namespace frame {
 						haveFrameL = gFrameQueueInpL.getFrameFromQueue(frameL);
 						if (! haveFrameL) {
 							--toFrameL;
-							std::this_thread::sleep_for(std::chrono::milliseconds((unsigned int)((1.0 / (float)(fcapsettings::SETT_FPS * 5)) * 1000.0)));
+							std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)((1.0 / (float)(gStaticOptionsStc.fps * 5)) * 1000.0)));
 						}
 					}
 					toFrameL = 100;
@@ -157,14 +159,12 @@ namespace frame {
 					++frameNr;
 					willDiscard = true;
 					//
-					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R &&
-							fcapsettings::SETT_WRITE_PNG_TO_FILE_L) {
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_R && gStaticOptionsStc.outputPngs) {
 						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-L.png", strBufPath, frameNr);
 						cv::imwrite(std::string(strBufFn), frameL);
 						/**log("CapL: wrote frame to '" << strBufFn << "'");**/
 					}
-					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L &&
-							fcapsettings::SETT_WRITE_PNG_TO_FILE_R) {
+					if (opts.outputCams != fcapconstants::OutputCamsEn::CAM_L && gStaticOptionsStc.outputPngs) {
 						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-R.png", strBufPath, frameNr);
 						cv::imwrite(std::string(strBufFn), frameR);
 						/**log("CapR: wrote frame to '" << strBufFn << "'");**/
@@ -178,7 +178,7 @@ namespace frame {
 						pFrameOut = &blendedImg;
 						gFrameProcessor.processFrame(&frameL, &frameR, &pFrameOut);
 						//
-						if (fcapsettings::SETT_WRITE_PNG_TO_FILE_BLEND) {
+						if (gStaticOptionsStc.outputPngs) {
 							snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-B.png", strBufPath, frameNr);
 							cv::imwrite(std::string(strBufFn), blendedImg);
 							/**log("CapB: wrote frame to '" << strBufFn << "'");**/

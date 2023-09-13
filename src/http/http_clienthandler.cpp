@@ -37,7 +37,7 @@ namespace http {
 
 	ClientHandler::ClientHandler(
 			const uint32_t thrIx,
-			const int socket,
+			const int32_t socket,
 			CbAddRunningHandler cbAddRunningHandler,
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -69,7 +69,7 @@ namespace http {
 		/**log(gThrIx, "read");**/
 		::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 		::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
-		int bytesReceived = ::read(socket, buffer, BUFFER_SIZE);
+		int32_t bytesReceived = ::read(socket, buffer, BUFFER_SIZE);
 		if (bytesReceived < 0) {
 			log(gThrIx, "Failed to read bytes from client socket connection");
 		} else {
@@ -88,7 +88,7 @@ namespace http {
 
 	std::thread ClientHandler::startThread(
 			const uint32_t thrIx,
-			const int socket,
+			const int32_t socket,
 			CbAddRunningHandler cbAddRunningHandler,
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -113,7 +113,7 @@ namespace http {
 
 	void ClientHandler::_startThread_internal(
 			const uint32_t thrIx,
-			const int socket,
+			const int32_t socket,
 			CbAddRunningHandler cbAddRunningHandler,
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,

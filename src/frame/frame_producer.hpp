@@ -20,6 +20,7 @@ namespace frame {
 			static bool getFlagCamStreamsOpened();
 
 		private:
+			fcapshared::StaticOptionsStc gStaticOptionsStc;
 			cv::VideoCapture gCapL;
 			cv::VideoCapture gCapR;
 			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;
@@ -35,14 +36,8 @@ namespace frame {
 			static bool _getFlagCamStreamsOpened(const std::chrono::milliseconds dur);
 			//
 			void log(const std::string &message);
-			std::string pipe_format_x_to_str(const unsigned int formatX);
-			std::string build_gstreamer_pipeline(
-					const unsigned int camNr,
-					const unsigned int formatX1,
-					const unsigned int formatX2,
-					const unsigned int fps,
-					const cv::Size captureSz,
-					const cv::Size outputSz);
+			std::string pipe_format_x_to_str(const uint8_t formatX);
+			std::string build_gstreamer_pipeline(const std::string camSource);
 			bool openStreams();
 			void runX1(void);
 	};

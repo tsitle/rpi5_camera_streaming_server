@@ -34,7 +34,7 @@ namespace http {
 
 	class TcpServer {
 		public:
-			TcpServer(std::string ipAddress, int port);
+			TcpServer(std::string ipAddress, uint16_t port);
 			~TcpServer();
 			bool isSocketOk() { return gCanListen; }
 			void startListen();
@@ -52,18 +52,18 @@ namespace http {
 			static std::mutex gThrMtxRunningCltHnds;
 			//
 			std::string gServerIpAddr;
-			int gServerPort;
-			int gServerSocket;
+			uint16_t gServerPort;
+			int32_t gServerSocket;
 			struct sockaddr_in gServerSocketAddress;
-			unsigned int gServerLenSocketAddr;
-			unsigned int gThreadCount;
+			uint32_t gServerLenSocketAddr;
+			uint32_t gThreadCount;
 			bool gCanListen;
 
 			//
 
 			bool startServer();
 			void closeServer();
-			int acceptConnection();
+			int32_t acceptConnection();
 			static void log(const std::string &message);
 			static void exitWithError(const std::string &errorMessage);
 	};
