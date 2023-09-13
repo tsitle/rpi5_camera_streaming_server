@@ -6,10 +6,10 @@
 		"right": "cam0"
 	},
 	"camera_source": {
-		"type": "gstreamer",
-		"cam0": "/base/soc/i2c0mux/i2c@0/imx708@1a",
-		"cam1": "/base/soc/i2c0mux/i2c@1/imx708@1a",
-		"fps": 30,
+		"type": "mjpeg",
+		"cam0": "http://192.168.7.44:8081/stream",
+		"cam1": "http://192.168.7.44:8082/stream",
+		"fps": 15,
 		"gstreamer": {
 			"resolution_capture": "1536x864"
 		}
