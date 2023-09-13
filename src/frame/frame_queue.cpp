@@ -20,7 +20,7 @@ namespace frame {
 		//
 		for (uint8_t x = 0; x < QUEUE_SIZE; x++) {
 			gEntriesRsvdSz[x] = 64 * 1024;
-			gPEntries[x] = (uint8_t*)malloc(gEntriesRsvdSz[x]);
+			gPEntries[x] = (uint8_t*)::malloc(gEntriesRsvdSz[x]);
 			gEntriesUsedSz[x] = 0;
 		}
 	}
@@ -88,7 +88,7 @@ namespace frame {
 			/**if (gIsForJpegs) {
 				std::cout << "app " << (gIsForJpegs ? "J" : "R") << " _re " << std::to_string(dataSz) << " ix=" << std::to_string(gIxToStore) << "\n";
 			}**/
-			gPEntries[gIxToStore] = (uint8_t*)realloc(gPEntries[gIxToStore], dataSz);
+			gPEntries[gIxToStore] = (uint8_t*)::realloc(gPEntries[gIxToStore], dataSz);
 			gEntriesRsvdSz[gIxToStore] = dataSz;
 		}
 		gEntriesUsedSz[gIxToStore] = dataSz;
