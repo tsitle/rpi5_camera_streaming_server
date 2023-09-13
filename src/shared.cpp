@@ -44,7 +44,7 @@ namespace fcapshared {
 		try {
 			defConfJson = json::parse(defConfStr);
 		} catch (json::parse_error& ex) {
-			std::cerr << "parse error in DEFAULTS at byte " << ex.byte << std::endl;
+			log("parse error in DEFAULTS at byte " + std::to_string(ex.byte));
 			thrLock.unlock();
 			return false;
 		}
@@ -82,19 +82,16 @@ namespace fcapshared {
 				gThrVargStaticOptions.pngOutputPath = (std::string)defConfJson["png_output_path"];
 				gThrVargStaticOptions.outputPngs = (bool)defConfJson["output_pngs"];
 			} catch (json::type_error& ex) {
-				std::cerr << "Type error while processing config file '" << fcapconstants::CONFIG_FILENAME <<
-					"'" << std::endl;
+				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
 				return false;
 			} catch (std::invalid_argument& ex) {
-				std::cerr << "Error while processing config file '" << fcapconstants::CONFIG_FILENAME <<
-					"': " << ex.what() << std::endl;
+				log("Error while processing config file '" + fcapconstants::CONFIG_FILENAME + "': " + ex.what());
 				thrLock.unlock();
 				return false;
 			}
 		} catch (json::parse_error& ex) {
-			std::cerr << "Parsing error in config file '" << fcapconstants::CONFIG_FILENAME <<
-					"' at byte " << ex.byte << std::endl;
+			log("Parsing error in config file '" + fcapconstants::CONFIG_FILENAME + "' at byte " + std::to_string(ex.byte));
 			thrLock.unlock();
 			return false;
 		}
@@ -159,6 +156,10 @@ namespace fcapshared {
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
+
+	void Shared::log(const std::string &message) {
+		std::cout << "SHARED: " << message << std::endl;
+	}
 
 	void Shared::initStcRuntimeOptions() {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};

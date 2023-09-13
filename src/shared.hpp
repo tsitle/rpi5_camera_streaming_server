@@ -55,6 +55,7 @@ namespace fcapshared {
 
 			//
 
+			static void log(const std::string &message);
 			static void initStcRuntimeOptions();
 			static void initStcStaticOptions();
 			static std::string getDefaultStaticConfig();
