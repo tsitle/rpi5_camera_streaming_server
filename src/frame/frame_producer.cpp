@@ -228,16 +228,16 @@ namespace frame {
 				(char)((inpCodecTypeInt & 0XFF000000) >> 24),
 				0
 			};
-		log("Codec: " + std::to_string(inpCodecTypeInt) + " / '" + inpCodecTypeCh + "'");**/
+		log("Input Codec: " + std::to_string(inpCodecTypeInt) + " / '" + inpCodecTypeCh + "'");**/
 		///
 		cv::Size inpVideoSz = cv::Size(
 				(int)pCapInfo->get(cv::CAP_PROP_FRAME_WIDTH),
 				(int)pCapInfo->get(cv::CAP_PROP_FRAME_HEIGHT)
 			);
-		log("Size: " + std::to_string(inpVideoSz.width) + "x" + std::to_string(inpVideoSz.height));
+		log("Input Framesize: " + std::to_string(inpVideoSz.width) + "x" + std::to_string(inpVideoSz.height));
 		///
 		int inpFps = pCapInfo->get(cv::CAP_PROP_FPS);
-		log("FPS: " + std::to_string(inpFps) + " (expecting " + std::to_string(gStaticOptionsStc.cameraFps) + ")");
+		log("Input FPS: " + std::to_string(inpFps) + " (expecting " + std::to_string(gStaticOptionsStc.cameraFps) + ")");
 
 		return true;
 	}
