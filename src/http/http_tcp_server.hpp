@@ -54,7 +54,6 @@ namespace http {
 			std::string gServerIpAddr;
 			int gServerPort;
 			int gServerSocket;
-			long gIncomingMsg;
 			struct sockaddr_in gServerSocketAddress;
 			unsigned int gServerLenSocketAddr;
 			unsigned int gThreadCount;

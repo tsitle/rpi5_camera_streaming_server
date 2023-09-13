@@ -19,7 +19,6 @@ namespace http {
 			gServerIpAddr(ipAddress),
 			gServerPort(port),
 			gServerSocket(),
-			gIncomingMsg(),
 			gServerSocketAddress(),
 			gServerLenSocketAddr(sizeof(gServerSocketAddress)),
 			gThreadCount(0),
@@ -27,12 +26,12 @@ namespace http {
 		initRunningHandlersStc();
 		//
 		gServerSocketAddress.sin_family = AF_INET;
-		gServerSocketAddress.sin_port = ::htons(gServerPort);
+		gServerSocketAddress.sin_port = htons(gServerPort);
 		gServerSocketAddress.sin_addr.s_addr = ::inet_addr(gServerIpAddr.c_str());
 
 		gCanListen = startServer();
 		if (! gCanListen) {
-			log("Failed to start server with PORT: " + std::to_string(::ntohs(gServerSocketAddress.sin_port)));
+			log("Failed to start server with PORT: " + std::to_string(ntohs(gServerSocketAddress.sin_port)));
 		}
 	}
 
@@ -57,7 +56,7 @@ namespace http {
 		std::ostringstream ss;
 		ss << "*** Listening on address: "
 				<< ::inet_ntoa(gServerSocketAddress.sin_addr)
-				<< " PORT: " << ::ntohs(gServerSocketAddress.sin_port) << " ***";
+				<< " PORT: " << ntohs(gServerSocketAddress.sin_port) << " ***";
 		log(ss.str());
 
 		while (true) {

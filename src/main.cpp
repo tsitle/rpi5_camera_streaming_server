@@ -29,7 +29,7 @@ bool initSignalHandlers() {
 	// SIGINT
 	struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = sigHandlerCtrlC;
-	::sigemptyset(&sigIntHandler.sa_mask);
+	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
 	::sigaction(SIGINT, &sigIntHandler, NULL);
 
