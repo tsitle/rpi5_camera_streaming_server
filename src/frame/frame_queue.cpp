@@ -14,6 +14,10 @@ namespace frame {
 			gIxToOutput(0),
 			gDroppedFrames(0),
 			gFrameSz(0, 0) {
+		#define _UNUSED(x) (void)(x)
+		_UNUSED(gIsForJpegs);
+		#undef _UNUSED
+		//
 		for (uint8_t x = 0; x < QUEUE_SIZE; x++) {
 			gEntriesRsvdSz[x] = 64 * 1024;
 			gPEntries[x] = (uint8_t*)malloc(gEntriesRsvdSz[x]);
