@@ -8,7 +8,8 @@ endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+# '-fcompare-debug-second' turns off annoying compiler 'Notes'
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -fcompare-debug-second")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
