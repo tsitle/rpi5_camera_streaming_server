@@ -3,6 +3,7 @@
 
 #include "../shared.hpp"
 #include "../settings.hpp"
+#include "../cfgfile.hpp"
 #include "frame_consumer.hpp"
 #include "frame_producer.hpp"
 
@@ -35,7 +36,7 @@ namespace frame {
 				gFrameProcessor(),
 				gCbGetRunningHandlersCount(cbGetRunningHandlersCount),
 				gCbBroadcastFrameToStreamingClients(cbBroadcastFrameToStreamingClients) {
-		gStaticOptionsStc = fcapshared::Shared::getStaticOptions();
+		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);

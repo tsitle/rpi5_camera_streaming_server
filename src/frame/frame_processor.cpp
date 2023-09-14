@@ -9,7 +9,12 @@ using namespace std::chrono_literals;
 namespace frame {
 
 	FrameProcessor::FrameProcessor() {
-		gStaticOptionsStc = fcapshared::Shared::getStaticOptions();
+		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
+		//
+		log("Output Framesize: " +
+				std::to_string(gStaticOptionsStc.resolutionOutput.width) +
+				"x" +
+				std::to_string(gStaticOptionsStc.resolutionOutput.height));
 	}
 
 	FrameProcessor::~FrameProcessor() {
@@ -30,6 +35,11 @@ namespace frame {
 				(*ppFrameOut)->rows != gStaticOptionsStc.resolutionOutput.height
 			);
 		if (needToResizeFrame) {
+			log("resizing image from " +
+					std::to_string((*ppFrameOut)->cols) + "x" + std::to_string((*ppFrameOut)->rows) +
+					" to " +
+					std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" + std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+					" ...");
 			cv::resize(**ppFrameOut, **ppFrameOut, gStaticOptionsStc.resolutionOutput, 0.0, 0.0, cv::INTER_LINEAR);
 		}
 	}

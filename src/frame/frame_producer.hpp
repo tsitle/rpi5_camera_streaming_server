@@ -6,6 +6,7 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 
+#include "../cfgfile.hpp"
 #include "../http/http_tcp_server.hpp"
 
 namespace frame {
@@ -20,7 +21,7 @@ namespace frame {
 			static bool getFlagCamStreamsOpened();
 
 		private:
-			fcapshared::StaticOptionsStc gStaticOptionsStc;
+			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			cv::VideoCapture gCapL;
 			cv::VideoCapture gCapR;
 			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;

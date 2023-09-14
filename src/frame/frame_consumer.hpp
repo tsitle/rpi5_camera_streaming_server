@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "../constants.hpp"
+#include "../cfgfile.hpp"
 #include "../http/http_tcp_server.hpp"
 #include "frame_processor.hpp"
 #include "frame_queue.hpp"
@@ -27,7 +28,7 @@ namespace frame {
 			~FrameConsumer();
 
 		private:
-			fcapshared::StaticOptionsStc gStaticOptionsStc;
+			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			std::vector<int> gCompressionParams;
 			FrameProcessor gFrameProcessor;
 			http::CbGetRunningHandlersCount gCbGetRunningHandlersCount;

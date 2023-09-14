@@ -4,7 +4,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
-#include "../shared.hpp"
+#include "../cfgfile.hpp"
 
 namespace frame {
 
@@ -15,7 +15,7 @@ namespace frame {
 			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut);
 
 		private:
-			fcapshared::StaticOptionsStc gStaticOptionsStc;
+			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 
 			//
 

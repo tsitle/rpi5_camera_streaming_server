@@ -3,6 +3,7 @@
 
 #include "../shared.hpp"
 #include "../settings.hpp"
+#include "../cfgfile.hpp"
 #include "../http/http_tcp_server.hpp"
 #include "frame_producer.hpp"
 #include "frame_consumer.hpp"
@@ -36,7 +37,7 @@ namespace frame {
 
 	FrameProducer::FrameProducer(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) :
 			gCbGetRunningHandlersCount(cbGetRunningHandlersCount) {
-		gStaticOptionsStc = fcapshared::Shared::getStaticOptions();
+		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 	}
 
 	FrameProducer::~FrameProducer() {

@@ -5,6 +5,7 @@
 
 #include "shared.hpp"
 #include "settings.hpp"
+#include "cfgfile.hpp"
 #include "frame/frame_producer.hpp"
 #include "frame/frame_consumer.hpp"
 #include "http/http_tcp_server.hpp"
@@ -42,14 +43,47 @@ bool initSignalHandlers() {
 	return true;
 }
 
+void printHelp(char** argv) {
+	std::cout << "Usage: " + std::string(argv[0]) + " [-c FILENAME]" << std::endl;
+}
+
+bool parseCmdlineArgs(int argc, char** argv, std::string &cfgfileFn) {
+	if (argc == 1) {
+		return true;
+	}
+	if (argc == 2 || argc > 3) {
+		printHelp(argv);
+		return false;
+	}
+
+	std::string sArgv1(argv[1]);
+	if (sArgv1.compare("-h") == 0 || sArgv1.compare("--h") == 0 || sArgv1.compare("--help") == 0) {
+		printHelp(argv);
+		return false;
+	}
+	if (sArgv1.compare("-c") != 0) {
+		log("Invalid arg '" + std::string(argv[1]) + "'");
+		printHelp(argv);
+		return false;
+	}
+	cfgfileFn = argv[2];
+
+	return true;
+}
+
 // -----------------------------------------------------------------------------
 
-int main() {
-	fcapshared::Shared::initGlobals();
-	if (! fcapshared::Shared::readConfigFile()) {
+int main(int argc, char** argv) {
+	std::string cfgfileFn;
+
+	if (! parseCmdlineArgs(argc, argv, cfgfileFn)) {
 		return -1;
 	}
-	fcapshared::StaticOptionsStc staticOptionsStc = fcapshared::Shared::getStaticOptions();
+	//
+	if (! fcapcfgfile::CfgFile::readConfigFile(cfgfileFn)) {
+		return -1;
+	}
+	fcapcfgfile::StaticOptionsStc staticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 	//
 	if (! initSignalHandlers()) {
