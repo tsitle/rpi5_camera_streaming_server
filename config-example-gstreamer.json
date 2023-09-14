@@ -9,7 +9,7 @@
 		"type": "gstreamer",
 		"cam0": "/base/soc/i2c0mux/i2c@0/imx708@1a",
 		"cam1": "/base/soc/i2c0mux/i2c@1/imx708@1a",
-		"fps": 30,
+		"fps": 15,
 		"gstreamer": {
 			"resolution_capture": "1536x864"
 		}
