@@ -17,7 +17,7 @@ namespace frame {
 		_UNUSED(gIsForJpegs);
 		#undef _UNUSED
 		//
-		for (uint8_t x = 0; x < QUEUE_SIZE; x++) {
+		for (uint8_t x = 0; x < fcapsettings::QUEUE_SIZE; x++) {
 			gEntriesRsvdSz[x] = 64 * 1024;
 			gPEntries[x] = (uint8_t*)::malloc(gEntriesRsvdSz[x]);
 			gEntriesUsedSz[x] = 0;
@@ -28,7 +28,7 @@ namespace frame {
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
 		thrLock.lock();
-		for (uint8_t x = 0; x < QUEUE_SIZE; x++) {
+		for (uint8_t x = 0; x < fcapsettings::QUEUE_SIZE; x++) {
 			if (gPEntries[x] != NULL) {
 				::free(gPEntries[x]);
 				gPEntries[x] = NULL;
@@ -71,10 +71,10 @@ namespace frame {
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
 		thrLock.lock();
-		if (gCountInBuf == QUEUE_SIZE) {
+		if (gCountInBuf == fcapsettings::QUEUE_SIZE) {
 			++gDroppedFrames;
 			++gIxToOutput;
-			if (gIxToOutput == QUEUE_SIZE) {
+			if (gIxToOutput == fcapsettings::QUEUE_SIZE) {
 				gIxToOutput = 0;
 			}
 		}
@@ -98,11 +98,11 @@ namespace frame {
 			log("put sz=" + std::to_string(gEntriesUsedSz[gIxToStore]) + ": " + strBuf);
 		}**/
 		//
-		if (++gIxToStore == QUEUE_SIZE) {
+		if (++gIxToStore == fcapsettings::QUEUE_SIZE) {
 			gIxToStore = 0;
 		}
-		if (++gCountInBuf > QUEUE_SIZE) {
-			gCountInBuf = QUEUE_SIZE;
+		if (++gCountInBuf > fcapsettings::QUEUE_SIZE) {
+			gCountInBuf = fcapsettings::QUEUE_SIZE;
 		}
 		/**if (gIsForJpegs) { log("app end"); }**/
 		thrLock.unlock();
@@ -151,7 +151,7 @@ namespace frame {
 				/**log("get beg ix=" + std::to_string(gIxToOutput));**/
 				frameRawOut = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gIxToOutput]);
 				/**log("get end");**/
-				if (++gIxToOutput == QUEUE_SIZE) {
+				if (++gIxToOutput == fcapsettings::QUEUE_SIZE) {
 					gIxToOutput = 0;
 				}
 				--gCountInBuf;
@@ -215,7 +215,7 @@ namespace frame {
 				} else {
 					dataSzOut = 0;
 				}
-				if (++gIxToOutput == QUEUE_SIZE) {
+				if (++gIxToOutput == fcapsettings::QUEUE_SIZE) {
 					gIxToOutput = 0;
 				}
 				--gCountInBuf;

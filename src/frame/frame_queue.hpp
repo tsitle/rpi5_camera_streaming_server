@@ -5,9 +5,9 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 
-namespace frame {
+#include "../settings.hpp"
 
-	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
+namespace frame {
 
 	class FrameQueue {
 		public:
@@ -20,9 +20,9 @@ namespace frame {
 			bool gIsForJpegs;
 
 		protected:
-			uint8_t* gPEntries[QUEUE_SIZE];
-			uint32_t gEntriesRsvdSz[QUEUE_SIZE];
-			uint32_t gEntriesUsedSz[QUEUE_SIZE];
+			uint8_t* gPEntries[fcapsettings::QUEUE_SIZE];
+			uint32_t gEntriesRsvdSz[fcapsettings::QUEUE_SIZE];
+			uint32_t gEntriesUsedSz[fcapsettings::QUEUE_SIZE];
 			uint8_t gCountInBuf;
 			uint8_t gIxToStore;
 			uint8_t gIxToOutput;

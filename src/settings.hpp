@@ -25,6 +25,8 @@ namespace fcapsettings {
 
 	const uint32_t SETT_MAX_STREAMING_CLIENTS = 4;
 
+	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
+
 }  // namespace fcapsettings
 
 #endif  // SETTINGS_HPP_
