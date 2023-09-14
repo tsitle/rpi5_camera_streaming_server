@@ -116,7 +116,7 @@ cmake \
 		-D VIDEOIO_ENABLE_PLUGINS=OFF \
 		-DBUILD_TESTS=OFF \
 		-DBUILD_PERF_TESTS=OFF \
-		-DBUILD_opencv_calib3d=OFF \
+		-DBUILD_opencv_calib3d=ON \
 		-DBUILD_opencv_dnn=OFF \
 		-DBUILD_opencv_highgui=$TMP_OPT_HIGHGUI \
 		-DBUILD_opencv_java=OFF \
@@ -124,6 +124,7 @@ cmake \
 		-DBUILD_opencv_ml=OFF \
 		-DBUILD_opencv_objc=OFF \
 		-DBUILD_opencv_python=OFF \
+		-DOPENCV_FORCE_LIBATOMIC_COMPILER_CHECK=1 \
 		"../$OPENCV_RELEASE" || exit 1
 
 #
