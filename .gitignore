@@ -6,6 +6,8 @@ build_opencv/opencv-*.tgz
 
 build/
 
+config.json
+
 
 # =========================
 # IDE Files
