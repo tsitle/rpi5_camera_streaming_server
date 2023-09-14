@@ -12,7 +12,7 @@ namespace fcapsettings {
 
 	const uint8_t SETT_JPEG_QUALITY = 90;  // 0..100
 
-	const uint8_t SETT_DEFAULT_FPS = 20;
+	const uint8_t SETT_DEFAULT_FPS = 15;
 
 	const cv::Size SETT_DEFAULT_CAPTURE_SZ = fcapconstants::PIPE_CAPTURE_SZ_1536X864;  // can also be a PIPE_OUTPUT_SZ_*
 	const cv::Size SETT_DEFAULT_OUTPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;  // can also be a PIPE_CAPTURE_SZ_*
