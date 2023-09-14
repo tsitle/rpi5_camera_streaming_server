@@ -1,5 +1,6 @@
 #include <chrono>
 #include <fstream>
+#include <sys/stat.h>  // for stat()
 #include <string>  // for stoi()
 #include <stdexcept>
 
@@ -21,20 +22,23 @@ namespace fcapcfgfile {
 	// -----------------------------------------------------------------------------
 
 	bool CfgFile::readConfigFile(const std::string &cfgfileFn) {
-		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
 		const std::string* pCfgfileFn = &fcapconstants::CONFIG_FILENAME;
 		if (! cfgfileFn.empty()) {
 			pCfgfileFn = &cfgfileFn;
 		}
-		std::ifstream confFileStream(*pCfgfileFn, std::ifstream::binary);
-		json defConfJson;
+		if (! fileExists(*pCfgfileFn)) {
+			log("File '" + *pCfgfileFn + "' does not exist!");
+			return false;
+		}
 
 		//
 		initStcStaticOptions();
 
 		//
+		json defConfJson;
 		try {
 			std::string defConfStr = getDefaultStaticConfig();
+
 			defConfJson = json::parse(defConfStr);
 		} catch (json::parse_error& ex) {
 			log("parse error in DEFAULTS at byte " + std::to_string(ex.byte));
@@ -42,8 +46,12 @@ namespace fcapcfgfile {
 		}
 
 		//
+		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
+
 		thrLock.lock();
 		try {
+			std::ifstream confFileStream(*pCfgfileFn, std::ifstream::binary);
+
 			json confFileJson = json::parse(confFileStream);
 			//
 			/**std::cout
@@ -134,6 +142,11 @@ namespace fcapcfgfile {
 			gThrVarSetStaticOptions = true;
 		}
 		thrLock.unlock();
+	}
+
+	bool CfgFile::fileExists(const std::string &name) {
+		struct stat buffer;
+		return (stat(name.c_str(), &buffer) == 0);
 	}
 
 	std::string CfgFile::getDefaultStaticConfig() {
