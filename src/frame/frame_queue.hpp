@@ -15,6 +15,7 @@ namespace frame {
 			~FrameQueue();
 			bool isQueueEmpty();
 			uint32_t getDroppedFramesCount();
+			void resetDroppedFramesCount();
 
 		private:
 			bool gIsForJpegs;

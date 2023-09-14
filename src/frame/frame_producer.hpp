@@ -19,6 +19,7 @@ namespace frame {
 			~FrameProducer();
 			static bool waitForCamStreams();
 			static bool getFlagCamStreamsOpened();
+			static void setFlagRestartCamStreams();
 
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
@@ -29,16 +30,21 @@ namespace frame {
 			static bool gThrVarCamStreamsOpened;
 			static std::mutex gThrMtxCamStreamsOpened;
 			static std::condition_variable gThrCondCamStreamsOpened;
+			//
+			static bool gThrVarRestartCamStreams;
+			static std::mutex gThrMtxRestartCamStreams;
+			static std::condition_variable gThrCondRestartCamStreams;
 
 			//
 
 			static void _startThread_internal(http::CbGetRunningHandlersCount cbGetRunningHandlersCount);
 			static void setFlagCamStreamsOpened(const bool state);
 			static bool _getFlagCamStreamsOpened(const std::chrono::milliseconds dur);
+			static bool getFlagRestartCamStreams();
 			//
 			void log(const std::string &message);
 			std::string pipe_format_x_to_str(const uint8_t formatX);
-			std::string build_gstreamer_pipeline(const std::string camSource);
+			std::string build_gstreamer_pipeline(const std::string camSource, const uint8_t cameraFps);
 			bool openStreams();
 			void runX1(void);
 	};

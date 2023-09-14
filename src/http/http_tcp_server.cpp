@@ -15,6 +15,9 @@ namespace http {
 	RunningCltsStc TcpServer::gThrVarRunningCltsStc;
 	std::mutex TcpServer::gThrMtxRunningCltHnds;
 
+	// -----------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------
+
 	TcpServer::TcpServer(std::string ipAddress, uint16_t port) :
 			gServerIpAddr(ipAddress),
 			gServerPort(port),

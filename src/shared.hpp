@@ -13,6 +13,7 @@ namespace fcapshared {
 
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
+		uint8_t cameraFps;
 	};
 
 	class Shared {
@@ -22,6 +23,7 @@ namespace fcapshared {
 			//
 			static RuntimeOptionsStc getRuntimeOptions();
 			static void setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val);
+			static void setRuntimeOptions_cameraFps(uint8_t val);
 
 		private:
 			static bool gThrVarNeedToStop;

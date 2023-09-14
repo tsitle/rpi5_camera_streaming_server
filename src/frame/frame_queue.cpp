@@ -60,6 +60,14 @@ namespace frame {
 		return resI;
 	}
 
+	void FrameQueue::resetDroppedFramesCount() {
+		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+
+		thrLock.lock();
+		gDroppedFrames = 0;
+		thrLock.unlock();
+	}
+
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 

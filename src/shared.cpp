@@ -33,7 +33,7 @@ namespace fcapshared {
 		std::unique_lock<std::mutex> thrLock{gThrMtxNeedToStop, std::defer_lock};
 
 		thrLock.lock();
-		if (gThrCondNeedToStop.wait_for(thrLock, 1ms, []{return gThrVarNeedToStop;})) {
+		if (gThrCondNeedToStop.wait_for(thrLock, 1ms, []{ return gThrVarNeedToStop; })) {
 			resB = true;
 		}
 		thrLock.unlock();
@@ -64,6 +64,16 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_cameraFps(uint8_t val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.cameraFps = val;
+		thrLock.unlock();
+	}
+
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
@@ -73,6 +83,7 @@ namespace fcapshared {
 		thrLock.lock();
 		if (! gThrVarSetRuntimeOptions) {
 			gThrVarRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
+			gThrVarRuntimeOptions.cameraFps = 0;
 			//
 			gThrVarSetRuntimeOptions = true;
 		}
