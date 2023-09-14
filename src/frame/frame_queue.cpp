@@ -63,6 +63,10 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
+	void FrameQueue::log(const std::string &message) {
+		std::cout << "FQUEUE: [" << (gIsForJpegs ? "J" : "R") << "] " << message << std::endl;
+	}
+
 	void FrameQueue::appendFrameToQueueBytes(void *pData, const uint32_t dataSz) {
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
@@ -77,24 +81,21 @@ namespace frame {
 		//
 		if (dataSz > gEntriesRsvdSz[gIxToStore]) {
 			/**if (gIsForJpegs) {
-				std::cout << "app " << (gIsForJpegs ? "J" : "R") << " _re " << std::to_string(dataSz) << " ix=" << std::to_string(gIxToStore) << "\n";
+				log("app _re " + std::to_string(dataSz) + " ix=" + std::to_string(gIxToStore));
 			}**/
 			gPEntries[gIxToStore] = (uint8_t*)::realloc(gPEntries[gIxToStore], dataSz);
 			gEntriesRsvdSz[gIxToStore] = dataSz;
 		}
 		gEntriesUsedSz[gIxToStore] = dataSz;
 		/**if (gIsForJpegs) {
-			std::cout << "app " << (gIsForJpegs ? "J" : "R") << " _cp " << std::to_string(dataSz) << " ix=" << std::to_string(gIxToStore) << " p=" << static_cast<void*>(gPEntries[gIxToStore]) << "\n";
+			log("app _cp " + std::to_string(dataSz) + " ix=" + std::to_string(gIxToStore));
 		}**/
 		::memcpy(gPEntries[gIxToStore], pData, dataSz);
 		//
 		/**if (gIsForJpegs) {
 			char strBuf[128];
 			snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", gPEntries[gIxToStore][0], gPEntries[gIxToStore][1], gPEntries[gIxToStore][dataSz - 2], gPEntries[gIxToStore][dataSz - 1]);
-			std::cout << "put " << (gIsForJpegs ? "J" : "R") << " " << strBuf << std::endl;
-			std::cout << "put " << (gIsForJpegs ? "J" : "R") << " " <<
-					std::to_string(gEntriesUsedSz[gIxToStore]) << 
-					std::endl;
+			log("put sz=" + std::to_string(gEntriesUsedSz[gIxToStore]) + ": " + strBuf);
 		}**/
 		//
 		if (++gIxToStore == QUEUE_SIZE) {
@@ -103,7 +104,7 @@ namespace frame {
 		if (++gCountInBuf > QUEUE_SIZE) {
 			gCountInBuf = QUEUE_SIZE;
 		}
-		/**if (gIsForJpegs) { std::cout << "app " << (gIsForJpegs ? "J" : "R") << " end\n"; }**/
+		/**if (gIsForJpegs) { log("app end"); }**/
 		thrLock.unlock();
 		gThrCond.notify_all();
 	}
@@ -123,13 +124,12 @@ namespace frame {
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
 		/**if (frameRaw.type() != CV_8UC3) {
-			std::cout << "invalid type " << std::to_string(frameRaw.type()) << std::endl;
+			log("invalid type " + std::to_string(frameRaw.type()));
 			return;
 		}**/
-		/**std::cout << "fR.t=" << std::to_string(frameRaw.total()) <<
-				", fR.c=" << std::to_string(frameRaw.channels()) <<
-				", fR.e=" << std::to_string(frameRaw.elemSize()) <<
-				std::endl;**/
+		/**log("fR.t=" + std::to_string(frameRaw.total()) +
+				", fR.c=" + std::to_string(frameRaw.channels()) +
+				", fR.e=" + std::to_string(frameRaw.elemSize()));**/
 		thrLock.lock();
 		if (gFrameSz.width == 0) {
 			gFrameSz.width = frameRaw.cols;
@@ -148,16 +148,16 @@ namespace frame {
 		thrLock.lock();
 		if (gThrCond.wait_for(thrLock, 1ms, []{ return true; })) {
 			if (gCountInBuf != 0) {
-				/**std::cout << "get R beg ix=" << std::to_string(gIxToOutput) << " p=" << static_cast<void*>(gPEntries[gIxToOutput]) << std::endl;**/
+				/**log("get beg ix=" + std::to_string(gIxToOutput));**/
 				frameRawOut = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gIxToOutput]);
-				/**std::cout << "get R end" << std::endl;**/
+				/**log("get end");**/
 				if (++gIxToOutput == QUEUE_SIZE) {
 					gIxToOutput = 0;
 				}
 				--gCountInBuf;
 				resB = true;
 			} else {
-				/*std::cout << "count 0\n";*/
+				/*log("count 0");*/
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 		}
@@ -186,31 +186,30 @@ namespace frame {
 		thrLock.lock();
 		if (gThrCond.wait_for(thrLock, 1ms, []{ return true; })) {
 			if (gCountInBuf != 0) {
-				/**std::cout << "get J beg ix=" << std::to_string(gIxToOutput) << " pSrc=" << static_cast<void*>(gPEntries[gIxToOutput]) << std::endl;**/
-				/**std::cout << "get J pDest=" << static_cast<void*>(*ppData) << std::endl;**/
+				/**log("get beg ix=" + std::to_string(gIxToOutput));**/
 				uint32_t entrySz = gEntriesUsedSz[gIxToOutput];
 				//
 				if (dataRsvdSz == 0) {
 					dataRsvdSz = entrySz + 1024;
-					/**std::cout << "get J _ma " << std::to_string(dataRsvdSz) << std::endl;**/
+					/**log("get _ma " + std::to_string(dataRsvdSz));**/
 					*ppData = (uint8_t*)::malloc(dataRsvdSz);
 				} else if (entrySz > dataRsvdSz) {
 					dataRsvdSz = entrySz;
-					/**std::cout << "get J _ra " << std::to_string(dataRsvdSz) << std::endl;**/
+					/**log("get _ra " + std::to_string(dataRsvdSz));**/
 					*ppData = (uint8_t*)::realloc(*ppData, dataRsvdSz);
 				}
 				if (*ppData != NULL) {
 					/**char strBuf1[128];
 					snprintf(strBuf1, sizeof(strBuf1), "__b 0x%02X%02X 0x%02X%02X", gPEntries[gIxToOutput][0], gPEntries[gIxToOutput][1], gPEntries[gIxToOutput][entrySz - 2], gPEntries[gIxToOutput][entrySz - 1]);
-					std::cout << "get J _src " << strBuf1 << std::endl;**/
+					log("get _src " + strBuf1);**/
 					//
-					/**std::cout << "get J _cp " << std::to_string(entrySz) << std::endl;**/
+					/**log("get _cp " + std::to_string(entrySz));**/
 					::memcpy(*ppData, gPEntries[gIxToOutput], entrySz);
 					dataSzOut = entrySz;
 					//
 					/**char strBuf2[128];
 					snprintf(strBuf2, sizeof(strBuf2), "__b 0x%02X%02X 0x%02X%02X", (*ppData)[0], (*ppData)[1], (*ppData)[entrySz - 2], (*ppData)[entrySz - 1]);
-					std::cout << "get J _dst " << strBuf2 << std::endl;**/
+					log("get _dst " + strBuf2);**/
 					//
 					resB = true;
 				} else {
@@ -220,9 +219,9 @@ namespace frame {
 					gIxToOutput = 0;
 				}
 				--gCountInBuf;
-				/**std::cout << "get J end\n";**/
+				/**log("get end");**/
 			} else {
-				/*std::cout << "count 0\n";*/
+				/*log("count 0");*/
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 		}

@@ -7,7 +7,7 @@
 
 namespace frame {
 
-	const uint8_t QUEUE_SIZE = 5;
+	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
 
 	class FrameQueue {
 		public:
@@ -32,6 +32,7 @@ namespace frame {
 
 			//
 
+			void log(const std::string &message);
 			void appendFrameToQueueBytes(void *pData, const uint32_t dataSz);
 	};
 
