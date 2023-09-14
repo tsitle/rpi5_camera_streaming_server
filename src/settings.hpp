@@ -27,6 +27,12 @@ namespace fcapsettings {
 
 	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
 
+	const uint8_t CALIB_CHESS_SQUARES_CNT_X = 7;
+	const uint8_t CALIB_CHESS_SQUARES_CNT_Y = 5;
+
+	const int16_t PROC_DEFAULT_ADJ_BRIGHTNESS = 124;
+	const int16_t PROC_DEFAULT_ADJ_CONTRAST = 65;
+
 }  // namespace fcapsettings
 
 #endif  // SETTINGS_HPP_

@@ -5,6 +5,8 @@
 #include <opencv2/opencv.hpp>
 
 #include "../cfgfile.hpp"
+#include "../shared.hpp"
+#include "subprocessor/subproc.hpp"
 
 namespace frame {
 
@@ -27,20 +29,32 @@ namespace frame {
 		std::string textPrefix;
 	};
 
+	struct SubProcsStc {
+		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
+		framesubproc::FrameSubProcessorCalibrate cal;
+	};
+
 	class FrameProcessor {
 		public:
 			FrameProcessor();
 			~FrameProcessor();
-			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut);
+			void setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt);
+			void processFrame(fcapconstants::OutputCamsEn outputCams, cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut);
 
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
+			fcapshared::RuntimeOptionsStc* gPOptsRt;
 			bool gDisableProcessing;
 			TextOverlayPropsStc gTextOverlayPropsStc;
+			SubProcsStc gSubProcsL;
+			SubProcsStc gSubProcsR;
 
 			//
 
 			void log(const std::string &message);
+			void updateSubProcsSettings();
+			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
+			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);
 			void procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const bool isOneCam);
 			cv::Size getTextSize(const std::string &text);
 	};

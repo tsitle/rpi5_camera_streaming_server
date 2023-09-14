@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <string>  // for stoi()
 #include <sys/socket.h>  // ::setsockopt()
 #include <unistd.h>  // ::write()
 #include <opencv2/opencv.hpp>
@@ -31,6 +32,8 @@ namespace http {
 	const std::string URL_PATH_ENABLE_CAM_R = "/enable_cam_r";
 	const std::string URL_PATH_DISABLE_CAM_L = "/disable_cam_l";
 	const std::string URL_PATH_DISABLE_CAM_R = "/disable_cam_r";
+	const std::string URL_PATH_ADJ_BRIGHTN = "/adj_brightn";
+	const std::string URL_PATH_ADJ_CONTRAST = "/adj_contrast";
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -151,12 +154,14 @@ namespace http {
 		httpparser::HttpRequestParser requparser;
 		httpparser::UrlParser urlparser;
 		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
-		fcapconstants::OutputCamsEn optsOutputCamsVal = opts.outputCams;
+		fcapconstants::OutputCamsEn newOptsOutputCamsVal = opts.outputCams;
 		bool isNewStreamingClientAccepted;
+		int16_t newOptsAdjBrightnVal = opts.adjBrightness;
+		int16_t newOptsAdjContrVal = opts.adjContrast;
 
-		httpparser::HttpRequestParser::ParseResult res = requparser.parse(request, buffer, buffer + bufSz);
+		httpparser::HttpRequestParser::ParseResult requParseRes = requparser.parse(request, buffer, buffer + bufSz);
 
-		if (res != httpparser::HttpRequestParser::ParsingCompleted) {
+		if (requParseRes != httpparser::HttpRequestParser::ParsingCompleted) {
 			log(gThrIx, "Parsing failed");
 			return;
 		}
@@ -187,7 +192,7 @@ namespace http {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
 			}
 			success = true;
 			returnJson = true;
@@ -195,7 +200,7 @@ namespace http {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
 			}
 			success = true;
 			returnJson = true;
@@ -203,20 +208,46 @@ namespace http {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_R;
+				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_R;
 				success = true;
-			} else {
-				success = false;
 			}
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_R) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				optsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_L;
+				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_L;
 				success = true;
-			} else {
-				success = false;
+			}
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_ADJ_BRIGHTN) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			try {
+				if (urlparser.query().empty()) {
+					throw;
+				}
+				newOptsAdjBrightnVal = stoi(urlparser.query());
+				success = (newOptsAdjBrightnVal >= fcapconstants::PROC_MIN_ADJ_BRIGHTNESS &&
+						newOptsAdjBrightnVal <= fcapconstants::PROC_MAX_ADJ_BRIGHTNESS);
+			} catch (std::exception& err) {
+				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+				log(gThrIx, "__invalid query");
+			}
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_ADJ_CONTRAST) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			try {
+				if (urlparser.query().empty()) {
+					throw;
+				}
+				newOptsAdjContrVal = stoi(urlparser.query());
+				success = (newOptsAdjContrVal >= fcapconstants::PROC_MIN_ADJ_CONTRAST &&
+						newOptsAdjContrVal <= fcapconstants::PROC_MAX_ADJ_CONTRAST);
+			} catch (std::exception& err) {
+				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+				log(gThrIx, "__invalid query");
 			}
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_FAVICON) == 0) {
@@ -224,7 +255,6 @@ namespace http {
 			resHttpStat = 404;
 		} else {
 			/**log(gThrIx, "404 invalid path '" + urlparser.path() + "'");**/
-			/**/log(gThrIx, "404 invalid query '" + urlparser.query() + "'");/**/
 			log(gThrIx, "404 invalid path");
 			resHttpStat = 404;
 		}
@@ -238,8 +268,14 @@ namespace http {
 		if (success && startStream) {
 			startStreaming();
 		} else if (success && returnJson) {
-			if (optsOutputCamsVal != opts.outputCams) {
-				fcapshared::Shared::setRuntimeOptions_outputCams(optsOutputCamsVal);
+			if (newOptsOutputCamsVal != opts.outputCams) {
+				fcapshared::Shared::setRuntimeOptions_outputCams(newOptsOutputCamsVal);
+			}
+			if (newOptsAdjBrightnVal != opts.adjBrightness) {
+				fcapshared::Shared::setRuntimeOptions_adjBrightness(newOptsAdjBrightnVal);
+			}
+			if (newOptsAdjContrVal != opts.adjContrast) {
+				fcapshared::Shared::setRuntimeOptions_adjContrast(newOptsAdjContrVal);
 			}
 			//
 			resHttpMsgString = "{\"result\":\"success\"}";

@@ -92,6 +92,9 @@ namespace frame {
 		}
 
 		//
+		gFrameProcessor.setRuntimeOptionsPnt(&optsRt);
+
+		//
 		/**log("STARTED");**/
 		snprintf(strBufPath, sizeof(strBufPath), "%s", gStaticOptionsStc.pngOutputPath.c_str());
 		try {
@@ -113,6 +116,7 @@ namespace frame {
 				// update runtime options
 				if (--toOpts == 0) {
 					optsRt = fcapshared::Shared::getRuntimeOptions();
+					gFrameProcessor.setRuntimeOptionsPnt(&optsRt);
 					//
 					toOpts = 10;
 				}
@@ -171,12 +175,12 @@ namespace frame {
 					}
 					// process frames
 					if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-						gFrameProcessor.processFrame(&frameL, NULL, &pFrameOut);
+						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, NULL, &pFrameOut);
 					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-						gFrameProcessor.processFrame(NULL, &frameR, &pFrameOut);
+						gFrameProcessor.processFrame(optsRt.outputCams, NULL, &frameR, &pFrameOut);
 					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 						pFrameOut = &blendedImg;
-						gFrameProcessor.processFrame(&frameL, &frameR, &pFrameOut);
+						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, &frameR, &pFrameOut);
 						//
 						if (gStaticOptionsStc.outputPngs) {
 							snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-B.png", strBufPath, frameNr);

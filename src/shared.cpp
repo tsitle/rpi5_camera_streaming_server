@@ -54,7 +54,7 @@ namespace fcapshared {
 		return resStc;
 	}
 
-	void Shared::setRuntimeOptions_outputCams(fcapconstants::OutputCamsEn val) {
+	void Shared::setRuntimeOptions_outputCams(const fcapconstants::OutputCamsEn val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		initStcRuntimeOptions();
@@ -64,13 +64,41 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_cameraFps(uint8_t val) {
+	void Shared::setRuntimeOptions_cameraFps(const uint8_t val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		initStcRuntimeOptions();
 		//
 		thrLock.lock();
 		gThrVarRuntimeOptions.cameraFps = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRuntimeOptions_adjBrightness(const int16_t val) {
+		if (val < fcapconstants::PROC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_MAX_ADJ_BRIGHTNESS) {
+			return;
+		}
+
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.adjBrightness = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRuntimeOptions_adjContrast(const int16_t val) {
+		if (val < fcapconstants::PROC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_MAX_ADJ_CONTRAST) {
+			return;
+		}
+
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.adjContrast = val;
 		thrLock.unlock();
 	}
 
@@ -84,6 +112,8 @@ namespace fcapshared {
 		if (! gThrVarSetRuntimeOptions) {
 			gThrVarRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 			gThrVarRuntimeOptions.cameraFps = 0;
+			gThrVarRuntimeOptions.adjBrightness = fcapsettings::PROC_DEFAULT_ADJ_BRIGHTNESS;
+			gThrVarRuntimeOptions.adjContrast = fcapsettings::PROC_DEFAULT_ADJ_CONTRAST;
 			//
 			gThrVarSetRuntimeOptions = true;
 		}

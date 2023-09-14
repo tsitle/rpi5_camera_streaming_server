@@ -24,6 +24,9 @@ add_executable( HttpCamServer
     main.cpp shared.cpp cfgfile.cpp
     http/http_tcp_server.cpp http/http_clienthandler.cpp
     frame/frame_producer.cpp frame/frame_consumer.cpp frame/frame_processor.cpp frame/frame_queue.cpp
+    frame/subprocessor/subproc.cpp
+    frame/subprocessor/subproc_bnc.cpp
+    frame/subprocessor/subproc_calibrate.cpp
   )
 
 target_link_libraries( HttpCamServer PRIVATE ${OpenCV_LIBS} Threads::Threads )

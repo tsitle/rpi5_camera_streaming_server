@@ -8,10 +8,17 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
-	FrameProcessor::FrameProcessor() {
+	FrameProcessor::FrameProcessor() :
+			gPOptsRt(NULL) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
+
+		//
+		gSubProcsL.cal.setCamId(gStaticOptionsStc.camL);
+		gSubProcsR.cal.setCamId(gStaticOptionsStc.camR);
+
 		//
 		gDisableProcessing = false;
+
 		//
 		///
 		gTextOverlayPropsStc.textFontScale = 1.0;
@@ -40,6 +47,7 @@ namespace frame {
 			);
 		gTextOverlayPropsStc.rectColor = cv::Scalar(255.0, 255.0, 255.0);
 		gTextOverlayPropsStc.rectThickness = cv::FILLED;
+
 		//
 		log("Output Framesize: " +
 				std::to_string(gStaticOptionsStc.resolutionOutput.width) +
@@ -50,36 +58,46 @@ namespace frame {
 	FrameProcessor::~FrameProcessor() {
 	}
 
-	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut) {
-		if (ppFrameOut == NULL) {
-			return;
+	void FrameProcessor::setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt) {
+		gPOptsRt = pOptsRt;
+		updateSubProcsSettings();
+	}
+
+	void FrameProcessor::processFrame(
+				fcapconstants::OutputCamsEn outputCams,
+				cv::Mat *pFrameL,
+				cv::Mat *pFrameR,
+				cv::Mat **ppFrameOut) {
+		// do the actual processing
+		if (! gDisableProcessing && pFrameL != NULL) {
+			procDefaults(gSubProcsL, *pFrameL);
 		}
+		if (! gDisableProcessing && pFrameR != NULL) {
+			procDefaults(gSubProcsR, *pFrameR);
+		}
+
+		//
 		const std::string* pCamDesc = NULL;
-		bool isOneCam = true;
-		if (pFrameL != NULL && pFrameR == NULL) {
+		if (outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			*ppFrameOut = pFrameL;
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_SUFFIX_L;
 			}
-		} else if (pFrameL == NULL && pFrameR != NULL) {
+		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 			*ppFrameOut = pFrameR;
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_SUFFIX_R;
 			}
-		} else if (pFrameL != NULL && pFrameR != NULL) {
-			if (*ppFrameOut == NULL) {
-				return;
-			}
+		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_SUFFIX_BOTH;
-				isOneCam = false;
 			}
 			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, **ppFrameOut, -1);
 		}
 
 		// add text overlay
 		if (! gDisableProcessing) {
-			procAddTextOverlay(**ppFrameOut, *pCamDesc, isOneCam);
+			procAddTextOverlay(**ppFrameOut, *pCamDesc, outputCams != fcapconstants::OutputCamsEn::CAM_BOTH);
 		}
 
 		// resize frame
@@ -102,6 +120,21 @@ namespace frame {
 
 	void FrameProcessor::log(const std::string &message) {
 		std::cout << "FPROC: " << message << std::endl;
+	}
+
+	void FrameProcessor::updateSubProcsSettings() {
+		_updateSubProcsSettings_stc(gSubProcsL);
+		_updateSubProcsSettings_stc(gSubProcsR);
+	}
+
+	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
+		subProcsStc.bnc.setBrightness(gPOptsRt->adjBrightness);
+		subProcsStc.bnc.setContrast(gPOptsRt->adjContrast);
+	}
+
+	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame) {
+		subProcsStc.bnc.processFrame(frame);
+		//subProcsStc.cal.processFrame(frame);
 	}
 
 	void FrameProcessor::procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const bool isOneCam) {
