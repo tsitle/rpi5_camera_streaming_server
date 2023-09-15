@@ -1,11 +1,11 @@
 #include <chrono>
 #include <fstream>
-#include <sys/stat.h>  // for stat()
 #include <string>  // for stoi()
 #include <stdexcept>
 
 #include "cfgfile.hpp"
 #include "settings.hpp"
+#include "shared.hpp"
 #include "json/json.hpp"
 
 using namespace std::chrono_literals;
@@ -26,7 +26,7 @@ namespace fcapcfgfile {
 		if (! cfgfileFn.empty()) {
 			pCfgfileFn = &cfgfileFn;
 		}
-		if (! fileExists(*pCfgfileFn)) {
+		if (! fcapshared::Shared::fileExists(*pCfgfileFn)) {
 			log("File '" + *pCfgfileFn + "' does not exist!");
 			return false;
 		}
@@ -83,6 +83,7 @@ namespace fcapcfgfile {
 				}
 				gThrVarStaticOptions.pngOutputPath = (std::string)defConfJson["png_output_path"];
 				gThrVarStaticOptions.outputPngs = (bool)defConfJson["output_pngs"];
+				gThrVarStaticOptions.calibOutputPath = (std::string)defConfJson["calib_output_path"];
 			} catch (json::type_error& ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
@@ -136,17 +137,13 @@ namespace fcapcfgfile {
 			gThrVarStaticOptions.camSourceType = fcapconstants::CamSourceEn::UNSPECIFIED;
 			gThrVarStaticOptions.camSource0 = "";
 			gThrVarStaticOptions.camSource1 = "";
-			gThrVarStaticOptions.pngOutputPath = "";
+			gThrVarStaticOptions.pngOutputPath = ".";
 			gThrVarStaticOptions.outputPngs = false;
+			gThrVarStaticOptions.calibOutputPath = ".";
 			//
 			gThrVarSetStaticOptions = true;
 		}
 		thrLock.unlock();
-	}
-
-	bool CfgFile::fileExists(const std::string &name) {
-		struct stat buffer;
-		return (stat(name.c_str(), &buffer) == 0);
 	}
 
 	std::string CfgFile::getDefaultStaticConfig() {
@@ -176,8 +173,9 @@ namespace fcapcfgfile {
 										<< "\""
 							<< "}"
 					<< "},"
-				<< "\"png_output_path\": \"\","
-				<< "\"output_pngs\": false"
+				<< "\"png_output_path\": \".\","
+				<< "\"output_pngs\": false,"
+				<< "\"calib_output_path\": \".\""
 			<< "}";
 		return ss.str();
 	}

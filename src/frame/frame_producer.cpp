@@ -280,8 +280,6 @@ namespace frame {
 		const uint32_t _MAX_EMPTY_FRAMES = 3;
 
 		try {
-			cv::Mat frameL;  // Mat is a 'n-dimensional dense array class'
-			cv::Mat frameR;
 			uint32_t frameNr = 0;
 			uint32_t emptyFrameCnt = 0;
 			bool needToStop = false;
@@ -322,6 +320,10 @@ namespace frame {
 					//
 					toOpts = 10;
 				}
+
+				// create frame containers here to avoid false input
+				cv::Mat frameL = cv::Mat();  // Mat is a 'n-dimensional dense array class'
+				cv::Mat frameR = cv::Mat();
 
 				// grab frames
 				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {

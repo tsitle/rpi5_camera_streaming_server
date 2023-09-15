@@ -78,6 +78,7 @@ namespace frame {
 		bool haveFrames = false;
 		bool needToStop = false;
 		bool willDiscard = false;
+		bool haveExc = false;
 		uint32_t toNeedToStop = 100;
 		uint32_t toFrameL = 100;
 		fcapshared::RuntimeOptionsStc optsRt = fcapshared::Shared::getRuntimeOptions();
@@ -240,11 +241,16 @@ namespace frame {
 			}
 		} catch (std::exception& err) {
 			log("ERROR: " + std::string(err.what()));
+			haveExc = true;
 		}
 
 		//
-		log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
-		log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
+		if (haveExc) {
+			fcapshared::Shared::setFlagNeedToStop();
+		} else {
+			log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
+			log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
+		}
 
 		//
 		log("ENDED");

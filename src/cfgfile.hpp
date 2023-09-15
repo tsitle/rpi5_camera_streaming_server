@@ -20,6 +20,7 @@ namespace fcapcfgfile {
 		std::string camSource1;
 		std::string pngOutputPath;
 		bool outputPngs;
+		std::string calibOutputPath;
 	};
 
 	class CfgFile {
@@ -37,7 +38,6 @@ namespace fcapcfgfile {
 
 			static void log(const std::string &message);
 			static void initStcStaticOptions();
-			static bool fileExists(const std::string &name);
 			static std::string getDefaultStaticConfig();
 			static cv::Size getSizeFromString(const std::string &x, const std::string &nameArg);
 			static fcapconstants::CamSourceEn getCamSourceFromString(const std::string &x, const std::string &nameArg);

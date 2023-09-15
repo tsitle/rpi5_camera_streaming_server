@@ -6,6 +6,7 @@ namespace framesubproc {
 
 	FrameSubProcessor::FrameSubProcessor() :
 			gCamId(fcapconstants::CamIdEn::CAM_0) {
+		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 	}
 
 	FrameSubProcessor::~FrameSubProcessor() {
@@ -18,8 +19,8 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameSubProcessor::log(const std::string &message) {
-		std::cout << "FSUBPROC: [CAM" << (int)gCamId << "] " << message << std::endl;
+	void FrameSubProcessor::log(const std::string &spName, const std::string &message) {
+		std::cout << "FSUBPROC: [CAM" << (int)gCamId << "] [" + spName + "] " << message << std::endl;
 	}
 
 }  // namespace framesubproc

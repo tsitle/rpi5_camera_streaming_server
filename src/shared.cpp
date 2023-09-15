@@ -1,4 +1,5 @@
 #include <chrono>
+#include <sys/stat.h>  // for stat()
 
 #include "shared.hpp"
 
@@ -74,7 +75,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_adjBrightness(const int16_t val) {
+	void Shared::setRuntimeOptions_procBncAdjBrightness(const int16_t val) {
 		if (val < fcapconstants::PROC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_MAX_ADJ_BRIGHTNESS) {
 			return;
 		}
@@ -84,11 +85,11 @@ namespace fcapshared {
 		initStcRuntimeOptions();
 		//
 		thrLock.lock();
-		gThrVarRuntimeOptions.adjBrightness = val;
+		gThrVarRuntimeOptions.procBncAdjBrightness = val;
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_adjContrast(const int16_t val) {
+	void Shared::setRuntimeOptions_procBncAdjContrast(const int16_t val) {
 		if (val < fcapconstants::PROC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_MAX_ADJ_CONTRAST) {
 			return;
 		}
@@ -98,8 +99,25 @@ namespace fcapshared {
 		initStcRuntimeOptions();
 		//
 		thrLock.lock();
-		gThrVarRuntimeOptions.adjContrast = val;
+		gThrVarRuntimeOptions.procBncAdjContrast = val;
 		thrLock.unlock();
+	}
+
+	void Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.procCalShowCalibChessboardPoints = val;
+		thrLock.unlock();
+	}
+
+	// -----------------------------------------------------------------------------
+
+	bool Shared::fileExists(const std::string &fname) {
+		struct stat buffer;
+		return (stat(fname.c_str(), &buffer) == 0);
 	}
 
 	// -----------------------------------------------------------------------------
@@ -112,8 +130,9 @@ namespace fcapshared {
 		if (! gThrVarSetRuntimeOptions) {
 			gThrVarRuntimeOptions.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 			gThrVarRuntimeOptions.cameraFps = 0;
-			gThrVarRuntimeOptions.adjBrightness = fcapsettings::PROC_DEFAULT_ADJ_BRIGHTNESS;
-			gThrVarRuntimeOptions.adjContrast = fcapsettings::PROC_DEFAULT_ADJ_CONTRAST;
+			gThrVarRuntimeOptions.procBncAdjBrightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
+			gThrVarRuntimeOptions.procBncAdjContrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
+			gThrVarRuntimeOptions.procCalShowCalibChessboardPoints = fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS;
 			//
 			gThrVarSetRuntimeOptions = true;
 		}

@@ -27,11 +27,15 @@ namespace fcapsettings {
 
 	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
 
-	const uint8_t CALIB_CHESS_SQUARES_CNT_X = 7;
-	const uint8_t CALIB_CHESS_SQUARES_CNT_Y = 5;
+	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_COL = 6;
+	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_ROW = 4;
+	const float CALIB_CHESS_SQUARES_WIDTH_MM = 10.0;  // mm
+	const double CALIB_MAX_PROJECTION_ERROR = 0.35;
 
-	const int16_t PROC_DEFAULT_ADJ_BRIGHTNESS = 124;
-	const int16_t PROC_DEFAULT_ADJ_CONTRAST = 65;
+	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 150;
+	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 65;
+
+	const bool PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS = false;
 
 }  // namespace fcapsettings
 

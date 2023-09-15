@@ -32,8 +32,9 @@ namespace http {
 	const std::string URL_PATH_ENABLE_CAM_R = "/enable_cam_r";
 	const std::string URL_PATH_DISABLE_CAM_L = "/disable_cam_l";
 	const std::string URL_PATH_DISABLE_CAM_R = "/disable_cam_r";
-	const std::string URL_PATH_ADJ_BRIGHTN = "/adj_brightn";
-	const std::string URL_PATH_ADJ_CONTRAST = "/adj_contrast";
+	const std::string URL_PATH_PROC_BNC_ADJ_BRIGHTN = "/proc/bnc/adj_brightn";
+	const std::string URL_PATH_PROC_BNC_ADJ_CONTRAST = "/proc/bnc/adj_contrast";
+	const std::string URL_PATH_PROC_CAL_SHOWCHESSCORNERS = "/proc/cal/showchesscorners";
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -153,11 +154,9 @@ namespace http {
 		httpparser::Request request;
 		httpparser::HttpRequestParser requparser;
 		httpparser::UrlParser urlparser;
-		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
-		fcapconstants::OutputCamsEn newOptsOutputCamsVal = opts.outputCams;
+		fcapshared::RuntimeOptionsStc optsCur = fcapshared::Shared::getRuntimeOptions();
+		fcapshared::RuntimeOptionsStc optsNew = optsCur;
 		bool isNewStreamingClientAccepted;
-		int16_t newOptsAdjBrightnVal = opts.adjBrightness;
-		int16_t newOptsAdjContrVal = opts.adjContrast;
 
 		httpparser::HttpRequestParser::ParseResult requParseRes = requparser.parse(request, buffer, buffer + bufSz);
 
@@ -191,60 +190,74 @@ namespace http {
 		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_L) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
 			}
 			success = true;
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_R) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
 			}
 			success = true;
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_L) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_R;
+			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
 				success = true;
 			}
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_R) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				newOptsOutputCamsVal = fcapconstants::OutputCamsEn::CAM_L;
+			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 				success = true;
 			}
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_ADJ_BRIGHTN) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_ADJ_BRIGHTN) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			try {
 				if (urlparser.query().empty()) {
 					throw;
 				}
-				newOptsAdjBrightnVal = stoi(urlparser.query());
-				success = (newOptsAdjBrightnVal >= fcapconstants::PROC_MIN_ADJ_BRIGHTNESS &&
-						newOptsAdjBrightnVal <= fcapconstants::PROC_MAX_ADJ_BRIGHTNESS);
+				optsNew.procBncAdjBrightness = stoi(urlparser.query());
+				success = (optsNew.procBncAdjBrightness >= fcapconstants::PROC_MIN_ADJ_BRIGHTNESS &&
+						optsNew.procBncAdjBrightness <= fcapconstants::PROC_MAX_ADJ_BRIGHTNESS);
 			} catch (std::exception& err) {
 				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
 				log(gThrIx, "__invalid query");
 			}
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_ADJ_CONTRAST) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_ADJ_CONTRAST) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			try {
 				if (urlparser.query().empty()) {
 					throw;
 				}
-				newOptsAdjContrVal = stoi(urlparser.query());
-				success = (newOptsAdjContrVal >= fcapconstants::PROC_MIN_ADJ_CONTRAST &&
-						newOptsAdjContrVal <= fcapconstants::PROC_MAX_ADJ_CONTRAST);
+				optsNew.procBncAdjContrast = stoi(urlparser.query());
+				success = (optsNew.procBncAdjContrast >= fcapconstants::PROC_MIN_ADJ_CONTRAST &&
+						optsNew.procBncAdjContrast <= fcapconstants::PROC_MAX_ADJ_CONTRAST);
+			} catch (std::exception& err) {
+				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+				log(gThrIx, "__invalid query");
+			}
+			returnJson = true;
+		} else if (urlparser.path().compare(URL_PATH_PROC_CAL_SHOWCHESSCORNERS) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			try {
+				if (urlparser.query().empty()) {
+					throw;
+				}
+				optsNew.procCalShowCalibChessboardPoints = (urlparser.query().compare("1") == 0);
+				success = (urlparser.query().compare("0") == 0 || urlparser.query().compare("1") == 0);
 			} catch (std::exception& err) {
 				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
 				log(gThrIx, "__invalid query");
@@ -268,14 +281,17 @@ namespace http {
 		if (success && startStream) {
 			startStreaming();
 		} else if (success && returnJson) {
-			if (newOptsOutputCamsVal != opts.outputCams) {
-				fcapshared::Shared::setRuntimeOptions_outputCams(newOptsOutputCamsVal);
+			if (optsNew.outputCams != optsCur.outputCams) {
+				fcapshared::Shared::setRuntimeOptions_outputCams(optsNew.outputCams);
 			}
-			if (newOptsAdjBrightnVal != opts.adjBrightness) {
-				fcapshared::Shared::setRuntimeOptions_adjBrightness(newOptsAdjBrightnVal);
+			if (optsNew.procBncAdjBrightness != optsCur.procBncAdjBrightness) {
+				fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(optsNew.procBncAdjBrightness);
 			}
-			if (newOptsAdjContrVal != opts.adjContrast) {
-				fcapshared::Shared::setRuntimeOptions_adjContrast(newOptsAdjContrVal);
+			if (optsNew.procBncAdjContrast != optsCur.procBncAdjContrast) {
+				fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(optsNew.procBncAdjContrast);
+			}
+			if (optsNew.procCalShowCalibChessboardPoints != optsCur.procCalShowCalibChessboardPoints) {
+				fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(optsNew.procCalShowCalibChessboardPoints);
 			}
 			//
 			resHttpMsgString = "{\"result\":\"success\"}";

@@ -6,7 +6,8 @@
 
 #include "../cfgfile.hpp"
 #include "../shared.hpp"
-#include "subprocessor/subproc.hpp"
+#include "subprocessor/subproc_bnc.hpp"
+#include "subprocessor/subproc_calibrate.hpp"
 
 namespace frame {
 

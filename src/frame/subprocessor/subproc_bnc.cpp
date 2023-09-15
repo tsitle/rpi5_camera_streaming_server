@@ -1,31 +1,29 @@
-#include <stdio.h>
-
 #include "../../settings.hpp"
-#include "subproc.hpp"
+#include "subproc_bnc.hpp"
 
 namespace framesubproc {
 
 	FrameSubProcessorBrightnAndContrast::FrameSubProcessorBrightnAndContrast() :
 			FrameSubProcessor(),
-			gBrightness(fcapsettings::PROC_DEFAULT_ADJ_BRIGHTNESS),
-			gContrast(fcapsettings::PROC_DEFAULT_ADJ_CONTRAST) {
+			gOptBrightness(fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS),
+			gOptContrast(fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST) {
 	}
 
 	void FrameSubProcessorBrightnAndContrast::setBrightness(const int16_t val) {
 		if (val >= fcapconstants::PROC_MIN_ADJ_BRIGHTNESS && val <= fcapconstants::PROC_MAX_ADJ_BRIGHTNESS) {
-			gBrightness = val;
+			gOptBrightness = val;
 		}
 	}
 
 	void FrameSubProcessorBrightnAndContrast::setContrast(const int16_t val) {
 		if (val >= fcapconstants::PROC_MIN_ADJ_CONTRAST && val <= fcapconstants::PROC_MAX_ADJ_CONTRAST) {
-			gContrast = val;
+			gOptContrast = val;
 		}
 	}
 
 	void FrameSubProcessorBrightnAndContrast::processFrame(cv::Mat &frame) {
-		int16_t contrast = gContrast - 64;
-		int16_t brightness = gBrightness - 127;
+		int16_t contrast = gOptContrast - 64;
+		int16_t brightness = gOptBrightness - 127;
 
 		if (brightness != 0) {
 			int16_t shadow = brightness;

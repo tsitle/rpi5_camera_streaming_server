@@ -128,13 +128,20 @@ namespace frame {
 	}
 
 	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
-		subProcsStc.bnc.setBrightness(gPOptsRt->adjBrightness);
-		subProcsStc.bnc.setContrast(gPOptsRt->adjContrast);
+		subProcsStc.bnc.setBrightness(gPOptsRt->procBncAdjBrightness);
+		subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
+		//
+		subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints);
 	}
 
 	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame) {
+		// adjust brightness and contrast
 		subProcsStc.bnc.processFrame(frame);
-		//subProcsStc.cal.processFrame(frame);
+		// calibrate camera
+		subProcsStc.cal.processFrame(frame);
+		if (! subProcsStc.cal.getIsCalibrated()) {
+			return;
+		}
 	}
 
 	void FrameProcessor::procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const bool isOneCam) {
