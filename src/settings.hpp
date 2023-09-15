@@ -32,8 +32,8 @@ namespace fcapsettings {
 	const float CALIB_CHESS_SQUARES_WIDTH_MM = 10.0;  // mm
 	const double CALIB_MAX_PROJECTION_ERROR = 0.35;
 
-	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 150;
-	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 65;
+	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 23;
+	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;
 
 	const bool PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS = false;
 

@@ -253,8 +253,8 @@ namespace http {
 			success = getIntFromQuery(
 					urlparser.query(),
 					optsNew.procBncAdjBrightness,
-					fcapconstants::PROC_MIN_ADJ_BRIGHTNESS,
-					fcapconstants::PROC_MAX_ADJ_BRIGHTNESS
+					fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS,
+					fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
 				);
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_CONTRAST) == 0) {
@@ -263,8 +263,8 @@ namespace http {
 			success = getIntFromQuery(
 					urlparser.query(),
 					optsNew.procBncAdjContrast,
-					fcapconstants::PROC_MIN_ADJ_CONTRAST,
-					fcapconstants::PROC_MAX_ADJ_CONTRAST
+					fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST,
+					fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
 				);
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_PROC_CAL_SHOWCHESSCORNERS) == 0) {

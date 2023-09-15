@@ -76,7 +76,7 @@ namespace fcapshared {
 	}
 
 	void Shared::setRuntimeOptions_procBncAdjBrightness(const int16_t val) {
-		if (val < fcapconstants::PROC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_MAX_ADJ_BRIGHTNESS) {
+		if (val < fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS) {
 			return;
 		}
 
@@ -90,7 +90,7 @@ namespace fcapshared {
 	}
 
 	void Shared::setRuntimeOptions_procBncAdjContrast(const int16_t val) {
-		if (val < fcapconstants::PROC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_MAX_ADJ_CONTRAST) {
+		if (val < fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST) {
 			return;
 		}
 

@@ -58,10 +58,10 @@ namespace fcapconstants {
 	const std::string CONFFILE_CAMSRC_MJPEG = "mjpeg";
 	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
-	const int16_t PROC_MAX_ADJ_BRIGHTNESS = 254;
-	const int16_t PROC_MIN_ADJ_BRIGHTNESS = -127;
-	const int16_t PROC_MAX_ADJ_CONTRAST = 127;
-	const int16_t PROC_MIN_ADJ_CONTRAST = -64;
+	const int16_t PROC_BNC_MAX_ADJ_BRIGHTNESS = 127;
+	const int16_t PROC_BNC_MIN_ADJ_BRIGHTNESS = -254;
+	const int16_t PROC_BNC_MAX_ADJ_CONTRAST = 63;
+	const int16_t PROC_BNC_MIN_ADJ_CONTRAST = -127;
 
 }  // namespace fcapconstants
 
