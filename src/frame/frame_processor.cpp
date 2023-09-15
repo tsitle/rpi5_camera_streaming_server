@@ -8,8 +8,19 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
+	const std::string TEXT_CAM_TXT_PREFIX = "CAM ";
+	const std::string TEXT_CAM_TXT_SUFFIX_L = "L";
+	const std::string TEXT_CAM_TXT_SUFFIX_R = "R";
+	const std::string TEXT_CAM_TXT_SUFFIX_BOTH = "L+R";
+	const cv::Point TEXT_CAM_COORD = cv::Point(5, 5);
+	const cv::Scalar TEXT_CAM_COLOR = cv::Scalar(80.0, 80.0, 80.0);
+
+	// -----------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------
+
 	FrameProcessor::FrameProcessor() :
-			gPOptsRt(NULL) {
+			gPOptsRt(NULL),
+			gLastOutputCamsInt(-1) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 		//
@@ -18,35 +29,6 @@ namespace frame {
 
 		//
 		gDisableProcessing = false;
-
-		//
-		///
-		gTextOverlayPropsStc.textFontScale = 1.0;
-		gTextOverlayPropsStc.textThickness = 2;
-		gTextOverlayPropsStc.textFontId = cv::FONT_HERSHEY_SIMPLEX;
-		gTextOverlayPropsStc.textPrefix = TEXT_CAM_PREFIX;
-		///
-		cv::Size tmpSzOne = getTextSize(gTextOverlayPropsStc.textPrefix + TEXT_CAM_SUFFIX_L);
-		cv::Size tmpSzTwo = getTextSize(gTextOverlayPropsStc.textPrefix + TEXT_CAM_SUFFIX_BOTH);
-		///
-		const uint8_t _BORDER = 5;
-		gTextOverlayPropsStc.rectStartPoint = cv::Point(5, 5);
-		gTextOverlayPropsStc.textCoordinates = cv::Point(
-				gTextOverlayPropsStc.rectStartPoint.x + _BORDER,
-				gTextOverlayPropsStc.rectStartPoint.y + _BORDER + tmpSzOne.height
-			);
-		gTextOverlayPropsStc.textColor = cv::Scalar(80.0, 80.0, 80.0);
-		///
-		gTextOverlayPropsStc.rectEndPointOne = cv::Point(
-				gTextOverlayPropsStc.rectStartPoint.x + _BORDER + tmpSzOne.width + _BORDER,
-				gTextOverlayPropsStc.rectStartPoint.x + _BORDER + tmpSzOne.height + _BORDER
-			);
-		gTextOverlayPropsStc.rectEndPointTwo = cv::Point(
-				gTextOverlayPropsStc.rectStartPoint.x + _BORDER + tmpSzTwo.width + _BORDER,
-				gTextOverlayPropsStc.rectStartPoint.x + _BORDER + tmpSzOne.height + _BORDER
-			);
-		gTextOverlayPropsStc.rectColor = cv::Scalar(255.0, 255.0, 255.0);
-		gTextOverlayPropsStc.rectThickness = cv::FILLED;
 
 		//
 		log("Output Framesize: " +
@@ -81,23 +63,23 @@ namespace frame {
 		if (outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			*ppFrameOut = pFrameL;
 			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_SUFFIX_L;
+				pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
 			}
 		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 			*ppFrameOut = pFrameR;
 			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_SUFFIX_R;
+				pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
 			}
 		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_SUFFIX_BOTH;
+				pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
 			}
 			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, **ppFrameOut, -1);
 		}
 
 		// add text overlay
 		if (! gDisableProcessing) {
-			procAddTextOverlay(**ppFrameOut, *pCamDesc, outputCams != fcapconstants::OutputCamsEn::CAM_BOTH);
+			procAddTextOverlay(**ppFrameOut, *pCamDesc, outputCams);
 		}
 
 		// resize frame
@@ -144,38 +126,13 @@ namespace frame {
 		}
 	}
 
-	void FrameProcessor::procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const bool isOneCam) {
-		cv::rectangle(
-				frameOut,
-				gTextOverlayPropsStc.rectStartPoint,
-				isOneCam ? gTextOverlayPropsStc.rectEndPointOne : gTextOverlayPropsStc.rectEndPointTwo,
-				gTextOverlayPropsStc.rectColor,
-				gTextOverlayPropsStc.rectThickness
-			);
-		cv::putText(
-				frameOut,
-				gTextOverlayPropsStc.textPrefix + camDesc,
-				gTextOverlayPropsStc.textCoordinates,
-				gTextOverlayPropsStc.textFontId,
-				gTextOverlayPropsStc.textFontScale,
-				gTextOverlayPropsStc.textColor,
-				gTextOverlayPropsStc.textThickness,
-				cv::LINE_AA,
-				false
-			);
-	}
-
-	cv::Size FrameProcessor::getTextSize(const std::string &text) {
-		int baseline = 0;
-		cv::Size resSz = cv::getTextSize(
-				text,
-				gTextOverlayPropsStc.textFontId,
-				gTextOverlayPropsStc.textFontScale,
-				gTextOverlayPropsStc.textThickness,
-				&baseline
-			);
-		baseline += gTextOverlayPropsStc.textThickness;
-		return resSz + cv::Size(0, baseline) - cv::Size(0, 11);
+	void FrameProcessor::procAddTextOverlay(
+			cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams) {
+		if (gLastOutputCamsInt == -1 || gLastOutputCamsInt != (int)outputCams) {
+			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR);
+			gLastOutputCamsInt = (int)outputCams;
+		}
+		gOtherSubProcTextCams.processFrame(frameOut);
 	}
 
 }  // namespace frame

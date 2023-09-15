@@ -8,27 +8,9 @@
 #include "../shared.hpp"
 #include "subprocessor/subproc_bnc.hpp"
 #include "subprocessor/subproc_calibrate.hpp"
+#include "subprocessor/subproc_text.hpp"
 
 namespace frame {
-
-	const std::string TEXT_CAM_PREFIX = "CAM ";
-	const std::string TEXT_CAM_SUFFIX_L = "L";
-	const std::string TEXT_CAM_SUFFIX_R = "R";
-	const std::string TEXT_CAM_SUFFIX_BOTH = "L+R";
-
-	struct TextOverlayPropsStc {
-		cv::Point rectStartPoint;
-		cv::Point rectEndPointOne;
-		cv::Point rectEndPointTwo;
-		cv::Scalar rectColor;
-		int rectThickness;
-		cv::Point textCoordinates;
-		double textFontScale;
-		cv::Scalar textColor;
-		int textThickness;
-		int textFontId;
-		std::string textPrefix;
-	};
 
 	struct SubProcsStc {
 		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
@@ -46,9 +28,10 @@ namespace frame {
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
 			bool gDisableProcessing;
-			TextOverlayPropsStc gTextOverlayPropsStc;
+			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
 			SubProcsStc gSubProcsL;
 			SubProcsStc gSubProcsR;
+			int8_t gLastOutputCamsInt;
 
 			//
 
@@ -56,8 +39,7 @@ namespace frame {
 			void updateSubProcsSettings();
 			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
 			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);
-			void procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const bool isOneCam);
-			cv::Size getTextSize(const std::string &text);
+			void procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
 	};
 
 }  // namespace frame
