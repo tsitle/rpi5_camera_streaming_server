@@ -56,6 +56,10 @@ namespace http {
 			//
 			void startStreaming();
 			bool sendFrame(uint8_t* pData, const uint32_t bufferSz);
+			//
+			bool getBoolFromQuery(std::string query, bool &valOut);
+			bool getIntFromQuery(std::string query, int16_t &valOut, const int16_t valMin, const int16_t valMax);
+			bool getOutputCamsFromQuery(std::string query, fcapconstants::OutputCamsEn &valOut);
 	};
 
 }  // namespace http

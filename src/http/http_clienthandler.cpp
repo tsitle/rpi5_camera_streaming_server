@@ -28,12 +28,11 @@ namespace http {
 	const std::string URL_PATH_ROOT = "/";
 	const std::string URL_PATH_STREAM = "/stream.mjpeg";
 	const std::string URL_PATH_FAVICON = "/favicon.ico";
-	const std::string URL_PATH_ENABLE_CAM_L = "/enable_cam_l";
-	const std::string URL_PATH_ENABLE_CAM_R = "/enable_cam_r";
-	const std::string URL_PATH_DISABLE_CAM_L = "/disable_cam_l";
-	const std::string URL_PATH_DISABLE_CAM_R = "/disable_cam_r";
-	const std::string URL_PATH_PROC_BNC_ADJ_BRIGHTN = "/proc/bnc/adj_brightn";
-	const std::string URL_PATH_PROC_BNC_ADJ_CONTRAST = "/proc/bnc/adj_contrast";
+	const std::string URL_PATH_OUTPUT_CAMS_ENABLE = "/output/cams/enable";
+	const std::string URL_PATH_OUTPUT_CAMS_DISABLE = "/output/cams/disable";
+	const std::string URL_PATH_OUTPUT_CAMS_SWAP = "/output/cams/swap";
+	const std::string URL_PATH_PROC_BNC_BRIGHTN = "/proc/bnc/brightness";
+	const std::string URL_PATH_PROC_BNC_CONTRAST = "/proc/bnc/contrast";
 	const std::string URL_PATH_PROC_CAL_SHOWCHESSCORNERS = "/proc/cal/showchesscorners";
 
 	// -----------------------------------------------------------------------------
@@ -187,81 +186,91 @@ namespace http {
 				success = true;
 				startStream = true;
 			}
-		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_L) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_ENABLE) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
+			fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			success = getOutputCamsFromQuery(urlparser.query(), tmpVal);
+			if (success) {
+				if (tmpVal == fcapconstants::OutputCamsEn::CAM_L &&
+						optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+					optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
+				} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R &&
+						optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+					optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
+				}
 			}
-			success = true;
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_ENABLE_CAM_R) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_DISABLE) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
+			fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
+			success = getOutputCamsFromQuery(urlparser.query(), tmpVal);
+			if (success) {
+				if (tmpVal == fcapconstants::OutputCamsEn::CAM_L) {
+					switch (optsCur.outputCams) {
+						case fcapconstants::OutputCamsEn::CAM_L:
+							log(gThrIx, "__cant disable only active cam");
+							success = false;
+							break;
+						case fcapconstants::OutputCamsEn::CAM_R:
+							break;
+						default:  // BOTH
+							optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
+					}
+				} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R) {
+					switch (optsCur.outputCams) {
+						case fcapconstants::OutputCamsEn::CAM_L:
+							break;
+						case fcapconstants::OutputCamsEn::CAM_R:
+							log(gThrIx, "__cant disable only active cam");
+							success = false;
+							break;
+						default:  // BOTH
+							optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
+					}
+				} else {
+					log(gThrIx, "__cant disable both cams");
+					success = false;
+				}
 			}
-			success = true;
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_L) == 0) {
-			log(gThrIx, "200 Path=" + urlparser.path());
-			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
-				success = true;
-			}
-			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_DISABLE_CAM_R) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_SWAP) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
-				success = true;
+			} else if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
+			} else {
+				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 			}
+			success = true;
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_ADJ_BRIGHTN) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_BRIGHTN) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			try {
-				if (urlparser.query().empty()) {
-					throw;
-				}
-				optsNew.procBncAdjBrightness = stoi(urlparser.query());
-				success = (optsNew.procBncAdjBrightness >= fcapconstants::PROC_MIN_ADJ_BRIGHTNESS &&
-						optsNew.procBncAdjBrightness <= fcapconstants::PROC_MAX_ADJ_BRIGHTNESS);
-			} catch (std::exception& err) {
-				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
-				log(gThrIx, "__invalid query");
-			}
+			success = getIntFromQuery(
+					urlparser.query(),
+					optsNew.procBncAdjBrightness,
+					fcapconstants::PROC_MIN_ADJ_BRIGHTNESS,
+					fcapconstants::PROC_MAX_ADJ_BRIGHTNESS
+				);
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_ADJ_CONTRAST) == 0) {
+		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_CONTRAST) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			try {
-				if (urlparser.query().empty()) {
-					throw;
-				}
-				optsNew.procBncAdjContrast = stoi(urlparser.query());
-				success = (optsNew.procBncAdjContrast >= fcapconstants::PROC_MIN_ADJ_CONTRAST &&
-						optsNew.procBncAdjContrast <= fcapconstants::PROC_MAX_ADJ_CONTRAST);
-			} catch (std::exception& err) {
-				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
-				log(gThrIx, "__invalid query");
-			}
+			success = getIntFromQuery(
+					urlparser.query(),
+					optsNew.procBncAdjContrast,
+					fcapconstants::PROC_MIN_ADJ_CONTRAST,
+					fcapconstants::PROC_MAX_ADJ_CONTRAST
+				);
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_PROC_CAL_SHOWCHESSCORNERS) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			try {
-				if (urlparser.query().empty()) {
-					throw;
-				}
-				optsNew.procCalShowCalibChessboardPoints = (urlparser.query().compare("1") == 0);
-				success = (urlparser.query().compare("0") == 0 || urlparser.query().compare("1") == 0);
-			} catch (std::exception& err) {
-				/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
-				log(gThrIx, "__invalid query");
-			}
+			success = getBoolFromQuery(urlparser.query(), optsNew.procCalShowCalibChessboardPoints);
 			returnJson = true;
 		} else if (urlparser.path().compare(URL_PATH_FAVICON) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
@@ -304,6 +313,8 @@ namespace http {
 		}
 	}
 
+	// -----------------------------------------------------------------------------
+
 	std::string ClientHandler::buildWebsite() {
 		std::ostringstream resS;
 		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
@@ -322,25 +333,29 @@ namespace http {
 		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 			resS
 					<< "<p>"
-						<< "<a href='" << URL_PATH_ENABLE_CAM_L << "'>Enable left camera</a>"
+						<< "<a href='" << URL_PATH_OUTPUT_CAMS_ENABLE << "?L'>Enable left camera</a>"
 					<< "</p>";
 		} else {
 			resS
 					<< "<p>"
-						<< "<a href='" << URL_PATH_DISABLE_CAM_L << "'>Disable left camera</a>"
+						<< "<a href='" << URL_PATH_OUTPUT_CAMS_DISABLE << "?L'>Disable left camera</a>"
 					<< "</p>";
 		}
 		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			resS
 					<< "<p>"
-						<< "<a href='" << URL_PATH_ENABLE_CAM_R << "'>Enable right camera</a>"
+						<< "<a href='" << URL_PATH_OUTPUT_CAMS_ENABLE << "?R'>Enable right camera</a>"
 					<< "</p>";
 		} else {
 			resS
 					<< "<p>"
-						<< "<a href='" << URL_PATH_DISABLE_CAM_R << "'>Disable right camera</a>"
+						<< "<a href='" << URL_PATH_OUTPUT_CAMS_DISABLE << "?R'>Disable right camera</a>"
 					<< "</p>";
 		}
+		resS
+				<< "<p>"
+					<< "<a href='" << URL_PATH_OUTPUT_CAMS_SWAP << "'>Swap cameras</a>"
+				<< "</p>";
 		resS
 					<< "<div style='margin-top:20px'>"
 						<< "<img src='" << URL_PATH_STREAM << "' width='800' height='450' />"
@@ -534,6 +549,66 @@ namespace http {
 			pStartBuf += curBufSz;
 		}
 		/**log(gThrIx, "__sent " + std::to_string(sentTot) + " total");**/
+		return true;
+	}
+
+	// -----------------------------------------------------------------------------
+
+	bool ClientHandler::getBoolFromQuery(std::string query, bool &valOut) {
+		try {
+			if (query.empty()) {
+				throw;
+			}
+			if (query.compare("0") != 0 && query.compare("1") != 0) {
+				throw;
+			}
+			valOut = (query.compare("1") == 0);
+		} catch (std::exception& err) {
+			/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+			log(gThrIx, "__invalid query");
+			return false;
+		}
+		return true;
+	}
+
+	bool ClientHandler::getIntFromQuery(std::string query, int16_t &valOut, const int16_t valMin, const int16_t valMax) {
+		try {
+			if (query.empty()) {
+				throw;
+			}
+			int16_t tmpInt = stoi(query);
+			if (tmpInt < valMin || tmpInt > valMax) {
+				throw;
+			}
+			valOut = tmpInt;
+		} catch (std::exception& err) {
+			/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+			log(gThrIx, "__invalid query");
+			return false;
+		}
+		return true;
+	}
+
+	bool ClientHandler::getOutputCamsFromQuery(std::string query, fcapconstants::OutputCamsEn &valOut) {
+		try {
+			if (query.empty()) {
+				throw;
+			}
+			if (query.compare("L") != 0 && query.compare("R") != 0 && query.compare("BOTH") != 0) {
+				throw;
+			}
+			if (query.compare("L") == 0) {
+				valOut = fcapconstants::OutputCamsEn::CAM_L;
+			} else if (query.compare("R") == 0) {
+				valOut = fcapconstants::OutputCamsEn::CAM_R;
+			} else {
+				valOut = fcapconstants::OutputCamsEn::CAM_BOTH;
+			}
+		} catch (std::exception& err) {
+			/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+			log(gThrIx, "__invalid query");
+			return false;
+		}
 		return true;
 	}
 
