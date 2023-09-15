@@ -19,6 +19,7 @@ namespace framesubproc {
 		public:
 			FrameSubProcessorText();
 			void setText(const std::string valText, const cv::Point coord, cv::Scalar textColor);
+			int32_t getTextBottomY();
 			void processFrame(cv::Mat &frame);
 		
 		private:

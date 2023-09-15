@@ -29,9 +29,11 @@ namespace frame {
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
 			bool gDisableProcessing;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
+			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
 			SubProcsStc gSubProcsL;
 			SubProcsStc gSubProcsR;
 			int8_t gLastOutputCamsInt;
+			int8_t gLastIsCalibratedInt;
 
 			//
 
@@ -39,7 +41,8 @@ namespace frame {
 			void updateSubProcsSettings();
 			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
 			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);
-			void procAddTextOverlay(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
+			void procAddTextOverlayCams(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
+			void procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated);
 	};
 
 }  // namespace frame

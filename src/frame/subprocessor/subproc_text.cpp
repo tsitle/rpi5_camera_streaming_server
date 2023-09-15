@@ -4,10 +4,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorText::FrameSubProcessorText() :
-			FrameSubProcessor(),
-			gText("---"),
-			gCoord(0, 0),
-			gTextColor(0.0, 0.0, 0.0) {
+			FrameSubProcessor() {
 		//
 		///
 		gTextOverlayPropsStc.textFontScale = 1.0;
@@ -16,6 +13,8 @@ namespace framesubproc {
 		///
 		gTextOverlayPropsStc.rectColor = cv::Scalar(255.0, 255.0, 255.0);
 		gTextOverlayPropsStc.rectThickness = cv::FILLED;
+		/// init coordinates etc.
+		setText(gText, gCoord, gTextColor);
 	}
 
 	void FrameSubProcessorText::setText(const std::string valText, const cv::Point coord, cv::Scalar textColor) {
@@ -28,14 +27,18 @@ namespace framesubproc {
 		gCoord = coord;
 		gTextOverlayPropsStc.textCoordinates = cv::Point(
 				gCoord.x + _BORDER,
-				gCoord.y + _BORDER + tmpSz.height
+				gCoord.y + _BORDER + tmpSz.height - 6
 			);
 		gTextColor = textColor;
 		//
 		gTextOverlayPropsStc.rectEndPoint = cv::Point(
 				gCoord.x + _BORDER + tmpSz.width + _BORDER,
-				gCoord.x + _BORDER + tmpSz.height + _BORDER
+				gCoord.y + _BORDER + tmpSz.height + _BORDER
 			);
+	}
+
+	int32_t FrameSubProcessorText::getTextBottomY() {
+		return gTextOverlayPropsStc.rectEndPoint.y;
 	}
 
 	void FrameSubProcessorText::processFrame(cv::Mat &frame) {
@@ -72,7 +75,7 @@ namespace framesubproc {
 				&baseline
 			);
 		baseline += gTextOverlayPropsStc.textThickness;
-		return resSz + cv::Size(0, baseline) - cv::Size(0, 11);
+		return resSz + cv::Size(0, baseline);
 	}
 
 }  // namespace framesubproc

@@ -15,12 +15,19 @@ namespace frame {
 	const cv::Point TEXT_CAM_COORD = cv::Point(5, 5);
 	const cv::Scalar TEXT_CAM_COLOR = cv::Scalar(80.0, 80.0, 80.0);
 
+	const std::string TEXT_CAL_TXT_ISCAL = "CAL";
+	const std::string TEXT_CAL_TXT_UNCAL = "UNCAL";
+	const cv::Point TEXT_CAL_COORD = cv::Point(5, 0);
+	const cv::Scalar TEXT_CAL_COLOR_ISCAL = cv::Scalar(20.0, 200.0, 20.0);
+	const cv::Scalar TEXT_CAL_COLOR_UNCAL = cv::Scalar(200.0, 20.0, 20.0);
+
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
 	FrameProcessor::FrameProcessor() :
 			gPOptsRt(NULL),
-			gLastOutputCamsInt(-1) {
+			gLastOutputCamsInt(-1),
+			gLastIsCalibratedInt(-1) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 		//
@@ -79,7 +86,7 @@ namespace frame {
 
 		// add text overlay
 		if (! gDisableProcessing) {
-			procAddTextOverlay(**ppFrameOut, *pCamDesc, outputCams);
+			procAddTextOverlayCams(**ppFrameOut, *pCamDesc, outputCams);
 		}
 
 		// resize frame
@@ -122,17 +129,34 @@ namespace frame {
 		// calibrate camera
 		subProcsStc.cal.processFrame(frame);
 		if (! subProcsStc.cal.getIsCalibrated()) {
+			procAddTextOverlayCal(frame, false);
 			return;
 		}
+		procAddTextOverlayCal(frame, true);
 	}
 
-	void FrameProcessor::procAddTextOverlay(
+	void FrameProcessor::procAddTextOverlayCams(
 			cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams) {
-		if (gLastOutputCamsInt == -1 || gLastOutputCamsInt != (int)outputCams) {
+		if (gLastOutputCamsInt == -1 || gLastOutputCamsInt != (int8_t)outputCams) {
 			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR);
 			gLastOutputCamsInt = (int)outputCams;
 		}
 		gOtherSubProcTextCams.processFrame(frameOut);
+	}
+
+	void FrameProcessor::procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated) {
+		if (gLastOutputCamsInt == -1) {
+			return;
+		}
+		if (gLastIsCalibratedInt == -1 || gLastIsCalibratedInt != (int8_t)isCalibrated) {
+			gOtherSubProcTextCal.setText(
+					isCalibrated ? TEXT_CAL_TXT_ISCAL : TEXT_CAL_TXT_UNCAL,
+					TEXT_CAL_COORD + cv::Point(0, gOtherSubProcTextCams.getTextBottomY() + 5),
+					isCalibrated ? TEXT_CAL_COLOR_ISCAL : TEXT_CAL_COLOR_UNCAL
+				);
+			gLastIsCalibratedInt = (int8_t)isCalibrated;
+		}
+		gOtherSubProcTextCal.processFrame(frameOut);
 	}
 
 }  // namespace frame
