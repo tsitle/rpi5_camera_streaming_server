@@ -389,6 +389,10 @@ namespace http {
 		ss << "Expires: 0" << "\r\n";
 		ss << "Cache-Control: no-cache, private" << "\r\n";
 		ss << "Pragma: no-cache" << "\r\n";
+		ss << "Access-Control-Allow-Origin: *" << "\r\n";
+		ss << "Access-Control-Allow-Methods: GET" << "\r\n";
+		ss << "Access-Control-Allow-Headers: API-Key,Content-Type,If-Modified-Since,Cache-Control" << "\r\n";
+		ss << "Access-Control-Max-Age: 0" << "\r\n";
 		ss << "Content-Type: " << *pHttpContentType;
 		if (pHttpContentType->compare(fcapconstants::HTTP_CONTENT_TYPE_MULTIPART) == 0) {
 			ss << "; boundary=" << fcapconstants::HTTP_BOUNDARY_SEPARATOR;
