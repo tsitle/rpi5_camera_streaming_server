@@ -143,6 +143,9 @@ namespace http {
 	}
 
 	void ClientHandler::handleRequest(const char *buffer, const uint32_t bufSz) {
+		bool methOk;
+		bool methIsGet;
+		bool methIsOptions;
 		bool success = false;
 		bool startStream = false;
 		bool returnJson = false;
@@ -165,16 +168,23 @@ namespace http {
 		}
 
 		/**log(gThrIx, request.inspect());**/
+		methIsGet = (request.method.compare("GET") == 0);
+		methIsOptions = (request.method.compare("OPTIONS") == 0);
+		methOk = (methIsGet || methIsOptions);
+		if (! methOk) {
+			log(gThrIx, "405 Method Not Allowed");
+			resHttpStat = 405;
+		}
 		requFullUri = URL_PSEUDO_HOST + request.uri;
-		if (! urlparser.parse(requFullUri)) {
+		if (methOk && ! urlparser.parse(requFullUri)) {
 			/**log(gThrIx, "404 invalid path '" + request.uri + "'");**/
 			log(gThrIx, "404 invalid path");
 			resHttpStat = 404;
-		} else if (urlparser.path().compare(URL_PATH_ROOT) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_ROOT) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << buildWebsite();
 			success = true;
-		} else if (urlparser.path().compare(URL_PATH_STREAM) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_STREAM) == 0) {
 			isNewStreamingClientAccepted = gCbIncStreamingClientCount();
 			if (! isNewStreamingClientAccepted) {
 				log(gThrIx, "500 Path=" + urlparser.path());
@@ -186,7 +196,7 @@ namespace http {
 				success = true;
 				startStream = true;
 			}
-		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_ENABLE) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_OUTPUT_CAMS_ENABLE) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
@@ -201,7 +211,7 @@ namespace http {
 				}
 			}
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_DISABLE) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_OUTPUT_CAMS_DISABLE) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
@@ -235,7 +245,7 @@ namespace http {
 				}
 			}
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_OUTPUT_CAMS_SWAP) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_OUTPUT_CAMS_SWAP) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
@@ -247,7 +257,7 @@ namespace http {
 			}
 			success = true;
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_BRIGHTN) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_BNC_BRIGHTN) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = getIntFromQuery(
@@ -257,7 +267,7 @@ namespace http {
 					fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
 				);
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_PROC_BNC_CONTRAST) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_BNC_CONTRAST) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = getIntFromQuery(
@@ -267,18 +277,23 @@ namespace http {
 					fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
 				);
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_PROC_CAL_SHOWCHESSCORNERS) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_CAL_SHOWCHESSCORNERS) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = getBoolFromQuery(urlparser.query(), optsNew.procCalShowCalibChessboardPoints);
 			returnJson = true;
-		} else if (urlparser.path().compare(URL_PATH_FAVICON) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_FAVICON) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpStat = 404;
-		} else {
+		} else if (methIsGet) {
 			/**log(gThrIx, "404 invalid path '" + urlparser.path() + "'");**/
 			log(gThrIx, "404 invalid path");
 			resHttpStat = 404;
+		} else if (methIsOptions) {
+			log(gThrIx, "200 OPTIONS");
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			success = true;
+			returnJson = true;
 		}
 
 		resHttpMsgString = resHttpMsgStream.str();
@@ -372,6 +387,9 @@ namespace http {
 				break;
 			case 404:
 				httpStatus += "404 Not Found";
+				break;
+			case 405:
+				httpStatus += "405 Method Not Allowed";
 				break;
 			default:
 				httpStatus += "500 Internal Server Error";
