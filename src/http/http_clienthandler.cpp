@@ -208,6 +208,8 @@ namespace http {
 				} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R &&
 						optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 					optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
+				} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_BOTH) {
+					optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
 				}
 			}
 			returnJson = true;
