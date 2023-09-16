@@ -53,6 +53,7 @@ namespace http {
 			std::string buildWebsite();
 			std::string buildResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
 			bool sendResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
+			std::string buildJsonResult(const bool success, const fcapshared::RuntimeOptionsStc &optsRt);
 			//
 			void startStreaming();
 			bool sendFrame(uint8_t* pData, const uint32_t bufferSz);

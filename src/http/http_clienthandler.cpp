@@ -12,9 +12,11 @@
 #include "../httpparser/httprequestparser.hpp"
 #include "../httpparser/request.hpp"
 #include "../httpparser/urlparser.hpp"
+#include "../json/json.hpp"
 #include "http_clienthandler.hpp"
 
 using namespace std::chrono_literals;
+using json = nlohmann::json;
 
 namespace http {
 
@@ -34,6 +36,7 @@ namespace http {
 	const std::string URL_PATH_PROC_BNC_BRIGHTN = "/proc/bnc/brightness";
 	const std::string URL_PATH_PROC_BNC_CONTRAST = "/proc/bnc/contrast";
 	const std::string URL_PATH_PROC_CAL_SHOWCHESSCORNERS = "/proc/cal/showchesscorners";
+	const std::string URL_PATH_STATUS = "/status";
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -285,6 +288,11 @@ namespace http {
 		} else if (methIsGet && urlparser.path().compare(URL_PATH_FAVICON) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpStat = 404;
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_STATUS) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			success = true;
+			returnJson = true;
 		} else if (methIsGet) {
 			/**log(gThrIx, "404 invalid path '" + urlparser.path() + "'");**/
 			log(gThrIx, "404 invalid path");
@@ -304,24 +312,23 @@ namespace http {
 		//
 		if (success && startStream) {
 			startStreaming();
-		} else if (success && returnJson) {
-			if (optsNew.outputCams != optsCur.outputCams) {
-				fcapshared::Shared::setRuntimeOptions_outputCams(optsNew.outputCams);
-			}
-			if (optsNew.procBncAdjBrightness != optsCur.procBncAdjBrightness) {
-				fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(optsNew.procBncAdjBrightness);
-			}
-			if (optsNew.procBncAdjContrast != optsCur.procBncAdjContrast) {
-				fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(optsNew.procBncAdjContrast);
-			}
-			if (optsNew.procCalShowCalibChessboardPoints != optsCur.procCalShowCalibChessboardPoints) {
-				fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(optsNew.procCalShowCalibChessboardPoints);
+		} else if (returnJson) {
+			if (success) {
+				if (optsNew.outputCams != optsCur.outputCams) {
+					fcapshared::Shared::setRuntimeOptions_outputCams(optsNew.outputCams);
+				}
+				if (optsNew.procBncAdjBrightness != optsCur.procBncAdjBrightness) {
+					fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(optsNew.procBncAdjBrightness);
+				}
+				if (optsNew.procBncAdjContrast != optsCur.procBncAdjContrast) {
+					fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(optsNew.procBncAdjContrast);
+				}
+				if (optsNew.procCalShowCalibChessboardPoints != optsCur.procCalShowCalibChessboardPoints) {
+					fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(optsNew.procCalShowCalibChessboardPoints);
+				}
 			}
 			//
-			resHttpMsgString = "{\"result\":\"success\"}";
-			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_JSON, &resHttpMsgString);
-		} else if (! success && returnJson) {
-			resHttpMsgString = "{\"result\":\"error\"}";
+			resHttpMsgString = buildJsonResult(success, optsNew);
 			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_JSON, &resHttpMsgString);
 		} else {
 			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_HTML, &resHttpMsgString);
@@ -572,6 +579,28 @@ namespace http {
 		}
 		/**log(gThrIx, "__sent " + std::to_string(sentTot) + " total");**/
 		return true;
+	}
+
+	std::string ClientHandler::buildJsonResult(const bool success, const fcapshared::RuntimeOptionsStc &optsRt) {
+		json jsonObj;
+
+		jsonObj["result"] = (success ? "success" : "error");
+		if (success) {
+			switch (optsRt.outputCams) {
+				case fcapconstants::OutputCamsEn::CAM_L:
+					jsonObj["outputCams"] = "L";
+					break;
+				case fcapconstants::OutputCamsEn::CAM_R:
+					jsonObj["outputCams"] = "R";
+					break;
+				default:
+					jsonObj["outputCams"] = "BOTH";
+			}
+			jsonObj["procBncAdjBrightness"] = optsRt.procBncAdjBrightness;
+			jsonObj["procBncAdjContrast"] = optsRt.procBncAdjContrast;
+			jsonObj["procCalShowCalibChessboardPoints"] = optsRt.procCalShowCalibChessboardPoints;
+		}
+		return jsonObj.dump();
 	}
 
 	// -----------------------------------------------------------------------------
