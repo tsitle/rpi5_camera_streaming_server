@@ -22,7 +22,7 @@ namespace frame {
 			FrameProcessor();
 			~FrameProcessor();
 			void setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt);
-			void processFrame(fcapconstants::OutputCamsEn outputCams, cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat **ppFrameOut);
+			void processFrame(fcapconstants::OutputCamsEn outputCams, cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut);
 
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;

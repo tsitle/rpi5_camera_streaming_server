@@ -68,8 +68,6 @@ namespace frame {
 	void FrameConsumer::runX2() {
 		cv::Mat frameL(gStaticOptionsStc.resolutionOutput, CV_8UC3);
 		cv::Mat frameR(gStaticOptionsStc.resolutionOutput, CV_8UC3);
-		cv::Mat blendedImg;
-		cv::Mat *pFrameOut = NULL;
 		uint32_t frameNr = 0;
 		char strBufPath[512];
 		char strBufFn[1024];
@@ -77,11 +75,12 @@ namespace frame {
 		bool haveFrameR = false;
 		bool haveFrames = false;
 		bool needToStop = false;
-		bool willDiscard = false;
 		bool haveExc = false;
+		bool isFirstFrameDropTest = true;
 		uint32_t toNeedToStop = 100;
 		uint32_t toFrameL = 100;
 		fcapshared::RuntimeOptionsStc optsRt = fcapshared::Shared::getRuntimeOptions();
+		fcapconstants::OutputCamsEn optsLastOutputCams = optsRt.outputCams;
 		uint32_t toCheckFps = optsRt.cameraFps * 2;
 
 		// wait for camera streams to be open
@@ -118,6 +117,11 @@ namespace frame {
 				if (--toOpts == 0) {
 					optsRt = fcapshared::Shared::getRuntimeOptions();
 					gFrameProcessor.setRuntimeOptionsPnt(&optsRt);
+					//
+					if (optsLastOutputCams != optsRt.outputCams) {
+						isFirstFrameDropTest = true;
+						optsLastOutputCams = optsRt.outputCams;
+					}
 					//
 					toOpts = 10;
 				}
@@ -161,82 +165,98 @@ namespace frame {
 					}
 				}
 				if (haveFrames) {
+					cv::Mat frameBlended;
+					cv::Mat *pFrameOut;
+
 					++frameNr;
-					willDiscard = true;
-					//
-					if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R && gStaticOptionsStc.outputPngs) {
-						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-L.png", strBufPath, frameNr);
-						cv::imwrite(std::string(strBufFn), frameL);
-						/**log("CapL: wrote frame to '" << strBufFn << "'");**/
+
+					// write input frames to PNG files
+					if (gStaticOptionsStc.outputPngs) {
+						if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
+							snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-L.png", strBufPath, frameNr);
+							cv::imwrite(std::string(strBufFn), frameL);
+							/**log("CapL: wrote frame to '" << strBufFn << "'");**/
+						}
+						if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
+							snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-R.png", strBufPath, frameNr);
+							cv::imwrite(std::string(strBufFn), frameR);
+							/**log("CapR: wrote frame to '" << strBufFn << "'");**/
+						}
 					}
-					if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L && gStaticOptionsStc.outputPngs) {
-						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-R.png", strBufPath, frameNr);
-						cv::imwrite(std::string(strBufFn), frameR);
-						/**log("CapR: wrote frame to '" << strBufFn << "'");**/
-					}
+
 					// process frames
 					if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, NULL, &pFrameOut);
+						pFrameOut = &frameL;
+						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, NULL, pFrameOut);
 					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-						gFrameProcessor.processFrame(optsRt.outputCams, NULL, &frameR, &pFrameOut);
-					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-						pFrameOut = &blendedImg;
-						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, &frameR, &pFrameOut);
-						//
-						if (gStaticOptionsStc.outputPngs) {
-							snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-B.png", strBufPath, frameNr);
-							cv::imwrite(std::string(strBufFn), blendedImg);
-							/**log("CapB: wrote frame to '" << strBufFn << "'");**/
-						}
+						pFrameOut = &frameR;
+						gFrameProcessor.processFrame(optsRt.outputCams, NULL, &frameR, pFrameOut);
+					} else {
+						pFrameOut = &frameBlended;
+						gFrameProcessor.processFrame(optsRt.outputCams, &frameL, &frameR, pFrameOut);
 					}
+
 					// output the resulting frame
-					if (pFrameOut != NULL) {
-						outputFrameToQueue(*pFrameOut);
-						willDiscard = false;
+					///
+					if (gStaticOptionsStc.outputPngs) {
+						snprintf(strBufFn, sizeof(strBufFn), "%s/testout-%03d-OUT.png", strBufPath, frameNr);
+						cv::imwrite(std::string(strBufFn), *pFrameOut);
+						/**log("CapB: wrote resulting frame to '" << strBufFn << "'");**/
 					}
-					//
-					if (willDiscard) {
-						log("discarded frame");
-					} else if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
-							optsRt.cameraFps > 1 &&
-							--toCheckFps == 0) {
-						reloadCamStreams = false;
-						if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R &&
-								gFrameQueueInpL.getDroppedFramesCount() > 10) {
-							log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
-							reloadCamStreams = true;
-						} else if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L &&
-								gFrameQueueInpR.getDroppedFramesCount() > 10) {
-							log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
-							reloadCamStreams = true;
-						}
-						if (reloadCamStreams) {
-							uint32_t tmpDfL = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R ?
-									gFrameQueueInpL.getDroppedFramesCount() : 0);
-							uint32_t tmpDfR = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L ?
-									gFrameQueueInpR.getDroppedFramesCount() : 0);
-							uint32_t tmpDfX = (tmpDfL > tmpDfR ? tmpDfL : tmpDfR);
-							//
-							gFrameQueueInpL.resetDroppedFramesCount();
-							gFrameQueueInpR.resetDroppedFramesCount();
-							//
-							uint8_t lastCameraFps = fcapshared::Shared::getRuntimeOptions().cameraFps;
-							optsRt.cameraFps = lastCameraFps - (
-									tmpDfX > 100 && lastCameraFps > 10 ? 10 :
-										(tmpDfX > 50 && lastCameraFps > 5 ? 5 :
-											(tmpDfX > 30 && lastCameraFps > 3 ? 3 : 1))
-								);
-							log("Reducing FPS to " + std::to_string(optsRt.cameraFps) + "...");
-							fcapshared::Shared::setRuntimeOptions_cameraFps(optsRt.cameraFps);
-							//
-							FrameProducer::setFlagRestartCamStreams();
-							toCheckFps = optsRt.cameraFps * 5;
-						} else {
-							toCheckFps = optsRt.cameraFps * 2;
-						}
-					}
+					///
+					outputFrameToQueue(*pFrameOut);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				}
+
+				// check if we need to adjust the framerate
+				if (haveFrames &&
+						gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
+						optsRt.cameraFps > 1 &&
+						--toCheckFps == 0) {
+					bool resetCounts = false;
+
+					reloadCamStreams = false;
+					if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R &&
+							gFrameQueueInpL.getDroppedFramesCount() > 10) {
+						log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
+						reloadCamStreams = (! isFirstFrameDropTest);
+						resetCounts = true;
+					} else if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L &&
+							gFrameQueueInpR.getDroppedFramesCount() > 10) {
+						log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
+						reloadCamStreams = (! isFirstFrameDropTest);
+						resetCounts = true;
+					}
+					if (reloadCamStreams) {
+						uint32_t tmpDfL = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R ?
+								gFrameQueueInpL.getDroppedFramesCount() : 0);
+						uint32_t tmpDfR = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L ?
+								gFrameQueueInpR.getDroppedFramesCount() : 0);
+						uint32_t tmpDfX = (tmpDfL > tmpDfR ? tmpDfL : tmpDfR);
+						//
+						uint8_t lastCameraFps = fcapshared::Shared::getRuntimeOptions().cameraFps;
+						optsRt.cameraFps = lastCameraFps - (
+								tmpDfX > 100 && lastCameraFps > 10 ? 10 :
+									(tmpDfX > 50 && lastCameraFps > 5 ? 5 :
+										(tmpDfX > 30 && lastCameraFps > 3 ? 3 : 1))
+							);
+						log("Reducing FPS to " + std::to_string(optsRt.cameraFps) + "...");
+						fcapshared::Shared::setRuntimeOptions_cameraFps(optsRt.cameraFps);
+						//
+						FrameProducer::setFlagRestartCamStreams();
+						// wait a little while for cam streams to have been reloaded
+						std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+						//
+						toCheckFps = optsRt.cameraFps * 5;
+					} else {
+						toCheckFps = optsRt.cameraFps * 2;
+					}
+					if (resetCounts) {
+						isFirstFrameDropTest = false;
+						gFrameQueueInpL.resetDroppedFramesCount();
+						gFrameQueueInpR.resetDroppedFramesCount();
+					}
 				}
 			}
 		} catch (std::exception& err) {

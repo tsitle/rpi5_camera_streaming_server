@@ -56,24 +56,24 @@ namespace frame {
 				fcapconstants::OutputCamsEn outputCams,
 				cv::Mat *pFrameL,
 				cv::Mat *pFrameR,
-				cv::Mat **ppFrameOut) {
+				cv::Mat *pFrameOut) {
 		// do the actual processing
-		if (! gDisableProcessing && pFrameL != NULL) {
-			procDefaults(gSubProcsL, *pFrameL);
-		}
-		if (! gDisableProcessing && pFrameR != NULL) {
-			procDefaults(gSubProcsR, *pFrameR);
+		if (! gDisableProcessing) {
+			if (pFrameL != NULL) {
+				procDefaults(gSubProcsL, *pFrameL);
+			}
+			if (pFrameR != NULL) {
+				procDefaults(gSubProcsR, *pFrameR);
+			}
 		}
 
 		//
 		const std::string* pCamDesc = NULL;
 		if (outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-			*ppFrameOut = pFrameL;
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
 			}
 		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-			*ppFrameOut = pFrameR;
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
 			}
@@ -81,26 +81,26 @@ namespace frame {
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
 			}
-			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, **ppFrameOut, -1);
+			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, *pFrameOut, -1);
 		}
 
 		// add text overlay
 		if (! gDisableProcessing) {
-			procAddTextOverlayCams(**ppFrameOut, *pCamDesc, outputCams);
+			procAddTextOverlayCams(*pFrameOut, *pCamDesc, outputCams);
 		}
 
 		// resize frame
 		bool needToResizeFrame = (
-				(*ppFrameOut)->cols != gStaticOptionsStc.resolutionOutput.width ||
-				(*ppFrameOut)->rows != gStaticOptionsStc.resolutionOutput.height
+				pFrameOut->cols != gStaticOptionsStc.resolutionOutput.width ||
+				pFrameOut->rows != gStaticOptionsStc.resolutionOutput.height
 			);
 		if (needToResizeFrame) {
 			log("resizing image from " +
-					std::to_string((*ppFrameOut)->cols) + "x" + std::to_string((*ppFrameOut)->rows) +
+					std::to_string(pFrameOut->cols) + "x" + std::to_string(pFrameOut->rows) +
 					" to " +
 					std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" + std::to_string(gStaticOptionsStc.resolutionOutput.height) +
 					" ...");
-			cv::resize(**ppFrameOut, **ppFrameOut, gStaticOptionsStc.resolutionOutput, 0.0, 0.0, cv::INTER_LINEAR);
+			cv::resize(*pFrameOut, *pFrameOut, gStaticOptionsStc.resolutionOutput, 0.0, 0.0, cv::INTER_LINEAR);
 		}
 	}
 
