@@ -187,7 +187,7 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = _buildCalibrationDataFilename(imageSize);
+		std::string inpFn = _buildCalibrationDataFilename();
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -198,6 +198,7 @@ namespace framesubproc {
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 		int cfileInt;
+		cv::Size cfileSz;
 
 		//
 		std::string cfileCalibrationTime;
@@ -213,11 +214,44 @@ namespace framesubproc {
 			return false;
 		}
 		///
-		cv::Size cfileImageSize;
-		fs["imageSize"] >> cfileImageSize;
-		if (cfileImageSize != imageSize) {
-			log("CAL", "image size from calibration data file does not match current image size (is=" +
-					std::to_string(cfileImageSize.width) + "x" + std::to_string(cfileImageSize.height) +
+		fs["camSource"] >> cfileInt;
+		if (cfileInt != (int)gStaticOptionsStc.camSourceType) {
+			log("CAL", "camSource from calibration data file does not match current camSource (is=" + std::to_string(cfileInt) +
+					", exp=" + std::to_string((int)gStaticOptionsStc.camSourceType) + ")");
+			gLoadFromFileFailed = true;
+			return false;
+		}
+		///
+		if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER) {
+			fs["gstreamer_resolution_capture"] >> cfileSz;
+			if (cfileSz != gStaticOptionsStc.gstreamerResolutionCapture) {
+				log("CAL", "gstreamer_resolution_capture from calibration data file "
+						"does not match current gstreamer_resolution_capture (is=" +
+						std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
+						", exp=" +
+						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.width) + "x" +
+						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.height) +
+						")");
+				gLoadFromFileFailed = true;
+				return false;
+			}
+		}
+		///
+		fs["resolution_output"] >> cfileSz;
+		if (cfileSz != gStaticOptionsStc.resolutionOutput) {
+			log("CAL", "resolution_output from calibration data file "
+					"does not match current resolution_output (is=" +
+					std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
+					", exp=" +
+					std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" +
+					std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+					")");
+			gLoadFromFileFailed = true;
+			return false;
+		}
+		if (cfileSz != imageSize) {
+			log("CAL", "resolution_output from calibration data file does not match current image size (is=" +
+					std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
 					", exp=" + std::to_string(imageSize.width) + "x" + std::to_string(imageSize.height) + ")");
 			gLoadFromFileFailed = true;
 			return false;
@@ -323,7 +357,7 @@ namespace framesubproc {
 
 		// save calibration data to file
 		if (resB) {
-			gWriteToFileFailed = (! _saveCalibrationDataToFile(imageSize));
+			gWriteToFileFailed = (! _saveCalibrationDataToFile());
 		}
 		return resB;
 	}
@@ -494,18 +528,35 @@ namespace framesubproc {
 
 	// -----------------------------------------------------------------------------
 
-	std::string FrameSubProcessorCalibrate::_buildCalibrationDataFilename(cv::Size &imageSize) {
+	std::string FrameSubProcessorCalibrate::_buildCalibrationDataFilename() {
+		std::string camSrcStr;
+		switch (gStaticOptionsStc.camSourceType) {
+			case fcapconstants::CamSourceEn::GSTREAMER:
+				camSrcStr = "gstreamer";
+				break;
+			case fcapconstants::CamSourceEn::MJPEG:
+				camSrcStr = "mjpeg";
+				break;
+			default:
+				camSrcStr = "unspec";
+		}
 		return gStaticOptionsStc.calibOutputPath + "/calib-cam" + std::to_string((int)gCamId) + "-" +
-				std::to_string(imageSize.width) + "x" + std::to_string(imageSize.height) +
+				camSrcStr + "-" +
+				(gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER ?
+						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.width) + "x" +
+						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.height) + "-"
+						: "") +
+				std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" +
+				std::to_string(gStaticOptionsStc.resolutionOutput.height) +
 				".yaml";
 	}
 
-	bool FrameSubProcessorCalibrate::_saveCalibrationDataToFile(cv::Size &imageSize) {
+	bool FrameSubProcessorCalibrate::_saveCalibrationDataToFile() {
 		if (gWriteToFileFailed) {
 			return false;
 		}
 
-		std::string outpFn = _buildCalibrationDataFilename(imageSize);
+		std::string outpFn = _buildCalibrationDataFilename();
 
 		log("CAL", "writing calibration data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
@@ -519,8 +570,12 @@ namespace framesubproc {
 
 		fs << "calibrationTime" << buf;
 		//
-		fs << "camID" << gCamId;
-		fs << "imageSize" << imageSize;
+		fs << "camID" << (int)gCamId;
+		fs << "camSource" << (int)gStaticOptionsStc.camSourceType;
+		if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER) {
+			fs << "gstreamer_resolution_capture" << gStaticOptionsStc.gstreamerResolutionCapture;
+		}
+		fs << "resolution_output" << gStaticOptionsStc.resolutionOutput;
 		//
 		fs << "ocvSettings_useFisheye" << gOcvSettingsStc.useFisheye;
 		if (gOcvSettingsStc.useFisheye) {
