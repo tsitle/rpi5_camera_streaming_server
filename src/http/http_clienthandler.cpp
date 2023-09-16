@@ -305,7 +305,7 @@ namespace http {
 		}
 
 		resHttpMsgString = resHttpMsgStream.str();
-		if (success || (! success && returnJson)) {
+		if (success || returnJson) {
 			resHttpStat = 200;
 		}
 
@@ -328,7 +328,11 @@ namespace http {
 				}
 			}
 			//
-			resHttpMsgString = buildJsonResult(success, optsNew);
+			if (methIsGet) {
+				resHttpMsgString = buildJsonResult(success, optsNew);
+			} else {
+				resHttpMsgString = "";
+			}
 			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_JSON, &resHttpMsgString);
 		} else {
 			sendResponse(resHttpStat, &fcapconstants::HTTP_CONTENT_TYPE_HTML, &resHttpMsgString);
