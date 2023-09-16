@@ -248,11 +248,9 @@ namespace http {
 		} else if (methIsGet && urlparser.path().compare(URL_PATH_OUTPUT_CAMS_SWAP) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
-			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
-			} else if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+			if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
-			} else {
+			} else if (optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 				optsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
 			}
 			success = true;
