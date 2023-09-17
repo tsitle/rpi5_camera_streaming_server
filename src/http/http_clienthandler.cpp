@@ -36,8 +36,9 @@ namespace http {
 	const std::string URL_PATH_PROC_BNC_BRIGHTN = "/proc/bnc/brightness";
 	const std::string URL_PATH_PROC_BNC_CONTRAST = "/proc/bnc/contrast";
 	const std::string URL_PATH_PROC_CAL_SHOWCHESSCORNERS = "/proc/cal/showchesscorners";
+	const std::string URL_PATH_PROC_CAL_RESET = "/proc/cal/reset";
 	const std::string URL_PATH_PROC_PT_RECTCORNER = "/proc/pt/rect_corner";
-	const std::string URL_PATH_PROC_PT_RES_RECTCORNERS = "/proc/pt/reset_rect_corners";
+	const std::string URL_PATH_PROC_PT_RESET = "/proc/pt/reset";
 	const std::string URL_PATH_STATUS = "/status";
 
 	// -----------------------------------------------------------------------------
@@ -171,6 +172,7 @@ namespace http {
 					(optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R ?
 						&gStaticOptionsStc.camR : NULL));
 		bool isNewStreamingClientAccepted;
+		bool hasChangedOptsNewProcCalDoReset = false;
 		bool hasChangedOptsNewProcPtRectCorners = false;
 
 		httpparser::HttpRequestParser::ParseResult requParseRes = requparser.parse(request, buffer, buffer + bufSz);
@@ -295,6 +297,16 @@ namespace http {
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = getBoolFromQuery(urlparser.query(), optsNew.procCalShowCalibChessboardPoints);
 			returnJson = true;
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_CAL_RESET) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (pCurCamId != NULL) {
+				success = true;
+				optsNew.procCalDoReset[*pCurCamId] = true;
+				optsNew.procCalDone[*pCurCamId] = false;
+				hasChangedOptsNewProcCalDoReset = true;
+			}
+			returnJson = true;
 		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_PT_RECTCORNER) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
@@ -310,15 +322,17 @@ namespace http {
 			}
 			if (success) {
 				optsNew.procPtRectCorners[*pCurCamId].push_back(tmpPoint);
+				optsNew.procPtDone[*pCurCamId] = (optsNew.procPtRectCorners[*pCurCamId].size() == fcapconstants::PROC_PT_RECTCORNERS_MAX);
 				hasChangedOptsNewProcPtRectCorners = true;
 			}
 			returnJson = true;
-		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_PT_RES_RECTCORNERS) == 0) {
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_PT_RESET) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			if (pCurCamId != NULL) {
 				success = true;
 				optsNew.procPtRectCorners[*pCurCamId].clear();
+				optsNew.procPtDone[*pCurCamId] = false;
 				hasChangedOptsNewProcPtRectCorners = true;
 			}
 			returnJson = true;
@@ -363,6 +377,9 @@ namespace http {
 				}
 				if (optsNew.procCalShowCalibChessboardPoints != optsCur.procCalShowCalibChessboardPoints) {
 					fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(optsNew.procCalShowCalibChessboardPoints);
+				}
+				if (hasChangedOptsNewProcCalDoReset) {
+					fcapshared::Shared::setRuntimeOptions_procCalDoReset(*pCurCamId, true);
 				}
 				if (hasChangedOptsNewProcPtRectCorners) {
 					fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(*pCurCamId, true);

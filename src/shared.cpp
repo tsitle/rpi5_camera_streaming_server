@@ -113,6 +113,16 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.procCalDoReset[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
@@ -181,6 +191,8 @@ namespace fcapshared {
 			//
 			gThrVarRuntimeOptions.procCalDone[fcapconstants::CamIdEn::CAM_0] = false;
 			gThrVarRuntimeOptions.procCalDone[fcapconstants::CamIdEn::CAM_1] = false;
+			gThrVarRuntimeOptions.procCalDoReset[fcapconstants::CamIdEn::CAM_0] = false;
+			gThrVarRuntimeOptions.procCalDoReset[fcapconstants::CamIdEn::CAM_1] = false;
 			gThrVarRuntimeOptions.procCalShowCalibChessboardPoints = fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS;
 			//
 			gThrVarRuntimeOptions.procPtDone[fcapconstants::CamIdEn::CAM_0] = false;

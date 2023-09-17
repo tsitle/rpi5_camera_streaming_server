@@ -51,11 +51,7 @@ namespace frame {
 		updateSubProcsSettings();
 	}
 
-	void FrameProcessor::processFrame(
-				fcapconstants::OutputCamsEn outputCams,
-				cv::Mat *pFrameL,
-				cv::Mat *pFrameR,
-				cv::Mat *pFrameOut) {
+	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut) {
 		// do the actual processing
 		if (! gDisableProcessing) {
 			if (pFrameL != NULL) {
@@ -64,28 +60,52 @@ namespace frame {
 			if (pFrameR != NULL) {
 				procDefaults(gSubProcsR, *pFrameR);
 			}
+			if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH && pFrameR->channels() != pFrameL->channels()) {
+				int channL = pFrameL->channels();
+				int channR = pFrameR->channels();
+				if (channL > channR) {
+					cv::cvtColor(*pFrameL, *pFrameL, cv::COLOR_BGR2GRAY);
+				} else {
+					cv::cvtColor(*pFrameR, *pFrameR, cv::COLOR_BGR2GRAY);
+				}
+			}
 		}
 
 		//
 		const std::string* pCamDesc = NULL;
-		if (outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
 			}
-		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
 			}
-		} else if (outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
+		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			if (! gDisableProcessing) {
 				pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
 			}
 			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, *pFrameOut, -1);
 		}
 
-		// add text overlay
+		// add text overlays
 		if (! gDisableProcessing) {
-			procAddTextOverlayCams(*pFrameOut, *pCamDesc, outputCams);
+			// text overlay "CAM x"
+			procAddTextOverlayCams(*pFrameOut, *pCamDesc, gPOptsRt->outputCams);
+			// text overlay "CAL"
+			bool tmpBool;
+			switch (gPOptsRt->outputCams) {
+				case fcapconstants::OutputCamsEn::CAM_L:
+					tmpBool = gPOptsRt->procCalDone[gStaticOptionsStc.camL];
+					break;
+				case fcapconstants::OutputCamsEn::CAM_R:
+					tmpBool = gPOptsRt->procCalDone[gStaticOptionsStc.camR];
+					break;
+				default:
+					tmpBool = (gPOptsRt->procCalDone[fcapconstants::CamIdEn::CAM_0] &&
+							gPOptsRt->procCalDone[fcapconstants::CamIdEn::CAM_1]);
+			}
+			procAddTextOverlayCal(*pFrameOut, tmpBool);
 		}
 
 		// resize frame
@@ -156,7 +176,19 @@ namespace frame {
 		// adjust brightness and contrast
 		subProcsStc.bnc.processFrame(frame);
 		// calibrate camera
+		///
+		if (gPOptsRt->procCalDoReset[subProcsStc.camId]) {
+			fcapshared::Shared::setRuntimeOptions_procCalDoReset(subProcsStc.camId, false);
+			gPOptsRt->procCalDoReset[subProcsStc.camId] = false;
+			//
+			fcapshared::Shared::setRuntimeOptions_procCalDone(subProcsStc.camId, false);
+			gPOptsRt->procCalDone[subProcsStc.camId] = false;
+			//
+			subProcsStc.cal.resetCalibration();
+		}
+		///
 		subProcsStc.cal.processFrame(frame);
+		///
 		tmpBool = subProcsStc.cal.getIsCalibrated();
 		if (tmpBool != gPOptsRt->procCalDone[subProcsStc.camId]) {
 			fcapshared::Shared::setRuntimeOptions_procCalDone(subProcsStc.camId, tmpBool);
@@ -180,8 +212,6 @@ namespace frame {
 		}
 		///
 		subProcsStc.pt.processFrame(frame);
-		// text overlay "CAL"
-		procAddTextOverlayCal(frame, true);
 	}
 
 	void FrameProcessor::procAddTextOverlayCams(

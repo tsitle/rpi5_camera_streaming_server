@@ -8,6 +8,15 @@ namespace framesubproc {
 	struct PtDataStc {
 		cv::Point2f ptsSrc[fcapconstants::PROC_PT_RECTCORNERS_MAX];
 		cv::Point2f ptsDst[fcapconstants::PROC_PT_RECTCORNERS_MAX];
+
+		void reset() {
+			for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
+				ptsSrc[x].x = 0.0;
+				ptsSrc[x].y = 0.0;
+				ptsDst[x].x = 0.0;
+				ptsDst[x].y = 0.0;
+			}
+		}
 	};
 
 	class FrameSubProcessorPerspectiveTransf : public FrameSubProcessor {

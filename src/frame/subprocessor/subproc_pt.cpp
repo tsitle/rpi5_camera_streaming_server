@@ -67,7 +67,6 @@ namespace framesubproc {
 			savePtDataToFile();
 		} else if (gLoadedFromFile) {
 			deletePtDataFile();
-			gLoadedFromFile = false;
 		}
 	}
 
@@ -194,14 +193,9 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorPerspectiveTransf::deletePtDataFile() {
-		std::string dataFn = buildDataFilename("PT");
-
-		if (! fcapshared::Shared::fileExists(dataFn)) {
-			return;
-		}
-
-		log("PT", "deleting PersTransf data file '" + dataFn + "'");
-		::remove(dataFn.c_str());
+		deleteDataFile("PT");
+		gLoadedFromFile = false;
+		gPtDataStc.reset();
 	}
 
 }  // namespace framesubproc

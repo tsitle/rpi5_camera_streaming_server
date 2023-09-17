@@ -27,6 +27,7 @@ namespace framesubproc {
 			std::string buildDataFilename(const std::string &spName);
 			void saveDataToFile_header(cv::FileStorage &fs);
 			bool loadDataFromFile_header(const std::string &spName, cv::Size &imageSize, cv::FileStorage &fs);
+			void deleteDataFile(const std::string &spName);
 	};
 
 }  // namespace framesubproc

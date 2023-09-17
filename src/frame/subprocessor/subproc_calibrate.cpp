@@ -65,6 +65,15 @@ namespace framesubproc {
 		return gCalibrated;
 	}
 
+	void FrameSubProcessorCalibrate::resetCalibration() {
+		gCalibrated = false;
+		if (gLoadedFromFile) {
+			deleteCalibrationDataFile();
+		} else {
+			gCalibrationDataStc.reset();
+		}
+	}
+
 	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame) {
 		if (gTries == MAX_TRIES || gWriteToFileFailed) {
 			return;
@@ -208,6 +217,7 @@ namespace framesubproc {
 		fs["ocvSettings_useFisheye"] >> cfileInt;
 		gOcvSettingsStc.useFisheye = (cfileInt == 1);
 		///
+		gOcvSettingsStc.flags = 0;
 		if (gOcvSettingsStc.useFisheye) {
 			_readFlagFromCalibrationDataFile(fs, "ocvSettings_fisheye_flags_CALIB_FIX_S1_S2_S3_S4", cv::CALIB_FIX_S1_S2_S3_S4);
 			_readFlagFromCalibrationDataFile(fs, "ocvSettings_fisheye_flags_CALIB_FIX_K1", cv::CALIB_FIX_K1);
@@ -242,6 +252,12 @@ namespace framesubproc {
 
 		log("CAL", "__reading done");
 		return true;
+	}
+
+	void FrameSubProcessorCalibrate::deleteCalibrationDataFile() {
+		deleteDataFile("CAL");
+		gLoadedFromFile = false;
+		gCalibrationDataStc.reset();
 	}
 
 	// -----------------------------------------------------------------------------

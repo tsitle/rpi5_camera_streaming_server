@@ -17,6 +17,7 @@ namespace fcapshared {
 		int16_t procBncAdjBrightness;
 		int16_t procBncAdjContrast;
 		std::map<fcapconstants::CamIdEn, bool> procCalDone;
+		std::map<fcapconstants::CamIdEn, bool> procCalDoReset;
 		bool procCalShowCalibChessboardPoints;
 		std::map<fcapconstants::CamIdEn, bool> procPtDone;
 		std::map<fcapconstants::CamIdEn, bool> procPtChangedRectCorners;
@@ -34,6 +35,7 @@ namespace fcapshared {
 			static void setRuntimeOptions_procBncAdjBrightness(const int16_t val);
 			static void setRuntimeOptions_procBncAdjContrast(const int16_t val);
 			static void setRuntimeOptions_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRuntimeOptions_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val);
 			static void setRuntimeOptions_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procPtChangedRectCorners(const fcapconstants::CamIdEn camId, const bool val);

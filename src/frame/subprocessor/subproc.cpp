@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctime>  // for time(), localtime(), strftime()
 
+#include "../../shared.hpp"
 #include "subproc.hpp"
 
 namespace framesubproc {
@@ -40,7 +41,7 @@ namespace framesubproc {
 				ocStr = "B";
 		}
 		
-		std::cout << "FSUBPROC: [CAM" << ciStr << ocStr << "] [" + spName + "] " << message << std::endl;
+		std::cout << "FSUBPROC[CAM" << ciStr << ocStr << "_" + spName + "] " << message << std::endl;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -141,6 +142,17 @@ namespace framesubproc {
 		}
 
 		return true;
+	}
+
+	void FrameSubProcessor::deleteDataFile(const std::string &spName) {
+		std::string dataFn = buildDataFilename(spName);
+
+		if (! fcapshared::Shared::fileExists(dataFn)) {
+			return;
+		}
+
+		log(spName, "deleting data file '" + dataFn + "'");
+		::remove(dataFn.c_str());
 	}
 
 }  // namespace framesubproc

@@ -38,6 +38,13 @@ namespace framesubproc {
 		cv::Mat distCoeffs;
 		cv::Mat fisheyeNewCamMat;
 		std::vector<std::vector<cv::Point2f>> imagePoints;
+
+		void reset() {
+			cameraMatrix = cv::Mat();
+			distCoeffs = cv::Mat();
+			fisheyeNewCamMat = cv::Mat();
+			imagePoints = std::vector<std::vector<cv::Point2f>>();
+		}
 	};
 
 	class FrameSubProcessorCalibrate : public FrameSubProcessor {
@@ -45,6 +52,7 @@ namespace framesubproc {
 			FrameSubProcessorCalibrate();
 			void setShowCalibChessboardPoints(const bool val);
 			bool getIsCalibrated();
+			void resetCalibration();
 			void processFrame(cv::Mat &frame);
 		
 		private:
@@ -64,6 +72,7 @@ namespace framesubproc {
 			bool calibrate(cv::Mat &frame);
 			void renderUndistorted(cv::Mat &frame);
 			bool loadCalibrationDataFromFile(cv::Size imageSize);
+			void deleteCalibrationDataFile();
 			//
 			bool _calibrateAndSaveToFile(
 					OcvSettingsStc &s, cv::Size imageSize, cv::Mat &outpCameraMatrix, cv::Mat &outpDistCoeffs,
