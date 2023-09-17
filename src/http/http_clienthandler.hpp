@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string>
 
+#include "../cfgfile.hpp"
 #include "http_tcp_server.hpp"
 
 namespace http {
@@ -32,6 +33,7 @@ namespace http {
 		private:
 			uint32_t gThrIx;
 			int32_t gClientSocket;
+			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			std::string gRespMultipartPrefix;
 			CbIncStreamingClientCount gCbIncStreamingClientCount;
 			CbDecStreamingClientCount gCbDecStreamingClientCount;
@@ -51,16 +53,18 @@ namespace http {
 			//
 			void handleRequest(const char *buffer, const uint32_t bufSz);
 			std::string buildWebsite();
-			std::string buildResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
-			bool sendResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent);
-			std::string buildJsonResult(const bool success, const fcapshared::RuntimeOptionsStc &optsRt);
+			std::string buildResponse(const uint32_t httpStatusCode, const std::string *pHttpContentType, const std::string *pContent);
+			bool sendResponse(const uint32_t httpStatusCode, const std::string *pHttpContentType, const std::string *pContent);
+			std::string buildJsonResult(const bool success, const fcapconstants::CamIdEn *pCurCamId, fcapshared::RuntimeOptionsStc &optsRt);
 			//
 			void startStreaming();
-			bool sendFrame(uint8_t* pData, const uint32_t bufferSz);
+			bool sendFrame(uint8_t *pData, const uint32_t bufferSz);
 			//
 			bool getBoolFromQuery(std::string query, bool &valOut);
 			bool getIntFromQuery(std::string query, int16_t &valOut, const int16_t valMin, const int16_t valMax);
 			bool getOutputCamsFromQuery(std::string query, fcapconstants::OutputCamsEn &valOut);
+			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
+			bool getCoordsFromQuery(std::string query, cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
 	};
 
 }  // namespace http

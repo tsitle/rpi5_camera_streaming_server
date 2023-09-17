@@ -16,7 +16,11 @@ namespace fcapshared {
 		uint8_t cameraFps;
 		int16_t procBncAdjBrightness;
 		int16_t procBncAdjContrast;
+		std::map<fcapconstants::CamIdEn, bool> procCalDone;
 		bool procCalShowCalibChessboardPoints;
+		std::map<fcapconstants::CamIdEn, bool> procPtDone;
+		std::map<fcapconstants::CamIdEn, bool> procPtChangedRectCorners;
+		std::map<fcapconstants::CamIdEn, std::vector<cv::Point>> procPtRectCorners;
 	};
 
 	class Shared {
@@ -29,7 +33,11 @@ namespace fcapshared {
 			static void setRuntimeOptions_cameraFps(const uint8_t val);
 			static void setRuntimeOptions_procBncAdjBrightness(const int16_t val);
 			static void setRuntimeOptions_procBncAdjContrast(const int16_t val);
+			static void setRuntimeOptions_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val);
+			static void setRuntimeOptions_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRuntimeOptions_procPtChangedRectCorners(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRuntimeOptions_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
 			//
 			static bool fileExists(const std::string &fname);
 

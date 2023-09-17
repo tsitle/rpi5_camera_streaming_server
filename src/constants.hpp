@@ -63,6 +63,8 @@ namespace fcapconstants {
 	const int16_t PROC_BNC_MAX_ADJ_CONTRAST = 63;
 	const int16_t PROC_BNC_MIN_ADJ_CONTRAST = -127;
 
+	const uint8_t PROC_PT_RECTCORNERS_MAX = 4;
+
 }  // namespace fcapconstants
 
 #endif  // CONSTANTS_HPP_

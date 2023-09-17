@@ -36,6 +36,8 @@ namespace http {
 	const std::string URL_PATH_PROC_BNC_BRIGHTN = "/proc/bnc/brightness";
 	const std::string URL_PATH_PROC_BNC_CONTRAST = "/proc/bnc/contrast";
 	const std::string URL_PATH_PROC_CAL_SHOWCHESSCORNERS = "/proc/cal/showchesscorners";
+	const std::string URL_PATH_PROC_PT_RECTCORNER = "/proc/pt/rect_corner";
+	const std::string URL_PATH_PROC_PT_RES_RECTCORNERS = "/proc/pt/reset_rect_corners";
 	const std::string URL_PATH_STATUS = "/status";
 
 	// -----------------------------------------------------------------------------
@@ -54,6 +56,8 @@ namespace http {
 				gCbIncStreamingClientCount(cbIncStreamingClientCount),
 				gCbDecStreamingClientCount(cbDecStreamingClientCount),
 				gCbGetFrameFromQueue(cbGetFrameFromQueue) {
+		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
+
 		char buffer[BUFFER_SIZE] = {0};
 		struct timeval tv;
 
@@ -161,7 +165,13 @@ namespace http {
 		httpparser::UrlParser urlparser;
 		fcapshared::RuntimeOptionsStc optsCur = fcapshared::Shared::getRuntimeOptions();
 		fcapshared::RuntimeOptionsStc optsNew = optsCur;
+		fcapconstants::CamIdEn* pCurCamId = (
+				optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L ?
+					&gStaticOptionsStc.camL :
+					(optsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R ?
+						&gStaticOptionsStc.camR : NULL));
 		bool isNewStreamingClientAccepted;
+		bool hasChangedOptsNewProcPtRectCorners = false;
 
 		httpparser::HttpRequestParser::ParseResult requParseRes = requparser.parse(request, buffer, buffer + bufSz);
 
@@ -285,11 +295,38 @@ namespace http {
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = getBoolFromQuery(urlparser.query(), optsNew.procCalShowCalibChessboardPoints);
 			returnJson = true;
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_PT_RECTCORNER) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			cv::Point tmpPoint;
+			success = getCoordsFromQuery(
+					urlparser.query(),
+					tmpPoint,
+					cv::Point(0, 0),
+					cv::Point(gStaticOptionsStc.resolutionOutput.width - 1, gStaticOptionsStc.resolutionOutput.height - 1)
+				);
+			if (success && pCurCamId == NULL) {
+				success = false;
+			}
+			if (success) {
+				optsNew.procPtRectCorners[*pCurCamId].push_back(tmpPoint);
+				hasChangedOptsNewProcPtRectCorners = true;
+			}
+			returnJson = true;
+		} else if (methIsGet && urlparser.path().compare(URL_PATH_PROC_PT_RES_RECTCORNERS) == 0) {
+			log(gThrIx, "200 Path=" + urlparser.path());
+			resHttpMsgStream << "dummy";  // won't actually be sent
+			if (pCurCamId != NULL) {
+				success = true;
+				optsNew.procPtRectCorners[*pCurCamId].clear();
+				hasChangedOptsNewProcPtRectCorners = true;
+			}
+			returnJson = true;
 		} else if (methIsGet && urlparser.path().compare(URL_PATH_FAVICON) == 0) {
 			log(gThrIx, "200 Path=" + urlparser.path());
 			resHttpStat = 404;
 		} else if (methIsGet && urlparser.path().compare(URL_PATH_STATUS) == 0) {
-			log(gThrIx, "200 Path=" + urlparser.path());
+			/**log(gThrIx, "200 Path=" + urlparser.path());**/
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = true;
 			returnJson = true;
@@ -298,7 +335,8 @@ namespace http {
 			log(gThrIx, "404 invalid path");
 			resHttpStat = 404;
 		} else if (methIsOptions) {
-			log(gThrIx, "200 OPTIONS");
+			// the browser is doing a "preflight" check of this API endpoint
+			/**log(gThrIx, "200 OPTIONS");**/
 			resHttpMsgStream << "dummy";  // won't actually be sent
 			success = true;
 			returnJson = true;
@@ -326,10 +364,14 @@ namespace http {
 				if (optsNew.procCalShowCalibChessboardPoints != optsCur.procCalShowCalibChessboardPoints) {
 					fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(optsNew.procCalShowCalibChessboardPoints);
 				}
+				if (hasChangedOptsNewProcPtRectCorners) {
+					fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(*pCurCamId, true);
+					fcapshared::Shared::setRuntimeOptions_procPtRectCorners(*pCurCamId, optsNew.procPtRectCorners[*pCurCamId]);
+				}
 			}
 			//
 			if (methIsGet) {
-				resHttpMsgString = buildJsonResult(success, optsNew);
+				resHttpMsgString = buildJsonResult(success, pCurCamId, optsNew);
 			} else {
 				resHttpMsgString = "";
 			}
@@ -390,7 +432,7 @@ namespace http {
 		return resS.str();
 	}
 
-	std::string ClientHandler::buildResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
+	std::string ClientHandler::buildResponse(const uint32_t httpStatusCode, const std::string *pHttpContentType, const std::string *pContent) {
 		std::string httpStatus = "HTTP/1.1 ";
 		switch (httpStatusCode) {
 			case 200:
@@ -437,7 +479,7 @@ namespace http {
 		return ss.str();
 	}
 
-	bool ClientHandler::sendResponse(const uint32_t httpStatusCode, const std::string* pHttpContentType, const std::string* pContent) {
+	bool ClientHandler::sendResponse(const uint32_t httpStatusCode, const std::string *pHttpContentType, const std::string *pContent) {
 		std::string respMsg = buildResponse(httpStatusCode, pHttpContentType, pContent);
 
 		/**log(gThrIx, "__>> " + respMsg);**/
@@ -540,7 +582,7 @@ namespace http {
 		gCbDecStreamingClientCount();
 	}
 
-	bool ClientHandler::sendFrame(uint8_t* pData, const uint32_t bufferSz) {
+	bool ClientHandler::sendFrame(uint8_t *pData, const uint32_t bufferSz) {
 		long bytesSent;
 
 		std::string respMsg = gRespMultipartPrefix + std::to_string(bufferSz) + "\r\n\r\n";
@@ -585,12 +627,16 @@ namespace http {
 		return true;
 	}
 
-	std::string ClientHandler::buildJsonResult(const bool success, const fcapshared::RuntimeOptionsStc &optsRt) {
+	std::string ClientHandler::buildJsonResult(const bool success, const fcapconstants::CamIdEn *pCurCamId, fcapshared::RuntimeOptionsStc &optsRt) {
 		json jsonObj;
 
 		jsonObj["result"] = (success ? "success" : "error");
 		if (success) {
-			switch (optsRt.outputCams) {
+			fcapconstants::OutputCamsEn outputCams = optsRt.outputCams;
+			bool tmpProcCalDone;
+			bool tmpProcPtDone;
+
+			switch (outputCams) {
 				case fcapconstants::OutputCamsEn::CAM_L:
 					jsonObj["outputCams"] = "L";
 					break;
@@ -600,9 +646,31 @@ namespace http {
 				default:
 					jsonObj["outputCams"] = "BOTH";
 			}
+			jsonObj["resolutionOutput_w"] = gStaticOptionsStc.resolutionOutput.width;
+			jsonObj["resolutionOutput_h"] = gStaticOptionsStc.resolutionOutput.height;
 			jsonObj["procBncAdjBrightness"] = optsRt.procBncAdjBrightness;
 			jsonObj["procBncAdjContrast"] = optsRt.procBncAdjContrast;
+			if (pCurCamId == NULL) {
+				tmpProcCalDone = (optsRt.procCalDone[fcapconstants::CamIdEn::CAM_0] && optsRt.procCalDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcPtDone = (optsRt.procPtDone[fcapconstants::CamIdEn::CAM_0] && optsRt.procPtDone[fcapconstants::CamIdEn::CAM_1]);
+			} else {
+				tmpProcCalDone = optsRt.procCalDone[*pCurCamId];
+				tmpProcPtDone = optsRt.procPtDone[*pCurCamId];
+			}
+			jsonObj["procCalDone"] = tmpProcCalDone;
 			jsonObj["procCalShowCalibChessboardPoints"] = optsRt.procCalShowCalibChessboardPoints;
+			jsonObj["procPtDone"] = tmpProcPtDone;
+			if (pCurCamId != NULL) {
+				uint8_t tmpSz = optsRt.procPtRectCorners[*pCurCamId].size();
+				for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
+					jsonObj["procPtRectCorners_" + std::to_string(x) + "x"] = (tmpSz >= x ?
+							std::to_string(optsRt.procPtRectCorners[*pCurCamId][x - 1].x) :
+							"-");
+					jsonObj["procPtRectCorners_" + std::to_string(x) + "y"] = (tmpSz >= x ?
+							std::to_string(optsRt.procPtRectCorners[*pCurCamId][x - 1].y) :
+							"-");
+				}
+			}
 		}
 		return jsonObj.dump();
 	}
@@ -658,6 +726,58 @@ namespace http {
 				valOut = fcapconstants::OutputCamsEn::CAM_R;
 			} else {
 				valOut = fcapconstants::OutputCamsEn::CAM_BOTH;
+			}
+		} catch (std::exception& err) {
+			/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/
+			log(gThrIx, "__invalid query");
+			return false;
+		}
+		return true;
+	}
+
+	void ClientHandler::_stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2) {
+		if (valIn.empty()) {
+			throw;
+		}
+		size_t posIx = valIn.find(split);
+		if (posIx == std::string::npos) {
+			throw;
+		}
+		valOut1 = valIn.substr(0, posIx);
+		valOut2 = valIn.substr(posIx + 1);
+	}
+
+	bool ClientHandler::getCoordsFromQuery(std::string query, cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax) {
+		try {
+			std::string strA1;
+			std::string strA1k;
+			std::string strA1v;
+			std::string strA2;
+			std::string strA2k;
+			std::string strA2v;
+
+			_stringSplit(query, "&", strA1, strA2);
+			_stringSplit(strA1, "=", strA1k, strA1v);
+			_stringSplit(strA2, "=", strA2k, strA2v);
+			if (strA1k.compare("x") == 0) {
+				valOut.x = stoi(strA1v);
+			} else if (strA1k.compare("y") == 0) {
+				valOut.y = stoi(strA1v);
+			} else {
+				throw;
+			}
+			if (strA2k.compare("x") == 0) {
+				valOut.x = stoi(strA2v);
+			} else if (strA2k.compare("y") == 0) {
+				valOut.y = stoi(strA2v);
+			} else {
+				throw;
+			}
+			if (valOut.x < valMin.x || valOut.x > valMax.x) {
+				throw;
+			}
+			if (valOut.y < valMin.y || valOut.y > valMax.y) {
+				throw;
 			}
 		} catch (std::exception& err) {
 			/**log(gThrIx, "__invalid query '" + urlparser.query() + "'");**/

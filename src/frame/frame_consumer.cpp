@@ -267,10 +267,10 @@ namespace frame {
 		//
 		if (haveExc) {
 			fcapshared::Shared::setFlagNeedToStop();
-		} else {
+		} /**else {
 			log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
 			log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
-		}
+		}**/
 
 		//
 		log("ENDED");

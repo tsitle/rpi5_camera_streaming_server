@@ -82,8 +82,7 @@ namespace framesubproc {
 					const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs,
 					std::vector<float> &outpPerViewErrors, bool fisheye);
 			//
-			std::string _buildCalibrationDataFilename();
-			bool _saveCalibrationDataToFile();
+			void _saveCalibrationDataToFile();
 			void _writeFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string flagName, const int flagValue);
 			void _readFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string flagName, const int flagValue);
 	};

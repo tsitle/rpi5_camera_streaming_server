@@ -13,16 +13,20 @@ namespace framesubproc {
 		public:
 			FrameSubProcessor();
 			~FrameSubProcessor();
-			void setCamId(fcapconstants::CamIdEn camId);
+			void setCamIdAndOutputCams(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams);
 			virtual void processFrame(cv::Mat &frame) = 0;
 
 		protected:
 			fcapconstants::CamIdEn gCamId;
+			fcapconstants::OutputCamsEn gOutputCams;
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 
 			//
 
 			void log(const std::string &spName, const std::string &message);
+			std::string buildDataFilename(const std::string &spName);
+			void saveDataToFile_header(cv::FileStorage &fs);
+			bool loadDataFromFile_header(const std::string &spName, cv::Size &imageSize, cv::FileStorage &fs);
 	};
 
 }  // namespace framesubproc

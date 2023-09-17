@@ -8,13 +8,17 @@
 #include "../shared.hpp"
 #include "subprocessor/subproc_bnc.hpp"
 #include "subprocessor/subproc_calibrate.hpp"
+#include "subprocessor/subproc_pt.hpp"
 #include "subprocessor/subproc_text.hpp"
 
 namespace frame {
 
 	struct SubProcsStc {
+		fcapconstants::OutputCamsEn outputCams;
+		fcapconstants::CamIdEn camId;
 		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
 		framesubproc::FrameSubProcessorCalibrate cal;
+		framesubproc::FrameSubProcessorPerspectiveTransf pt;
 	};
 
 	class FrameProcessor {
@@ -38,6 +42,9 @@ namespace frame {
 			//
 
 			void log(const std::string &message);
+			void initSubProcs();
+			void _initSubProcs_stc(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, SubProcsStc &subProcsStc);
+			void _initSubProcs_fspObj(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, framesubproc::FrameSubProcessor &fsp);
 			void updateSubProcsSettings();
 			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
 			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);

@@ -31,8 +31,7 @@ namespace frame {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 		//
-		gSubProcsL.cal.setCamId(gStaticOptionsStc.camL);
-		gSubProcsR.cal.setCamId(gStaticOptionsStc.camR);
+		initSubProcs();
 
 		//
 		gDisableProcessing = false;
@@ -111,6 +110,28 @@ namespace frame {
 		std::cout << "FPROC: " << message << std::endl;
 	}
 
+	void FrameProcessor::initSubProcs() {
+		// other FrameSubProcs for the master output
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCams);
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCal);
+		//
+		_initSubProcs_stc(gStaticOptionsStc.camL, fcapconstants::OutputCamsEn::CAM_L, gSubProcsL);
+		_initSubProcs_stc(gStaticOptionsStc.camR, fcapconstants::OutputCamsEn::CAM_R, gSubProcsR);
+	}
+
+	void FrameProcessor::_initSubProcs_stc(
+			fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, SubProcsStc &subProcsStc) {
+		subProcsStc.camId = camId;
+		subProcsStc.outputCams = outputCams;
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.bnc);
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.cal);
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.pt);
+	}
+
+	void FrameProcessor::_initSubProcs_fspObj(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, framesubproc::FrameSubProcessor &fsp) {
+		fsp.setCamIdAndOutputCams(camId, outputCams);
+	}
+
 	void FrameProcessor::updateSubProcsSettings() {
 		_updateSubProcsSettings_stc(gSubProcsL);
 		_updateSubProcsSettings_stc(gSubProcsR);
@@ -121,17 +142,45 @@ namespace frame {
 		subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
 		//
 		subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints);
+		//
+		if (gPOptsRt->procPtChangedRectCorners[subProcsStc.camId]) {
+			subProcsStc.pt.setRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
+			fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(subProcsStc.camId, false);
+			gPOptsRt->procPtChangedRectCorners[subProcsStc.camId] = false;
+		}
 	}
 
 	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame) {
+		bool tmpBool;
+
 		// adjust brightness and contrast
 		subProcsStc.bnc.processFrame(frame);
 		// calibrate camera
 		subProcsStc.cal.processFrame(frame);
-		if (! subProcsStc.cal.getIsCalibrated()) {
+		tmpBool = subProcsStc.cal.getIsCalibrated();
+		if (tmpBool != gPOptsRt->procCalDone[subProcsStc.camId]) {
+			fcapshared::Shared::setRuntimeOptions_procCalDone(subProcsStc.camId, tmpBool);
+			gPOptsRt->procCalDone[subProcsStc.camId] = tmpBool;
+		}
+		if (! tmpBool) {
+			// text overlay "UNCAL"
 			procAddTextOverlayCal(frame, false);
 			return;
 		}
+		// perspective transformation
+		///
+		tmpBool = ! subProcsStc.pt.getNeedRectCorners();
+		if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
+			fcapshared::Shared::setRuntimeOptions_procPtDone(subProcsStc.camId, tmpBool);
+			gPOptsRt->procPtDone[subProcsStc.camId] = tmpBool;
+			//
+			std::vector<cv::Point> tmpCorners = subProcsStc.pt.getRectCorners();
+			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(subProcsStc.camId, tmpCorners);
+			gPOptsRt->procPtRectCorners[subProcsStc.camId] = tmpCorners;
+		}
+		///
+		subProcsStc.pt.processFrame(frame);
+		// text overlay "CAL"
 		procAddTextOverlayCal(frame, true);
 	}
 
