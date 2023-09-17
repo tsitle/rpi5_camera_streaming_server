@@ -5,19 +5,22 @@ namespace framesubproc {
 
 	FrameSubProcessorText::FrameSubProcessorText() :
 			FrameSubProcessor() {
-		//
-		///
-		gTextOverlayPropsStc.textFontScale = 1.0;
 		gTextOverlayPropsStc.textThickness = 2;
 		gTextOverlayPropsStc.textFontId = cv::FONT_HERSHEY_SIMPLEX;
-		///
+		//
 		gTextOverlayPropsStc.rectColor = cv::Scalar(255.0, 255.0, 255.0);
 		gTextOverlayPropsStc.rectThickness = cv::FILLED;
-		/// init coordinates etc.
+		//
+		gTextOverlayPropsStc.textBottomYinOutput = -1;
+		// init coordinates etc.
 		setText(gText, gCoord, gTextColor);
 	}
 
-	void FrameSubProcessorText::setText(const std::string valText, const cv::Point coord, cv::Scalar textColor) {
+	void FrameSubProcessorText::setText(
+			const std::string valText,
+			const cv::Point coord,
+			cv::Scalar textColor,
+			double scale) {
 		const uint8_t _BORDER = 5;
 
 		gText = (valText.empty() ? "---" : valText);
@@ -35,30 +38,64 @@ namespace framesubproc {
 				gCoord.x + _BORDER + tmpSz.width + _BORDER,
 				gCoord.y + _BORDER + tmpSz.height + _BORDER
 			);
+		//
+		gTextOverlayPropsStc.outputScale = scale;
 	}
 
 	int32_t FrameSubProcessorText::getTextBottomY() {
-		return gTextOverlayPropsStc.rectEndPoint.y;
+		return gTextOverlayPropsStc.textBottomYinOutput;
 	}
 
 	void FrameSubProcessorText::processFrame(cv::Mat &frame) {
+		cv::Mat textFrame = cv::Mat(
+				gTextOverlayPropsStc.rectEndPoint.y - gCoord.y,
+				gTextOverlayPropsStc.rectEndPoint.x - gCoord.x,
+				CV_8UC3/*,
+				cv::Scalar(0, 0, 0)*/
+			);
+
 		cv::rectangle(
-				frame,
-				gCoord,
+				textFrame,
+				cv::Point(0, 0),
 				gTextOverlayPropsStc.rectEndPoint,
 				gTextOverlayPropsStc.rectColor,
 				gTextOverlayPropsStc.rectThickness
 			);
 		cv::putText(
-				frame,
+				textFrame,
 				gText,
-				gTextOverlayPropsStc.textCoordinates,
+				gTextOverlayPropsStc.textCoordinates - gCoord,
 				gTextOverlayPropsStc.textFontId,
-				gTextOverlayPropsStc.textFontScale,
+				/*textFontScale:*/1.0,
 				gTextColor,
 				gTextOverlayPropsStc.textThickness,
 				cv::LINE_AA,
 				false
+			);
+
+		if (textFrame.channels() != frame.channels()) {
+			cv::cvtColor(textFrame, textFrame, cv::COLOR_BGR2GRAY);
+		}
+
+		cv::Size tfrSz = textFrame.size();
+
+		if (gTextOverlayPropsStc.outputScale < 0.99 || gTextOverlayPropsStc.outputScale > 1.01) {
+			cv::resize(
+					textFrame,
+					textFrame,
+					cv::Size((int32_t)(tfrSz.width * gTextOverlayPropsStc.outputScale),
+							(int32_t)(tfrSz.height * gTextOverlayPropsStc.outputScale)),
+					0.0,
+					0.0,
+					cv::INTER_LINEAR
+				);
+			tfrSz = textFrame.size();
+		}
+		gTextOverlayPropsStc.textBottomYinOutput = gCoord.y + tfrSz.height;
+		textFrame.copyTo(
+				frame
+					.rowRange(gCoord.y, gTextOverlayPropsStc.textBottomYinOutput)
+					.colRange(gCoord.x, gCoord.x + tfrSz.width)
 			);
 	}
 
@@ -66,11 +103,11 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 
 	cv::Size FrameSubProcessorText::getTextSize(const std::string &text) {
-		int baseline = 0;
+		int32_t baseline = 0;
 		cv::Size resSz = cv::getTextSize(
 				text,
 				gTextOverlayPropsStc.textFontId,
-				gTextOverlayPropsStc.textFontScale,
+				/*textFontScale:*/1.0,
 				gTextOverlayPropsStc.textThickness,
 				&baseline
 			);

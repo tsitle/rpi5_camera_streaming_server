@@ -217,7 +217,8 @@ namespace frame {
 	void FrameProcessor::procAddTextOverlayCams(
 			cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams) {
 		if (gLastOutputCamsInt == -1 || gLastOutputCamsInt != (int8_t)outputCams) {
-			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR);
+			double scale = (double)gStaticOptionsStc.resolutionOutput.width / 1280.0;
+			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR, scale);
 			gLastOutputCamsInt = (int)outputCams;
 		}
 		gOtherSubProcTextCams.processFrame(frameOut);
@@ -228,10 +229,12 @@ namespace frame {
 			return;
 		}
 		if (gLastIsCalibratedInt == -1 || gLastIsCalibratedInt != (int8_t)isCalibrated) {
+			double scale = (double)gStaticOptionsStc.resolutionOutput.width / 1280.0;
 			gOtherSubProcTextCal.setText(
 					isCalibrated ? TEXT_CAL_TXT_ISCAL : TEXT_CAL_TXT_UNCAL,
 					TEXT_CAL_COORD + cv::Point(0, gOtherSubProcTextCams.getTextBottomY() + 5),
-					isCalibrated ? TEXT_CAL_COLOR_ISCAL : TEXT_CAL_COLOR_UNCAL
+					isCalibrated ? TEXT_CAL_COLOR_ISCAL : TEXT_CAL_COLOR_UNCAL,
+					scale
 				);
 			gLastIsCalibratedInt = (int8_t)isCalibrated;
 		}

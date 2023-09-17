@@ -10,15 +10,16 @@ namespace framesubproc {
 		cv::Scalar rectColor;
 		int rectThickness;
 		cv::Point textCoordinates;
-		double textFontScale;
-		int textThickness;
-		int textFontId;
+		int32_t textThickness;
+		int32_t textFontId;
+		int32_t textBottomYinOutput;
+		double outputScale;
 	};
 
 	class FrameSubProcessorText : public FrameSubProcessor {
 		public:
 			FrameSubProcessorText();
-			void setText(const std::string valText, const cv::Point coord, cv::Scalar textColor);
+			void setText(const std::string valText, const cv::Point coord, cv::Scalar textColor, double scale = 1.0);
 			int32_t getTextBottomY();
 			void processFrame(cv::Mat &frame);
 
