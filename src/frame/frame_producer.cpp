@@ -289,6 +289,8 @@ namespace frame {
 			uint32_t toOpts = 10;
 			fcapshared::RuntimeOptionsStc optsRt = fcapshared::Shared::getRuntimeOptions();
 			uint32_t toRestartCamStreams = optsRt.cameraFps;
+			bool grabOkL;
+			bool grabOkR;
 
 			/**auto timeStart = std::chrono::steady_clock::now();**/
 			/**log("Grabbing frames...");**/
@@ -325,48 +327,57 @@ namespace frame {
 				cv::Mat frameL = cv::Mat();  // Mat is a 'n-dimensional dense array class'
 				cv::Mat frameR = cv::Mat();
 
-				// grab frames
+				// grab frames in a synchronized manner
+				///
 				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
-					gCapL >> frameL;
-					if (frameL.empty()) {
-						log("CapL: empty frame");
-						if (++emptyFrameCnt > _MAX_EMPTY_FRAMES) {
-							log("aborting");
-							break;
-						}
-						//
-						openStreams();
-						//
-						std::this_thread::sleep_for(std::chrono::milliseconds(250));
-						continue;
-					}
-					emptyFrameCnt = 0;
+					/**log("grab L");**/
+					grabOkL = gCapL.grab();
+				} else {
+					grabOkL = true;
 				}
 				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
-					gCapR >> frameR;
-					if (frameR.empty()) {
-						log("CapR: empty frame");
-						if (++emptyFrameCnt > _MAX_EMPTY_FRAMES) {
-							log("aborting");
-							break;
-						}
-						//
-						openStreams();
-						//
-						std::this_thread::sleep_for(std::chrono::milliseconds(250));
-						continue;
+					/**log("grab R");**/
+					grabOkR = gCapR.grab();
+				} else {
+					grabOkR = true;
+				}
+				if (! (grabOkL && grabOkR)) {
+					if (! grabOkL) {
+						log("CapL: empty frame");
 					}
-					emptyFrameCnt = 0;
+					if (! grabOkR) {
+						log("CapR: empty frame");
+					}
+					if (++emptyFrameCnt > _MAX_EMPTY_FRAMES) {
+						log("aborting");
+						break;
+					}
+					//
+					openStreams();
+					//
+					std::this_thread::sleep_for(std::chrono::milliseconds(250));
+					continue;
+				}
+				emptyFrameCnt = 0;
+				///
+				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
+					/**log("retrieve L");**/
+					gCapL.retrieve(frameL);
+				}
+				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
+					/**log("retrieve R");**/
+					gCapR.retrieve(frameR);
 				}
 				++frameNr;
+				/**log("retrieve done");**/
 
 				// store frames
 				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
-					/**log("app L");**/
+					/**log("app L #" + std::to_string(frameNr));**/
 					FrameConsumer::gFrameQueueInpL.appendFrameToQueue(frameL);
 				}
 				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
-					/**log("app R");**/
+					/**log("app R #" + std::to_string(frameNr));**/
 					FrameConsumer::gFrameQueueInpR.appendFrameToQueue(frameR);
 				}
 
