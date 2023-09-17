@@ -184,7 +184,7 @@ namespace frame {
 			fcapshared::Shared::setRuntimeOptions_procCalDone(subProcsStc.camId, false);
 			gPOptsRt->procCalDone[subProcsStc.camId] = false;
 			//
-			subProcsStc.cal.resetCalibration();
+			subProcsStc.cal.resetData();
 		}
 		///
 		subProcsStc.cal.processFrame(frame);
@@ -201,14 +201,27 @@ namespace frame {
 		}
 		// perspective transformation
 		///
-		tmpBool = ! subProcsStc.pt.getNeedRectCorners();
-		if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
-			fcapshared::Shared::setRuntimeOptions_procPtDone(subProcsStc.camId, tmpBool);
-			gPOptsRt->procPtDone[subProcsStc.camId] = tmpBool;
+		if (gPOptsRt->procPtDoReset[subProcsStc.camId]) {
+			fcapshared::Shared::setRuntimeOptions_procPtDoReset(subProcsStc.camId, false);
+			gPOptsRt->procPtDoReset[subProcsStc.camId] = false;
 			//
-			std::vector<cv::Point> tmpCorners = subProcsStc.pt.getRectCorners();
-			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(subProcsStc.camId, tmpCorners);
-			gPOptsRt->procPtRectCorners[subProcsStc.camId] = tmpCorners;
+			fcapshared::Shared::setRuntimeOptions_procPtDone(subProcsStc.camId, false);
+			gPOptsRt->procPtDone[subProcsStc.camId] = false;
+			//
+			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(subProcsStc.camId, std::vector<cv::Point>());
+			gPOptsRt->procPtRectCorners[subProcsStc.camId] = std::vector<cv::Point>();
+			//
+			subProcsStc.pt.resetData();
+		} else {
+			tmpBool = ! subProcsStc.pt.getNeedRectCorners();
+			if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
+				fcapshared::Shared::setRuntimeOptions_procPtDone(subProcsStc.camId, tmpBool);
+				gPOptsRt->procPtDone[subProcsStc.camId] = tmpBool;
+				//
+				std::vector<cv::Point> tmpCorners = subProcsStc.pt.getRectCorners();
+				fcapshared::Shared::setRuntimeOptions_procPtRectCorners(subProcsStc.camId, tmpCorners);
+				gPOptsRt->procPtRectCorners[subProcsStc.camId] = tmpCorners;
+			}
 		}
 		///
 		subProcsStc.pt.processFrame(frame);

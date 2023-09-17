@@ -143,6 +143,16 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		initStcRuntimeOptions();
+		//
+		thrLock.lock();
+		gThrVarRuntimeOptions.procPtDoReset[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRuntimeOptions_procPtChangedRectCorners(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
@@ -197,6 +207,8 @@ namespace fcapshared {
 			//
 			gThrVarRuntimeOptions.procPtDone[fcapconstants::CamIdEn::CAM_0] = false;
 			gThrVarRuntimeOptions.procPtDone[fcapconstants::CamIdEn::CAM_1] = false;
+			gThrVarRuntimeOptions.procPtDoReset[fcapconstants::CamIdEn::CAM_0] = false;
+			gThrVarRuntimeOptions.procPtDoReset[fcapconstants::CamIdEn::CAM_1] = false;
 			gThrVarRuntimeOptions.procPtChangedRectCorners[fcapconstants::CamIdEn::CAM_0] = false;
 			gThrVarRuntimeOptions.procPtChangedRectCorners[fcapconstants::CamIdEn::CAM_1] = false;
 			gThrVarRuntimeOptions.procPtRectCorners[fcapconstants::CamIdEn::CAM_0] = std::vector<cv::Point>();

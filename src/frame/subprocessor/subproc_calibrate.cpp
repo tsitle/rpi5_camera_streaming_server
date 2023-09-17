@@ -65,7 +65,7 @@ namespace framesubproc {
 		return gCalibrated;
 	}
 
-	void FrameSubProcessorCalibrate::resetCalibration() {
+	void FrameSubProcessorCalibrate::resetData() {
 		gCalibrated = false;
 		if (gLoadedFromFile) {
 			deleteCalibrationDataFile();

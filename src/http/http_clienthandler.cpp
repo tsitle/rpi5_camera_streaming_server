@@ -354,6 +354,7 @@ namespace http {
 				success = true;
 				optsNew.procPtRectCorners[*pCurCamId].clear();
 				optsNew.procPtDone[*pCurCamId] = false;
+				optsNew.procPtDoReset[*pCurCamId] = true;
 				hasChangedOptsNewProcPtRectCorners = true;
 			} else {
 				gRespErrMsg = "cannot perform reset on both cameras";
@@ -407,6 +408,7 @@ namespace http {
 				if (hasChangedOptsNewProcPtRectCorners) {
 					fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(*pCurCamId, true);
 					fcapshared::Shared::setRuntimeOptions_procPtRectCorners(*pCurCamId, optsNew.procPtRectCorners[*pCurCamId]);
+					fcapshared::Shared::setRuntimeOptions_procPtDoReset(*pCurCamId, optsNew.procPtDoReset[*pCurCamId]);
 				}
 			} else {
 				log(gThrIx, "__ERR " + gRespErrMsg);

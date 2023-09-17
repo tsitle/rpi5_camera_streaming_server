@@ -20,6 +20,7 @@ namespace fcapshared {
 		std::map<fcapconstants::CamIdEn, bool> procCalDoReset;
 		bool procCalShowCalibChessboardPoints;
 		std::map<fcapconstants::CamIdEn, bool> procPtDone;
+		std::map<fcapconstants::CamIdEn, bool> procPtDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procPtChangedRectCorners;
 		std::map<fcapconstants::CamIdEn, std::vector<cv::Point>> procPtRectCorners;
 	};
@@ -38,6 +39,7 @@ namespace fcapshared {
 			static void setRuntimeOptions_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val);
 			static void setRuntimeOptions_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRuntimeOptions_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procPtChangedRectCorners(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRuntimeOptions_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
 			//

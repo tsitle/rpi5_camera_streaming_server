@@ -85,6 +85,15 @@ namespace framesubproc {
 		return (! gHaveAllCorners);
 	}
 
+	void FrameSubProcessorPerspectiveTransf::resetData() {
+		gHaveAllCorners = false;
+		gHaveSomeCorners = false;
+		gOptRectCorners.clear();
+		if (gLoadedFromFile) {
+			deletePtDataFile();
+		}
+	}
+
 	void FrameSubProcessorPerspectiveTransf::processFrame(cv::Mat &frame) {
 		if (gWriteToFileFailed) {
 			return;

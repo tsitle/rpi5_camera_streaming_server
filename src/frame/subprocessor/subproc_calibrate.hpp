@@ -52,7 +52,7 @@ namespace framesubproc {
 			FrameSubProcessorCalibrate();
 			void setShowCalibChessboardPoints(const bool val);
 			bool getIsCalibrated();
-			void resetCalibration();
+			void resetData();
 			void processFrame(cv::Mat &frame);
 		
 		private:
