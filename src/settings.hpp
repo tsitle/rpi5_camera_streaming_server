@@ -13,6 +13,7 @@ namespace fcapsettings {
 	const uint8_t SETT_JPEG_QUALITY = 90;  // 0..100
 
 	const uint8_t SETT_DEFAULT_FPS = 15;
+	const uint8_t SETT_ENABLE_ADAPTIVE_FPS = false;
 
 	const cv::Size SETT_DEFAULT_CAPTURE_SZ = fcapconstants::PIPE_CAPTURE_SZ_1536X864;  // can also be a PIPE_OUTPUT_SZ_*
 	const cv::Size SETT_DEFAULT_OUTPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;  // can also be a PIPE_CAPTURE_SZ_*
@@ -25,12 +26,14 @@ namespace fcapsettings {
 
 	const uint32_t SETT_MAX_STREAMING_CLIENTS = 4;
 
-	const uint8_t QUEUE_SIZE = 2;  // higher values result in higher latency
+	const uint8_t QUEUE_SIZE = 5;  // higher values result in higher latency
 
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_COL = 6;
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_ROW = 4;
 	const float CALIB_CHESS_SQUARES_WIDTH_MM = 10.0;  // mm
 	const double CALIB_MAX_PROJECTION_ERROR = 0.6;
+
+	const bool PROC_DISABLE_ALL_PROCESSING = false;
 
 	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 23;
 	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;

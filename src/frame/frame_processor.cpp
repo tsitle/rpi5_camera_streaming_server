@@ -34,9 +34,6 @@ namespace frame {
 		initSubProcs();
 
 		//
-		gDisableProcessing = false;
-
-		//
 		log("Output Framesize: " +
 				std::to_string(gStaticOptionsStc.resolutionOutput.width) +
 				"x" +
@@ -53,7 +50,7 @@ namespace frame {
 
 	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut) {
 		// do the actual processing
-		if (! gDisableProcessing) {
+		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING) {
 			if (pFrameL != NULL) {
 				procDefaults(gSubProcsL, *pFrameL);
 			}
@@ -74,22 +71,16 @@ namespace frame {
 		//
 		const std::string* pCamDesc = NULL;
 		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
-			}
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
 		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
-			}
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
 		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-			if (! gDisableProcessing) {
-				pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
-			}
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
 			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, *pFrameOut, -1);
 		}
 
 		// add text overlays
-		if (! gDisableProcessing) {
+		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING) {
 			// text overlay "CAM x"
 			procAddTextOverlayCams(*pFrameOut, *pCamDesc, gPOptsRt->outputCams);
 			// text overlay "CAL"

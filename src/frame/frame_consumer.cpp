@@ -210,7 +210,8 @@ namespace frame {
 				}
 
 				// check if we need to adjust the framerate
-				if (haveFrames &&
+				if (fcapsettings::SETT_ENABLE_ADAPTIVE_FPS &&
+						haveFrames &&
 						gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
 						optsRt.cameraFps > 1 &&
 						--toCheckFps == 0) {

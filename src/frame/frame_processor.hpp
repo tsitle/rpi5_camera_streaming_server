@@ -31,7 +31,6 @@ namespace frame {
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
-			bool gDisableProcessing;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
 			SubProcsStc gSubProcsL;

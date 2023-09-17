@@ -382,7 +382,8 @@ namespace frame {
 				}
 
 				// restart camera streams if that has been requested
-				if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
+				if (fcapsettings::SETT_ENABLE_ADAPTIVE_FPS &&
+						gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
 						--toRestartCamStreams == 0) {
 					if (getFlagRestartCamStreams()) {
 						openStreams();
