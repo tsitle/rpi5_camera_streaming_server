@@ -38,6 +38,8 @@ namespace http {
 			CbIncStreamingClientCount gCbIncStreamingClientCount;
 			CbDecStreamingClientCount gCbDecStreamingClientCount;
 			CbGetFrameFromQueue gCbGetFrameFromQueue;
+			std::string gRequQuery;
+			std::string gRespErrMsg;
 
 			//
 
@@ -60,11 +62,14 @@ namespace http {
 			void startStreaming();
 			bool sendFrame(uint8_t *pData, const uint32_t bufferSz);
 			//
-			bool getBoolFromQuery(std::string query, bool &valOut);
-			bool getIntFromQuery(std::string query, int16_t &valOut, const int16_t valMin, const int16_t valMax);
-			bool getOutputCamsFromQuery(std::string query, fcapconstants::OutputCamsEn &valOut);
+			bool isCameraAvailabelL();
+			bool isCameraAvailabelR();
+			//
+			bool getBoolFromQuery(bool &valOut);
+			bool getIntFromQuery(int16_t &valOut, const int16_t valMin, const int16_t valMax);
+			bool getOutputCamsFromQuery(fcapconstants::OutputCamsEn &valOut);
 			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
-			bool getCoordsFromQuery(std::string query, cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
+			bool getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
 	};
 
 }  // namespace http
