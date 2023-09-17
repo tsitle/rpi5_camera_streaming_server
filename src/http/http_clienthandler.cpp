@@ -589,8 +589,8 @@ namespace http {
 	}
 
 	void ClientHandler::startStreaming() {
-		#define _MEASURE_TIME_COPY  0
-		#define _MEASURE_TIME_SEND  0
+		const bool _MEASURE_TIME_COPY = false;
+		const bool _MEASURE_TIME_SEND = false;
 		bool haveFrame = false;
 		bool resB;
 		bool needToStop = false;
@@ -603,6 +603,8 @@ namespace http {
 		bool timeFpsRun = false;
 		uint32_t timeFpsDiffMs;
 		uint32_t timeFpsFrames = 0;
+		auto timeStart = std::chrono::steady_clock::now();
+		auto timeEnd = std::chrono::steady_clock::now();
 
 		if (pData == NULL) {
 			gCbDecStreamingClientCount();
@@ -625,16 +627,16 @@ namespace http {
 			}
 
 			// copy frame from queue
-			#if _MEASURE_TIME_COPY == 1
-				auto timeStart = std::chrono::steady_clock::now();
-			#endif
+			if (_MEASURE_TIME_COPY) {
+				timeStart = std::chrono::steady_clock::now();
+			}
 			haveFrame = gCbGetFrameFromQueue(gThrIx, &pData, rsvdBufSz, bufSz);
-			#if _MEASURE_TIME_COPY == 1
-				auto timeEnd = std::chrono::steady_clock::now();
+			if (_MEASURE_TIME_COPY) {
+				timeEnd = std::chrono::steady_clock::now();
 				if (haveFrame) {
 					log(gThrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 				}
-			#endif
+			}
 
 			// send frame to client
 			if (haveFrame) {
@@ -655,17 +657,17 @@ namespace http {
 					}
 				}
 				//
-				#if _MEASURE_TIME_SEND == 1
-					auto timeStart = std::chrono::steady_clock::now();
-				#endif
+				if (_MEASURE_TIME_SEND) {
+					timeStart = std::chrono::steady_clock::now();
+				}
 				resB = sendFrame(pData, bufSz);
 				if (! resB) {
 					break;
 				}
-				#if _MEASURE_TIME_SEND == 1
-					auto timeEnd = std::chrono::steady_clock::now();
+				if (_MEASURE_TIME_SEND) {
+					timeEnd = std::chrono::steady_clock::now();
 					log(gThrIx, "__send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-				#endif
+				}
 				//
 				haveFrame = false;
 			} else {
