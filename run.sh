@@ -6,4 +6,4 @@ export GST_PLUGIN_PATH="$CUSTOM_GSTREAMER_PLUGIN_PATH"
 
 ./comp.sh || exit 1
 cd build
-./HttpCamServer -c ../config.json $@
+./HttpCamServer $@

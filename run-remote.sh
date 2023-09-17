@@ -6,10 +6,12 @@ LVAR_PATH="opencv_mjpeg_streaming_server"
 #rm build/*.png 2>/dev/null
 
 rsync -va --delete \
-        config.json comp.sh run.sh src \
+        comp.sh run.sh src \
         $LVAR_REMOTE_HOST:$LVAR_PATH/ || exit 1
+rsync -va config-pi.json \
+        $LVAR_REMOTE_HOST:$LVAR_PATH/config.json || exit 1
 
-ssh -t "$LVAR_REMOTE_HOST" "cd $LVAR_PATH; bash run.sh $@"
+ssh -t "$LVAR_REMOTE_HOST" "cd $LVAR_PATH; bash run.sh -c ../config.json $@"
 
 #echo "Copying PNGs to build/ ..."
 #test -d build || mkdir build
