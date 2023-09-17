@@ -9,6 +9,8 @@ build_opencv/opencv-*.tgz
 build/
 
 config.json
+config-*.json
+!config-example-*.json
 calib-*.yaml
 
 
