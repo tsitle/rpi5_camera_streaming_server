@@ -89,9 +89,7 @@ namespace framesubproc {
 		gHaveAllCorners = false;
 		gHaveSomeCorners = false;
 		gOptRectCorners.clear();
-		if (gLoadedFromFile) {
-			deletePtDataFile();
-		}
+		deletePtDataFile();
 	}
 
 	void FrameSubProcessorPerspectiveTransf::processFrame(cv::Mat &frame) {
