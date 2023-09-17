@@ -30,7 +30,7 @@ namespace fcapsettings {
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_COL = 6;
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_ROW = 4;
 	const float CALIB_CHESS_SQUARES_WIDTH_MM = 10.0;  // mm
-	const double CALIB_MAX_PROJECTION_ERROR = 0.35;
+	const double CALIB_MAX_PROJECTION_ERROR = 0.6;
 
 	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 23;
 	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;
