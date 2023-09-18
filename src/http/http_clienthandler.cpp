@@ -225,26 +225,16 @@ namespace http {
 	}
 
 	bool ClientHandler::_handleRequest_get() {
-		bool resB = false;
-		bool handled = false;
+		try {
+			const HandleRouteFnc fncPnt = HANDLEROUTE_LUT.at(gRequUriPath);
 
-		for (std::map<const std::string, const HandleRouteFnc>::iterator it = HANDLEROUTE_LUT.begin(); it != HANDLEROUTE_LUT.end(); it++) {
-			if (it->first != gRequUriPath) {
-				continue;
-			}
-			handled = true;
-			resB = ((*this).*(it->second))();
-			break;
-		}
-
-		if (! handled) {
+			return ((*this).*(fncPnt))();
+		} catch (std::out_of_range &ex) {
 			/**log(gThrIx, "404 invalid path '" + gRequUriPath + "'");**/
 			log(gThrIx, "404 invalid path");
 			gRespHttpStat = 404;
+			return false;
 		}
-
-		//
-		return resB;
 	}
 
 	// -----------------------------------------------------------------------------
