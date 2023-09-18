@@ -447,6 +447,16 @@ namespace http {
 			jsonObj["outputCams"] = tmpOc;
 
 			//
+			jsonObj["enabledProc"] = {
+					{"bnc", gHndCltData.staticOptionsStc.procEnabled.bnc},
+					{"cal", gHndCltData.staticOptionsStc.procEnabled.cal},
+					{"pt", gHndCltData.staticOptionsStc.procEnabled.pt},
+					{"tr", gHndCltData.staticOptionsStc.procEnabled.tr},
+					{"overlCal", gHndCltData.staticOptionsStc.procEnabled.overlCal},
+					{"overlCam", gHndCltData.staticOptionsStc.procEnabled.overlCam}
+				};
+
+			//
 			jsonObj["resolutionOutput_w"] = gHndCltData.staticOptionsStc.resolutionOutput.width;
 			jsonObj["resolutionOutput_h"] = gHndCltData.staticOptionsStc.resolutionOutput.height;
 			//
