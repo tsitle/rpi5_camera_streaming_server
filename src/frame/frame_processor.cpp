@@ -246,8 +246,11 @@ namespace frame {
 			//
 			cv::Point tmpPnt;
 			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
-			fcapshared::Shared::setRuntimeOptions_procTrDelta(subProcsStc.camId, tmpPnt);
-			gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
+			if (tmpPnt.x != gPOptsRt->procTrDelta[subProcsStc.camId].x ||
+					tmpPnt.y != gPOptsRt->procTrDelta[subProcsStc.camId].y) {
+				fcapshared::Shared::setRuntimeOptions_procTrDelta(subProcsStc.camId, tmpPnt);
+				gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
+			}
 		}
 	}
 

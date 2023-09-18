@@ -302,10 +302,16 @@ namespace http {
 			resB = false;
 		}
 		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[*gPHndCltData->curCamId()]) {
+			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
 			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = tmpPoint;
+			pRtOptsOut->procTrChangedDelta[*gPHndCltData->curCamId()] = true;
 			fcapshared::Shared::setRuntimeOptions_procTrDelta(
 					*gPHndCltData->curCamId(),
 					tmpPoint
+				);
+			fcapshared::Shared::setRuntimeOptions_procTrChangedDelta(
+					*gPHndCltData->curCamId(),
+					true
 				);
 		}
 		gPHndCltData->respReturnJson = true;
