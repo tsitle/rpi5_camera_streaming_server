@@ -9,6 +9,10 @@ namespace framesubproc {
 		cv::Point2f ptsSrc[fcapconstants::PROC_PT_RECTCORNERS_MAX];
 		cv::Point2f ptsDst[fcapconstants::PROC_PT_RECTCORNERS_MAX];
 
+		PtDataStc() {
+			reset();
+		}
+
 		void reset() {
 			for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
 				ptsSrc[x].x = 0.0;
@@ -39,8 +43,6 @@ namespace framesubproc {
 
 			//
 
-			void _savePtDataToFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
-			void _loadPtDataToFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
 			void savePtDataToFile();
 			bool loadPtDataFromFile(cv::Size imageSize);
 			void deletePtDataFile();

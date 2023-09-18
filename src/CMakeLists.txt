@@ -37,6 +37,7 @@ add_executable( HttpCamServer
 		frame/subprocessor/subproc_calibrate.cpp
 		frame/subprocessor/subproc_pt.cpp
 		frame/subprocessor/subproc_text.cpp
+		frame/subprocessor/subproc_tr.cpp
 	)
 
 target_link_libraries( HttpCamServer PRIVATE ${OpenCV_LIBS} Threads::Threads )

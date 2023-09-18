@@ -5,6 +5,20 @@
 
 namespace framesubproc {
 
+	struct BncDataStc {
+		int16_t brightness;
+		int16_t contrast;
+
+		BncDataStc() {
+			reset();
+		}
+
+		void reset() {
+			brightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
+			contrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
+		}
+	};
+
 	class FrameSubProcessorBrightnAndContrast : public FrameSubProcessor {
 		public:
 			FrameSubProcessorBrightnAndContrast();
@@ -13,8 +27,7 @@ namespace framesubproc {
 			void processFrame(cv::Mat &frame);
 		
 		private:
-			int16_t gOptBrightness;
-			int16_t gOptContrast;
+			BncDataStc gBncDataStc;
 	};
 
 }  // namespace framesubproc

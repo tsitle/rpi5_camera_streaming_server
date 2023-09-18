@@ -14,6 +14,17 @@ namespace framesubproc {
 		int32_t textFontId;
 		int32_t textBottomYinOutput;
 		double outputScale;
+
+		TextOverlayPropsStc() {
+			rectColor = cv::Scalar(255.0, 255.0, 255.0);
+			rectThickness = cv::FILLED;
+			//
+			textThickness = 2;
+			textFontId = cv::FONT_HERSHEY_SIMPLEX;
+			textBottomYinOutput = -1;
+			//
+			outputScale = 1.0;
+		}
 	};
 
 	class FrameSubProcessorText : public FrameSubProcessor {

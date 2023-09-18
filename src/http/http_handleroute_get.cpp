@@ -286,6 +286,50 @@ namespace http {
 		return resB;
 	}
 
+	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA() {
+		bool resB = false;
+		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
+		cv::Point tmpPoint;
+
+		log("200 Path=" + gRequUriPath);
+		resB = getCoordsFromQuery(
+				tmpPoint,
+				cv::Point(-10000, -10000),
+				cv::Point(10000, 10000)
+			);
+		if (resB && gPHndCltData->curCamId() == NULL) {
+			gPHndCltData->respErrMsg = "cannot set delta on both cameras";
+			resB = false;
+		}
+		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[*gPHndCltData->curCamId()]) {
+			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = tmpPoint;
+			fcapshared::Shared::setRuntimeOptions_procTrDelta(
+					*gPHndCltData->curCamId(),
+					tmpPoint
+				);
+		}
+		gPHndCltData->respReturnJson = true;
+		return resB;
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_TR_RESET() {
+		bool resB = false;
+
+		log("200 Path=" + gRequUriPath);
+		if (gPHndCltData->curCamId() != NULL) {
+			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
+
+			resB = true;
+			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = cv::Point();
+			pRtOptsOut->procTrDoReset[*gPHndCltData->curCamId()] = true;
+			fcapshared::Shared::setRuntimeOptions_procTrDoReset(*gPHndCltData->curCamId(), true);
+		} else {
+			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
+		}
+		gPHndCltData->respReturnJson = true;
+		return resB;
+	}
+
 	bool HandleRouteGet::_handleRoute_STATUS() {
 		/**log("200 Path=" + gRequUriPath);**/
 		gPHndCltData->respReturnJson = true;

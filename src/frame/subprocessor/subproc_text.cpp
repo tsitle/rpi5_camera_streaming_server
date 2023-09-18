@@ -5,13 +5,6 @@ namespace framesubproc {
 
 	FrameSubProcessorText::FrameSubProcessorText() :
 			FrameSubProcessor() {
-		gTextOverlayPropsStc.textThickness = 2;
-		gTextOverlayPropsStc.textFontId = cv::FONT_HERSHEY_SIMPLEX;
-		//
-		gTextOverlayPropsStc.rectColor = cv::Scalar(255.0, 255.0, 255.0);
-		gTextOverlayPropsStc.rectThickness = cv::FILLED;
-		//
-		gTextOverlayPropsStc.textBottomYinOutput = -1;
 		// init coordinates etc.
 		setText(gText, gCoord, gTextColor);
 	}

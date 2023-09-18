@@ -28,6 +28,8 @@ namespace framesubproc {
 			void saveDataToFile_header(cv::FileStorage &fs);
 			bool loadDataFromFile_header(const std::string &spName, cv::Size &imageSize, cv::FileStorage &fs);
 			void deleteDataFile(const std::string &spName);
+			void saveDataToFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
+			void loadDataFromFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
 	};
 
 }  // namespace framesubproc

@@ -127,18 +127,6 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameSubProcessorPerspectiveTransf::_savePtDataToFile_point2f(
-			cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point) {
-		fs << std::string(key) + "_" + std::to_string(ix) + "_x" << point.x;
-		fs << std::string(key) + "_" + std::to_string(ix) + "_y" << point.y;
-	}
-
-	void FrameSubProcessorPerspectiveTransf::_loadPtDataToFile_point2f(
-			cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point) {
-		fs[std::string(key) + "_" + std::to_string(ix) + "_x"] >> point.x;
-		fs[std::string(key) + "_" + std::to_string(ix) + "_y"] >> point.y;
-	}
-
 	void FrameSubProcessorPerspectiveTransf::savePtDataToFile() {
 		if (gWriteToFileFailed) {
 			return;
@@ -154,10 +142,10 @@ namespace framesubproc {
 
 		//
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-			_savePtDataToFile_point2f(fs, "pt_points_src", x, gPtDataStc.ptsSrc[x]);
+			saveDataToFile_point2f(fs, "pt_points_src", x, gPtDataStc.ptsSrc[x]);
 		}
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-			_savePtDataToFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
+			saveDataToFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
 		}
 
 		gWriteToFileFailed = (! fcapshared::Shared::fileExists(outpFn));
@@ -187,12 +175,13 @@ namespace framesubproc {
 
 		//
 		gOptRectCorners.clear();
+		gPtDataStc.reset();
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-			_loadPtDataToFile_point2f(fs, "pt_points_src", x, gPtDataStc.ptsSrc[x]);
+			loadDataFromFile_point2f(fs, "pt_points_src", x, gPtDataStc.ptsSrc[x]);
 			gOptRectCorners.push_back(gPtDataStc.ptsSrc[x]);
 		}
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-			_loadPtDataToFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
+			loadDataFromFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
 		}
 
 		log("PT", "__reading done");

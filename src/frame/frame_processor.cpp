@@ -142,6 +142,7 @@ namespace frame {
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.bnc);
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.cal);
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.pt);
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.tr);
 	}
 
 	void FrameProcessor::_initSubProcs_fspObj(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, framesubproc::FrameSubProcessor &fsp) {
@@ -163,6 +164,12 @@ namespace frame {
 			subProcsStc.pt.setRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
 			fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(subProcsStc.camId, false);
 			gPOptsRt->procPtChangedRectCorners[subProcsStc.camId] = false;
+		}
+		//
+		if (gPOptsRt->procTrChangedDelta[subProcsStc.camId]) {
+			subProcsStc.tr.setDelta(gPOptsRt->procTrDelta[subProcsStc.camId].x, gPOptsRt->procTrDelta[subProcsStc.camId].y);
+			fcapshared::Shared::setRuntimeOptions_procTrChangedDelta(subProcsStc.camId, false);
+			gPOptsRt->procTrChangedDelta[subProcsStc.camId] = false;
 		}
 	}
 
@@ -224,6 +231,23 @@ namespace frame {
 			}
 			//
 			subProcsStc.pt.processFrame(frame);
+		}
+
+		// translation
+		if (gStaticOptionsStc.procEnabled.tr) {
+			if (gPOptsRt->procTrDoReset[subProcsStc.camId]) {
+				fcapshared::Shared::setRuntimeOptions_procTrDoReset(subProcsStc.camId, false);
+				gPOptsRt->procTrDoReset[subProcsStc.camId] = false;
+				//
+				subProcsStc.tr.resetData();
+			}
+			//
+			subProcsStc.tr.processFrame(frame);
+			//
+			cv::Point tmpPnt;
+			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
+			fcapshared::Shared::setRuntimeOptions_procTrDelta(subProcsStc.camId, tmpPnt);
+			gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
 		}
 	}
 

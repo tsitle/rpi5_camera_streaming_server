@@ -153,6 +153,30 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procTrDoReset[camId] = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRuntimeOptions_procTrChangedDelta(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procTrChangedDelta[camId] = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRuntimeOptions_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procTrDelta[camId] = val;
+		thrLock.unlock();
+	}
+
 	// -----------------------------------------------------------------------------
 
 	bool Shared::fileExists(const std::string &fname) {

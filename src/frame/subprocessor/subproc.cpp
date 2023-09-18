@@ -155,4 +155,16 @@ namespace framesubproc {
 		::remove(dataFn.c_str());
 	}
 
+	void FrameSubProcessor::saveDataToFile_point2f(
+			cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point) {
+		fs << std::string(key) + "_" + std::to_string(ix) + "_x" << point.x;
+		fs << std::string(key) + "_" + std::to_string(ix) + "_y" << point.y;
+	}
+
+	void FrameSubProcessor::loadDataFromFile_point2f(
+			cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point) {
+		fs[std::string(key) + "_" + std::to_string(ix) + "_x"] >> point.x;
+		fs[std::string(key) + "_" + std::to_string(ix) + "_y"] >> point.y;
+	}
+
 }  // namespace framesubproc

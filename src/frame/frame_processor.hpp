@@ -10,6 +10,7 @@
 #include "subprocessor/subproc_calibrate.hpp"
 #include "subprocessor/subproc_pt.hpp"
 #include "subprocessor/subproc_text.hpp"
+#include "subprocessor/subproc_tr.hpp"
 
 namespace frame {
 
@@ -18,6 +19,7 @@ namespace frame {
 		fcapconstants::CamIdEn camId;
 		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
 		framesubproc::FrameSubProcessorCalibrate cal;
+		framesubproc::FrameSubProcessorTranslation tr;
 		framesubproc::FrameSubProcessorPerspectiveTransf pt;
 	};
 

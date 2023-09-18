@@ -29,6 +29,8 @@ namespace http {
 					{"/proc/cal/reset", &HandleRouteGet::_handleRoute_PROC_CAL_RESET},
 					{"/proc/pt/rect_corner", &HandleRouteGet::_handleRoute_PROC_PT_RECTCORNER},
 					{"/proc/pt/reset", &HandleRouteGet::_handleRoute_PROC_PT_RESET},
+					{"/proc/tr/delta", &HandleRouteGet::_handleRoute_PROC_TR_DELTA},
+					{"/proc/tr/reset", &HandleRouteGet::_handleRoute_PROC_TR_RESET},
 					{"/status", &HandleRouteGet::_handleRoute_STATUS}
 				};
 			//
@@ -52,6 +54,8 @@ namespace http {
 			bool _handleRoute_PROC_CAL_RESET();
 			bool _handleRoute_PROC_PT_RECTCORNER();
 			bool _handleRoute_PROC_PT_RESET();
+			bool _handleRoute_PROC_TR_DELTA();
+			bool _handleRoute_PROC_TR_RESET();
 			bool _handleRoute_STATUS();
 			//
 			bool isCameraAvailabelL();
