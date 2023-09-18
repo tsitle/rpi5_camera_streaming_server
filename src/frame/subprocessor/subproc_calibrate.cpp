@@ -72,6 +72,7 @@ namespace framesubproc {
 		} else {
 			gCalibrationDataStc.reset();
 		}
+		gTries = 0;
 	}
 
 	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame) {
