@@ -418,6 +418,8 @@ namespace http {
 			fcapconstants::OutputCamsEn outputCams = gHndCltData.rtOptsNew.outputCams;
 			bool tmpProcCalDone;
 			bool tmpProcPtDone;
+
+			//
 			std::string tmpAvail;
 
 			if (gHndCltData.isCameraAvailabelL() && gHndCltData.isCameraAvailabelR()) {
@@ -428,30 +430,44 @@ namespace http {
 				tmpAvail = "R";
 			}
 			jsonObj["availOutputCams"] = tmpAvail;
+
+			//
+			std::string tmpOc;
+
 			switch (outputCams) {
 				case fcapconstants::OutputCamsEn::CAM_L:
-					jsonObj["outputCams"] = "L";
+					tmpOc = "L";
 					break;
 				case fcapconstants::OutputCamsEn::CAM_R:
-					jsonObj["outputCams"] = "R";
+					tmpOc = "R";
 					break;
 				default:
-					jsonObj["outputCams"] = "BOTH";
+					tmpOc = "BOTH";
 			}
+			jsonObj["outputCams"] = tmpOc;
+
+			//
 			jsonObj["resolutionOutput_w"] = gHndCltData.staticOptionsStc.resolutionOutput.width;
 			jsonObj["resolutionOutput_h"] = gHndCltData.staticOptionsStc.resolutionOutput.height;
+			//
 			jsonObj["procBncAdjBrightness"] = gHndCltData.rtOptsNew.procBncAdjBrightness;
 			jsonObj["procBncAdjContrast"] = gHndCltData.rtOptsNew.procBncAdjContrast;
+			//
 			if (gHndCltData.curCamId() == NULL) {
-				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] && gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
-				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] && gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] &&
+						gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] &&
+						gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
 			} else {
 				tmpProcCalDone = gHndCltData.rtOptsNew.procCalDone[*gHndCltData.curCamId()];
 				tmpProcPtDone = gHndCltData.rtOptsNew.procPtDone[*gHndCltData.curCamId()];
 			}
 			jsonObj["procCalDone"] = tmpProcCalDone;
+			//
 			jsonObj["procCalShowCalibChessboardPoints"] = gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints;
+			//
 			jsonObj["procPtDone"] = tmpProcPtDone;
+			//
 			if (gHndCltData.curCamId() != NULL) {
 				uint8_t tmpSz = gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()].size();
 				for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
@@ -462,6 +478,12 @@ namespace http {
 							std::to_string(gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()][x - 1].y) :
 							"-");
 				}
+			}
+			//
+			if (gHndCltData.curCamId() != NULL) {
+				cv::Point tmpPnt = gHndCltData.rtOptsNew.procTrDelta[*gHndCltData.curCamId()];
+				jsonObj["procTrDelta_x"] = tmpPnt.x;
+				jsonObj["procTrDelta_y"] = tmpPnt.y;
 			}
 		} else {
 			jsonObj["message"] = gHndCltData.respErrMsg;
