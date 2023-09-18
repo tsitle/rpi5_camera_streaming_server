@@ -6,6 +6,9 @@
 
 namespace fcapconstants {
 
+	const std::string HTTP_SERVER_NAME = "HttpCamServer";
+	const std::string HTTP_SERVER_VERSION = "0.1";
+
 	const std::string CONFIG_FILENAME = "config.json";
 
 	const uint16_t IMAGE_SIZE_MAX = 4608;

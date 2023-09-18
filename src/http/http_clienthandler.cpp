@@ -1,13 +1,11 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
-#include <string>  // for stoi()
+//#include <string>  // for stoi()
 #include <sys/socket.h>  // ::setsockopt()
 #include <unistd.h>  // ::write()
 #include <opencv2/opencv.hpp>
 
-#include "../shared.hpp"
-#include "../constants.hpp"
 #include "../settings.hpp"
 #include "../httpparser/httprequestparser.hpp"
 #include "../httpparser/request.hpp"
@@ -24,9 +22,6 @@ namespace http {
 
 	const std::string URL_PSEUDO_HOST = "http://pseudohost";
 
-	const std::string SERVER_NAME = "HttpCamServer";
-	const std::string SERVER_VERSION = "0.1";
-
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
@@ -38,24 +33,17 @@ namespace http {
 			CbIncStreamingClientCount cbIncStreamingClientCount,
 			CbDecStreamingClientCount cbDecStreamingClientCount,
 			CbGetFrameFromQueue cbGetFrameFromQueue) :
-				gThrIx(thrIx),
 				gClientSocket(socket),
-				gCbIncStreamingClientCount(cbIncStreamingClientCount),
 				gCbDecStreamingClientCount(cbDecStreamingClientCount),
-				gCbGetFrameFromQueue(cbGetFrameFromQueue),
-				gRespHttpStat(500),
-				gRespReturnJson(false),
-				gIsNewStreamingClientAccepted(false) {
+				gCbGetFrameFromQueue(cbGetFrameFromQueue) {
 		//
-		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
-		gRtOptsCur = fcapshared::Shared::getRuntimeOptions();
-		gRtOptsNew = gRtOptsCur;
-		gPCurCamId = (
-				gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L ?
-					&gStaticOptionsStc.camL :
-						(gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R ?
-							&gStaticOptionsStc.camR :
-								NULL));
+		gHndCltData.thrIx = thrIx;
+		gHndCltData.cbIncStreamingClientCount = cbIncStreamingClientCount;
+		gHndCltData.staticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
+		gHndCltData.rtOptsCur = fcapshared::Shared::getRuntimeOptions();
+		gHndCltData.rtOptsNew = gHndCltData.rtOptsCur;
+		//
+		gPHandleRouteGet = new HandleRouteGet(&gHndCltData);
 
 		//
 		char buffer[BUFFER_SIZE] = {0};
@@ -76,14 +64,14 @@ namespace http {
 		tv.tv_sec = 10;
 		tv.tv_usec = 0;
 		//
-		/**log(gThrIx, "read");**/
+		/**log(gHndCltData.thrIx, "read");**/
 		::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 		::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 		int32_t bytesReceived = ::read(socket, buffer, BUFFER_SIZE);
 		if (bytesReceived < 0) {
-			log(gThrIx, "Failed to read bytes from client socket connection");
+			log(gHndCltData.thrIx, "Failed to read bytes from client socket connection");
 		} else {
-			/**log(gThrIx, "------ Received Request from client ------");**/
+			/**log(gHndCltData.thrIx, "------ Received Request from client ------");**/
 			handleRequest(buffer, (uint32_t)bytesReceived);
 		}
 
@@ -92,7 +80,7 @@ namespace http {
 	}
 
 	ClientHandler::~ClientHandler() {
-		/*log(gThrIx, "close socket");**/
+		/*log(gHndCltData.thrIx, "close socket");**/
 		::close(gClientSocket);
 	}
 
@@ -165,25 +153,25 @@ namespace http {
 		httpparser::HttpRequestParser::ParseResult requParseRes = requparser.parse(request, buffer, buffer + bufSz);
 
 		if (requParseRes != httpparser::HttpRequestParser::ParsingCompleted) {
-			log(gThrIx, "Parsing failed");
+			log(gHndCltData.thrIx, "Parsing failed");
 			return;
 		}
 
-		/**log(gThrIx, request.inspect());**/
+		/**log(gHndCltData.thrIx, request.inspect());**/
 		methIsGet = (request.method.compare("GET") == 0);
 		methIsOptions = (request.method.compare("OPTIONS") == 0);
 		methOk = (methIsGet || methIsOptions);
 		if (! methOk) {
-			log(gThrIx, "405 Method Not Allowed");
-			gRespHttpStat = 405;
+			log(gHndCltData.thrIx, "405 Method Not Allowed");
+			gHndCltData.respHttpStat = 405;
 		}
 
 		requFullUri = URL_PSEUDO_HOST + request.uri;
 
 		if (methOk && ! urlparser.parse(requFullUri)) {
-			/**log(gThrIx, "404 invalid path '" + request.uri + "'");**/
-			log(gThrIx, "404 invalid path");
-			gRespHttpStat = 404;
+			/**log(gHndCltData.thrIx, "404 invalid path '" + request.uri + "'");**/
+			log(gHndCltData.thrIx, "404 invalid path");
+			gHndCltData.respHttpStat = 404;
 		} else if (methOk) {
 			gRequUriPath = urlparser.path();
 			requUriOk = (! gRequUriPath.empty());
@@ -193,335 +181,42 @@ namespace http {
 		}
 
 		if (methIsGet && requUriOk) {
-			success = _handleRequest_get();
+			success = gPHandleRouteGet->handleRequest(gRequUriPath, gRequUriQuery);
 		} else if (methIsOptions && requUriOk) {
 			// the browser is doing a "preflight" check of this API endpoint
-			/**log(gThrIx, "200 OPTIONS");**/
+			/**log(gHndCltData.thrIx, "200 OPTIONS");**/
 			success = true;
-			gRespReturnJson = true;
+			gHndCltData.respReturnJson = true;
 		}
 
-		if (success || gRespReturnJson) {
-			gRespHttpStat = 200;
+		if (success || gHndCltData.respReturnJson) {
+			gHndCltData.respHttpStat = 200;
 		}
 
 		//
-		if (success && gIsNewStreamingClientAccepted) {
+		if (success && gHndCltData.isNewStreamingClientAccepted) {
 			startStreaming();
-		} else if (gRespReturnJson) {
+		} else if (gHndCltData.respReturnJson) {
 			if (! success) {
-				log(gThrIx, "__ERR " + gRespErrMsg);
+				log(gHndCltData.thrIx, "__ERR " + gHndCltData.respErrMsg);
 			}
 			//
 			if (methIsGet) {
-				gRespHttpMsgString = buildJsonResult(success);
+				gHndCltData.respHttpMsgString = buildJsonResult(success);
 			} else {
-				gRespHttpMsgString = "";
+				gHndCltData.respHttpMsgString = "";
 			}
-			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_JSON, &gRespHttpMsgString);
+			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_JSON, &gHndCltData.respHttpMsgString);
 		} else {
-			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_HTML, &gRespHttpMsgString);
-		}
-	}
-
-	bool ClientHandler::_handleRequest_get() {
-		try {
-			const HandleRouteFnc fncPnt = HANDLEROUTE_LUT.at(gRequUriPath);
-
-			return ((*this).*(fncPnt))();
-		} catch (std::out_of_range &ex) {
-			/**log(gThrIx, "404 invalid path '" + gRequUriPath + "'");**/
-			log(gThrIx, "404 invalid path");
-			gRespHttpStat = 404;
-			return false;
+			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_HTML, &gHndCltData.respHttpMsgString);
 		}
 	}
 
 	// -----------------------------------------------------------------------------
-
-	bool ClientHandler::_handleRoute_ROOT() {
-		std::ostringstream respHttpMsgStream;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		respHttpMsgStream << buildWebsite();
-		gRespHttpMsgString = respHttpMsgStream.str();
-		return true;
-	}
-
-	bool ClientHandler::_handleRoute_STREAM() {
-		bool resB = false;
-
-		gIsNewStreamingClientAccepted = gCbIncStreamingClientCount();
-		if (! gIsNewStreamingClientAccepted) {
-			log(gThrIx, "500 Path=" + gRequUriPath);
-			log(gThrIx, "__cannot accept more streaming clients at the moment");
-			gRespHttpMsgString = "too many clients";
-		} else {
-			log(gThrIx, "200 Path=" + gRequUriPath);
-			resB = true;
-		}
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_FAVICON() {
-		log(gThrIx, "404 Path=" + gRequUriPath);
-		gRespHttpStat = 404;
-		return false;
-	}
-
-	bool ClientHandler::_handleRoute_OUTPUT_CAMS_ENABLE() {
-		bool resB;
-		fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getOutputCamsFromQuery(tmpVal);
-		if (resB) {
-			if (tmpVal == fcapconstants::OutputCamsEn::CAM_L &&
-					gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R &&
-					isCameraAvailabelL()) {
-				gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R &&
-					gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L &&
-					isCameraAvailabelR()) {
-				gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_BOTH &&
-					isCameraAvailabelL() && isCameraAvailabelR()) {
-				gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else {
-				gRespErrMsg = "cannot enable camera";
-				resB = false;
-			}
-		}
-		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(gRtOptsNew.outputCams);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_OUTPUT_CAMS_DISABLE() {
-		bool resB;
-		fcapconstants::OutputCamsEn tmpVal = fcapconstants::OutputCamsEn::CAM_BOTH;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getOutputCamsFromQuery(tmpVal);
-		if (resB) {
-			if (tmpVal == fcapconstants::OutputCamsEn::CAM_L) {
-				switch (gRtOptsCur.outputCams) {
-					case fcapconstants::OutputCamsEn::CAM_L:
-						gRespErrMsg = "cannot disable only active camera";
-						resB = false;
-						break;
-					case fcapconstants::OutputCamsEn::CAM_R:
-						break;
-					default:  // BOTH
-						gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
-				}
-			} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R) {
-				switch (gRtOptsCur.outputCams) {
-					case fcapconstants::OutputCamsEn::CAM_L:
-						break;
-					case fcapconstants::OutputCamsEn::CAM_R:
-						gRespErrMsg = "cannot disable only active camera";
-						resB = false;
-						break;
-					default:  // BOTH
-						gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
-				}
-			} else {
-				gRespErrMsg = "cannot disable both cameras";
-				resB = false;
-			}
-		}
-		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(gRtOptsNew.outputCams);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_OUTPUT_CAMS_SWAP() {
-		bool resB = false;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		if (gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L && isCameraAvailabelR()) {
-			gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_R;
-			resB = true;
-		} else if (gRtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R && isCameraAvailabelL()) {
-			gRtOptsNew.outputCams = fcapconstants::OutputCamsEn::CAM_L;
-			resB = true;
-		} else {
-			gRespErrMsg = "cannot swap cameras";
-		}
-		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(gRtOptsNew.outputCams);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_BNC_BRIGHTN() {
-		bool resB;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getIntFromQuery(
-				gRtOptsNew.procBncAdjBrightness,
-				fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS,
-				fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
-			);
-		if (resB && gRtOptsNew.procBncAdjBrightness != gRtOptsCur.procBncAdjBrightness) {
-			fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(gRtOptsNew.procBncAdjBrightness);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_BNC_CONTRAST() {
-		bool resB;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getIntFromQuery(
-				gRtOptsNew.procBncAdjContrast,
-				fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST,
-				fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
-			);
-		if (resB && gRtOptsNew.procBncAdjContrast != gRtOptsCur.procBncAdjContrast) {
-			fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(gRtOptsNew.procBncAdjContrast);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_CAL_SHOWCHESSCORNERS() {
-		bool resB;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getBoolFromQuery(gRtOptsNew.procCalShowCalibChessboardPoints);
-		if (resB && gRtOptsNew.procCalShowCalibChessboardPoints != gRtOptsCur.procCalShowCalibChessboardPoints) {
-			fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(gRtOptsNew.procCalShowCalibChessboardPoints);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_CAL_RESET() {
-		bool resB = false;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		if (gPCurCamId != NULL) {
-			resB = true;
-			gRtOptsNew.procCalDoReset[*gPCurCamId] = true;
-			gRtOptsNew.procCalDone[*gPCurCamId] = false;
-			fcapshared::Shared::setRuntimeOptions_procCalDoReset(*gPCurCamId, true);
-		} else {
-			gRespErrMsg = "cannot perform reset on both cameras";
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_PT_RECTCORNER() {
-		bool resB;
-		cv::Point tmpPoint;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		resB = getCoordsFromQuery(
-				tmpPoint,
-				cv::Point(0, 0),
-				cv::Point(gStaticOptionsStc.resolutionOutput.width - 1, gStaticOptionsStc.resolutionOutput.height - 1)
-			);
-		if (resB && gPCurCamId == NULL) {
-			gRespErrMsg = "cannot set corners on both cameras";
-			resB = false;
-		}
-		if (resB) {
-			gRtOptsNew.procPtRectCorners[*gPCurCamId].push_back(tmpPoint);
-			gRtOptsNew.procPtDone[*gPCurCamId] = (gRtOptsNew.procPtRectCorners[*gPCurCamId].size() == fcapconstants::PROC_PT_RECTCORNERS_MAX);
-			fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(*gPCurCamId, true);
-			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(*gPCurCamId, gRtOptsNew.procPtRectCorners[*gPCurCamId]);
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_PROC_PT_RESET() {
-		bool resB = false;
-
-		log(gThrIx, "200 Path=" + gRequUriPath);
-		if (gPCurCamId != NULL) {
-			resB = true;
-			gRtOptsNew.procPtRectCorners[*gPCurCamId].clear();
-			gRtOptsNew.procPtDone[*gPCurCamId] = false;
-			gRtOptsNew.procPtDoReset[*gPCurCamId] = true;
-			fcapshared::Shared::setRuntimeOptions_procPtDoReset(*gPCurCamId, true);
-		} else {
-			gRespErrMsg = "cannot perform reset on both cameras";
-		}
-		gRespReturnJson = true;
-		return resB;
-	}
-
-	bool ClientHandler::_handleRoute_STATUS() {
-		/**log(gThrIx, "200 Path=" + gRequUriPath);**/
-		gRespReturnJson = true;
-
-		return true;
-	}
-
-	// -----------------------------------------------------------------------------
-
-	std::string ClientHandler::buildWebsite() {
-		std::ostringstream resS;
-		fcapshared::RuntimeOptionsStc opts = fcapshared::Shared::getRuntimeOptions();
-
-		resS
-				<< "<!DOCTYPE html>"
-				<< "<html lang=\"en\">"
-				<< "<head>"
-					<< "<title>" << SERVER_NAME << "</title>"
-				<< "</head>"
-				<< "<body>"
-					<< "<h1>" << SERVER_NAME << "</h1>"
-					<< "<p>"
-						<< "<a href='" << URL_PATH_STREAM << "'>MJPEG Stream</a>"
-					<< "</p>";
-		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-			resS
-					<< "<p>"
-						<< "<a href='" << URL_PATH_OUTPUT_CAMS_ENABLE << "?L'>Enable left camera</a>"
-					<< "</p>";
-		} else {
-			resS
-					<< "<p>"
-						<< "<a href='" << URL_PATH_OUTPUT_CAMS_DISABLE << "?L'>Disable left camera</a>"
-					<< "</p>";
-		}
-		if (opts.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-			resS
-					<< "<p>"
-						<< "<a href='" << URL_PATH_OUTPUT_CAMS_ENABLE << "?R'>Enable right camera</a>"
-					<< "</p>";
-		} else {
-			resS
-					<< "<p>"
-						<< "<a href='" << URL_PATH_OUTPUT_CAMS_DISABLE << "?R'>Disable right camera</a>"
-					<< "</p>";
-		}
-		resS
-				<< "<p>"
-					<< "<a href='" << URL_PATH_OUTPUT_CAMS_SWAP << "'>Swap cameras</a>"
-				<< "</p>";
-		resS
-					<< "<div style='margin-top:20px'>"
-						<< "<img src='" << URL_PATH_STREAM << "' width='800' height='450' />"
-					<< "</div>"
-				<< "</body></html>";
-		return resS.str();
-	}
 
 	std::string ClientHandler::buildResponse(const std::string *pHttpContentType, const std::string *pContent) {
 		std::string httpStatus = "HTTP/1.1 ";
-		switch (gRespHttpStat) {
+		switch (gHndCltData.respHttpStat) {
 			case 200:
 				httpStatus += "200 OK";
 				break;
@@ -541,7 +236,7 @@ namespace http {
 		}
 		std::ostringstream ss;
 		ss << httpStatus << "\r\n";
-		ss << "Server: " << SERVER_NAME << "/" << SERVER_VERSION << "\r\n";
+		ss << "Server: " << fcapconstants::HTTP_SERVER_NAME << "/" << fcapconstants::HTTP_SERVER_VERSION << "\r\n";
 		ss << "Connection: close" << "\r\n";
 		ss << "Max-Age: 0" << "\r\n";
 		ss << "Expires: 0" << "\r\n";
@@ -569,10 +264,10 @@ namespace http {
 	bool ClientHandler::sendResponse(const std::string *pHttpContentType, const std::string *pContent) {
 		std::string respMsg = buildResponse(pHttpContentType, pContent);
 
-		/**log(gThrIx, "__>> " + respMsg);**/
+		/**log(gHndCltData.thrIx, "__>> " + respMsg);**/
 		long bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
 		if (bytesSent != (long)respMsg.size()) {
-			log(gThrIx, "__Error sending response to client");
+			log(gHndCltData.thrIx, "__Error sending response to client");
 			return false;
 		}
 		return true;
@@ -620,17 +315,17 @@ namespace http {
 			if (_MEASURE_TIME_COPY) {
 				timeStart = std::chrono::steady_clock::now();
 			}
-			haveFrame = gCbGetFrameFromQueue(gThrIx, &pData, rsvdBufSz, bufSz);
+			haveFrame = gCbGetFrameFromQueue(gHndCltData.thrIx, &pData, rsvdBufSz, bufSz);
 			if (_MEASURE_TIME_COPY) {
 				timeEnd = std::chrono::steady_clock::now();
 				if (haveFrame) {
-					log(gThrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+					log(gHndCltData.thrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 				}
 			}
 
 			// send frame to client
 			if (haveFrame) {
-				/**log(gThrIx, "__send frame");**/
+				/**log(gHndCltData.thrIx, "__send frame");**/
 				//
 				++timeFpsFrames;
 				if (! timeFpsRun) {
@@ -640,7 +335,7 @@ namespace http {
 					timeFpsCur = std::chrono::steady_clock::now();
 					timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
 					if (timeFpsDiffMs >= 10000) {
-						log(gThrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
+						log(gHndCltData.thrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
 						//
 						timeFpsStart = std::chrono::steady_clock::now();
 						timeFpsFrames = 0;
@@ -656,7 +351,7 @@ namespace http {
 				}
 				if (_MEASURE_TIME_SEND) {
 					timeEnd = std::chrono::steady_clock::now();
-					log(gThrIx, "__send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+					log(gHndCltData.thrIx, "__send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 				}
 				//
 				haveFrame = false;
@@ -675,13 +370,13 @@ namespace http {
 		long bytesSent;
 
 		std::string respMsg = gRespMultipartPrefix + std::to_string(bufferSz) + "\r\n\r\n";
-		/**log(gThrIx, ">> " + respMsg);**/
+		/**log(gHndCltData.thrIx, ">> " + respMsg);**/
 		bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
 		if (bytesSent != (long)respMsg.size()) {
 			if (bytesSent == -1) {
-				log(gThrIx, "__Client connection closed");
+				log(gHndCltData.thrIx, "__Client connection closed");
 			} else {
-				log(gThrIx, "__Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
+				log(gHndCltData.thrIx, "__Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
 			}
 			return false;
 		}
@@ -692,7 +387,7 @@ namespace http {
 		uint8_t* pStartBuf = pData;
 		/**char strBuf[1024];
 		snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
-		log(gThrIx, strBuf);**/
+		log(gHndCltData.thrIx, strBuf);**/
 		while (remBufSz != 0) {
 			if (curBufSz > remBufSz) {
 				curBufSz = remBufSz;
@@ -700,9 +395,9 @@ namespace http {
 			bytesSent = ::write(gClientSocket, pStartBuf, curBufSz);
 			if (bytesSent != (long)curBufSz) {
 				if (bytesSent == -1) {
-					log(gThrIx, "__Client connection closed");
+					log(gHndCltData.thrIx, "__Client connection closed");
 				} else {
-					log(gThrIx, "__Error sending response to client #DA (sent=" +
+					log(gHndCltData.thrIx, "__Error sending response to client #DA (sent=" +
 							std::to_string(bytesSent) + ", exp=" + std::to_string(curBufSz) + ", ts=" + std::to_string(sentTot) +
 							")");
 				}
@@ -712,7 +407,7 @@ namespace http {
 			remBufSz -= curBufSz;
 			pStartBuf += curBufSz;
 		}
-		/**log(gThrIx, "__sent " + std::to_string(sentTot) + " total");**/
+		/**log(gHndCltData.thrIx, "__sent " + std::to_string(sentTot) + " total");**/
 		return true;
 	}
 
@@ -721,16 +416,16 @@ namespace http {
 
 		jsonObj["result"] = (success ? "success" : "error");
 		if (success) {
-			fcapconstants::OutputCamsEn outputCams = gRtOptsNew.outputCams;
+			fcapconstants::OutputCamsEn outputCams = gHndCltData.rtOptsNew.outputCams;
 			bool tmpProcCalDone;
 			bool tmpProcPtDone;
 			std::string tmpAvail;
 
-			if (isCameraAvailabelL() && isCameraAvailabelR()) {
+			if (gHndCltData.isCameraAvailabelL() && gHndCltData.isCameraAvailabelR()) {
 				tmpAvail = "BOTH";
-			} else if (isCameraAvailabelL()) {
+			} else if (gHndCltData.isCameraAvailabelL()) {
 				tmpAvail = "L";
-			} else if (isCameraAvailabelR()) {
+			} else if (gHndCltData.isCameraAvailabelR()) {
 				tmpAvail = "R";
 			}
 			jsonObj["availOutputCams"] = tmpAvail;
@@ -744,158 +439,35 @@ namespace http {
 				default:
 					jsonObj["outputCams"] = "BOTH";
 			}
-			jsonObj["resolutionOutput_w"] = gStaticOptionsStc.resolutionOutput.width;
-			jsonObj["resolutionOutput_h"] = gStaticOptionsStc.resolutionOutput.height;
-			jsonObj["procBncAdjBrightness"] = gRtOptsNew.procBncAdjBrightness;
-			jsonObj["procBncAdjContrast"] = gRtOptsNew.procBncAdjContrast;
-			if (gPCurCamId == NULL) {
-				tmpProcCalDone = (gRtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] && gRtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
-				tmpProcPtDone = (gRtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] && gRtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
+			jsonObj["resolutionOutput_w"] = gHndCltData.staticOptionsStc.resolutionOutput.width;
+			jsonObj["resolutionOutput_h"] = gHndCltData.staticOptionsStc.resolutionOutput.height;
+			jsonObj["procBncAdjBrightness"] = gHndCltData.rtOptsNew.procBncAdjBrightness;
+			jsonObj["procBncAdjContrast"] = gHndCltData.rtOptsNew.procBncAdjContrast;
+			if (gHndCltData.curCamId() == NULL) {
+				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] && gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] && gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
 			} else {
-				tmpProcCalDone = gRtOptsNew.procCalDone[*gPCurCamId];
-				tmpProcPtDone = gRtOptsNew.procPtDone[*gPCurCamId];
+				tmpProcCalDone = gHndCltData.rtOptsNew.procCalDone[*gHndCltData.curCamId()];
+				tmpProcPtDone = gHndCltData.rtOptsNew.procPtDone[*gHndCltData.curCamId()];
 			}
 			jsonObj["procCalDone"] = tmpProcCalDone;
-			jsonObj["procCalShowCalibChessboardPoints"] = gRtOptsNew.procCalShowCalibChessboardPoints;
+			jsonObj["procCalShowCalibChessboardPoints"] = gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints;
 			jsonObj["procPtDone"] = tmpProcPtDone;
-			if (gPCurCamId != NULL) {
-				uint8_t tmpSz = gRtOptsNew.procPtRectCorners[*gPCurCamId].size();
+			if (gHndCltData.curCamId() != NULL) {
+				uint8_t tmpSz = gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()].size();
 				for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
 					jsonObj["procPtRectCorners_" + std::to_string(x) + "x"] = (tmpSz >= x ?
-							std::to_string(gRtOptsNew.procPtRectCorners[*gPCurCamId][x - 1].x) :
+							std::to_string(gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()][x - 1].x) :
 							"-");
 					jsonObj["procPtRectCorners_" + std::to_string(x) + "y"] = (tmpSz >= x ?
-							std::to_string(gRtOptsNew.procPtRectCorners[*gPCurCamId][x - 1].y) :
+							std::to_string(gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()][x - 1].y) :
 							"-");
 				}
 			}
 		} else {
-			jsonObj["message"] = gRespErrMsg;
+			jsonObj["message"] = gHndCltData.respErrMsg;
 		}
 		return jsonObj.dump();
-	}
-
-	// -----------------------------------------------------------------------------
-
-	bool ClientHandler::isCameraAvailabelL() {
-		if (gStaticOptionsStc.camL == fcapconstants::CamIdEn::CAM_0) {
-			return (! gStaticOptionsStc.camSource0.empty());
-		}
-		return (! gStaticOptionsStc.camSource1.empty());
-	}
-
-	bool ClientHandler::isCameraAvailabelR() {
-		if (gStaticOptionsStc.camR == fcapconstants::CamIdEn::CAM_0) {
-			return (! gStaticOptionsStc.camSource0.empty());
-		}
-		return (! gStaticOptionsStc.camSource1.empty());
-	}
-
-	// -----------------------------------------------------------------------------
-
-	bool ClientHandler::getBoolFromQuery(bool &valOut) {
-		try {
-			if (gRequUriQuery.empty()) {
-				throw;
-			}
-			if (gRequUriQuery.compare("0") != 0 && gRequUriQuery.compare("1") != 0) {
-				throw;
-			}
-			valOut = (gRequUriQuery.compare("1") == 0);
-		} catch (std::exception& err) {
-			gRespErrMsg = "invalid boolean value (allowed: 0 and 1)";
-			return false;
-		}
-		return true;
-	}
-
-	bool ClientHandler::getIntFromQuery(int16_t &valOut, const int16_t valMin, const int16_t valMax) {
-		try {
-			if (gRequUriQuery.empty()) {
-				throw;
-			}
-			int16_t tmpInt = stoi(gRequUriQuery);
-			if (tmpInt < valMin || tmpInt > valMax) {
-				throw;
-			}
-			valOut = tmpInt;
-		} catch (std::exception& err) {
-			gRespErrMsg = "invalid integer value (allowed: " + std::to_string(valMin) + ".." + std::to_string(valMax) + ")";
-			return false;
-		}
-		return true;
-	}
-
-	bool ClientHandler::getOutputCamsFromQuery(fcapconstants::OutputCamsEn &valOut) {
-		try {
-			if (gRequUriQuery.empty()) {
-				throw;
-			}
-			if (gRequUriQuery.compare("L") == 0) {
-				valOut = fcapconstants::OutputCamsEn::CAM_L;
-			} else if (gRequUriQuery.compare("R") == 0) {
-				valOut = fcapconstants::OutputCamsEn::CAM_R;
-			} else if (gRequUriQuery.compare("BOTH") == 0)  {
-				valOut = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else {
-				throw;
-			}
-		} catch (std::exception& err) {
-			gRespErrMsg = "invalid output camera (allowed: 'L', 'R', 'BOTH')";
-			return false;
-		}
-		return true;
-	}
-
-	void ClientHandler::_stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2) {
-		if (valIn.empty()) {
-			throw;
-		}
-		size_t posIx = valIn.find(split);
-		if (posIx == std::string::npos) {
-			throw;
-		}
-		valOut1 = valIn.substr(0, posIx);
-		valOut2 = valIn.substr(posIx + 1);
-	}
-
-	bool ClientHandler::getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax) {
-		try {
-			std::string strA1;
-			std::string strA1k;
-			std::string strA1v;
-			std::string strA2;
-			std::string strA2k;
-			std::string strA2v;
-
-			_stringSplit(gRequUriQuery, "&", strA1, strA2);
-			_stringSplit(strA1, "=", strA1k, strA1v);
-			_stringSplit(strA2, "=", strA2k, strA2v);
-			if (strA1k.compare("x") == 0) {
-				valOut.x = stoi(strA1v);
-			} else if (strA1k.compare("y") == 0) {
-				valOut.y = stoi(strA1v);
-			} else {
-				throw;
-			}
-			if (strA2k.compare("x") == 0) {
-				valOut.x = stoi(strA2v);
-			} else if (strA2k.compare("y") == 0) {
-				valOut.y = stoi(strA2v);
-			} else {
-				throw;
-			}
-			if (valOut.x < valMin.x || valOut.x > valMax.x) {
-				throw;
-			}
-			if (valOut.y < valMin.y || valOut.y > valMax.y) {
-				throw;
-			}
-		} catch (std::exception& err) {
-			gRespErrMsg = "invalid coordinates (example: 'x=1&y=2')";
-			return false;
-		}
-		return true;
 	}
 
 }  // namespace http
