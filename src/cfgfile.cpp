@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include "cfgfile.hpp"
-#include "settings.hpp"
 #include "shared.hpp"
 #include "json/json.hpp"
 
@@ -14,7 +13,6 @@ using json = nlohmann::json;
 namespace fcapcfgfile {
 
 	//
-	bool CfgFile::gThrVarSetStaticOptions = false;
 	StaticOptionsStc CfgFile::gThrVarStaticOptions;
 	std::mutex CfgFile::gThrMtxStaticOptions;
 
@@ -32,7 +30,12 @@ namespace fcapcfgfile {
 		}
 
 		//
-		initStcStaticOptions();
+		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
+
+		//
+		thrLock.lock();
+		gThrVarStaticOptions.reset();
+		thrLock.unlock();
 
 		//
 		json defConfJson;
@@ -46,8 +49,6 @@ namespace fcapcfgfile {
 		}
 
 		//
-		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
-
 		thrLock.lock();
 		try {
 			std::ifstream confFileStream(*pCfgfileFn, std::ifstream::binary);
@@ -63,27 +64,58 @@ namespace fcapcfgfile {
 				//
 				/**std::cout << std::setw(4) << defConfJson << std::endl << std::endl;**/
 				//
+				///
 				gThrVarStaticOptions.serverPort = (uint16_t)defConfJson["server_port"];
 				if (gThrVarStaticOptions.serverPort == 0) {
 					throw std::invalid_argument("invalid value for server_port");
 				}
-				gThrVarStaticOptions.resolutionOutput = getSizeFromString((std::string)defConfJson["resolution_output"], "resolution_output");
-				gThrVarStaticOptions.camL = getCamIdFromString((std::string)defConfJson["camera_assignment"]["left"], "camera_assignment[left]");
-				gThrVarStaticOptions.camR = getCamIdFromString((std::string)defConfJson["camera_assignment"]["right"], "camera_assignment[right]");
-				gThrVarStaticOptions.camSourceType = getCamSourceFromString((std::string)defConfJson["camera_source"]["type"], "camera_source[type]");
+				///
+				gThrVarStaticOptions.resolutionOutput = getSizeFromString(
+						(std::string)defConfJson["resolution_output"],
+						"resolution_output"
+					);
+				///
+				gThrVarStaticOptions.camL = getCamIdFromString(
+						(std::string)defConfJson["camera_assignment"]["left"],
+						"camera_assignment[left]"
+					);
+				gThrVarStaticOptions.camR = getCamIdFromString(
+						(std::string)defConfJson["camera_assignment"]["right"],
+						"camera_assignment[right]"
+					);
+				///
+				gThrVarStaticOptions.camSourceType = getCamSourceFromString(
+						(std::string)defConfJson["camera_source"]["type"],
+						"camera_source[type]"
+					);
+				///
 				gThrVarStaticOptions.camSource0 = (std::string)defConfJson["camera_source"]["cam0"];
 				gThrVarStaticOptions.camSource1 = (std::string)defConfJson["camera_source"]["cam1"];
 				if (gThrVarStaticOptions.camSource0.length() == 0 && gThrVarStaticOptions.camSource1.length() == 0) {
 					throw std::invalid_argument("need at least one of camera_source[cam0|cam1]");
 				}
-				gThrVarStaticOptions.gstreamerResolutionCapture = getSizeFromString((std::string)defConfJson["camera_source"]["gstreamer"]["resolution_capture"], "gstreamer[resolution_capture]");
+				///
+				gThrVarStaticOptions.gstreamerResolutionCapture = getSizeFromString(
+						(std::string)defConfJson["camera_source"]["gstreamer"]["resolution_capture"],
+						"gstreamer[resolution_capture]"
+					);
+				///
 				gThrVarStaticOptions.cameraFps = (uint8_t)defConfJson["camera_source"]["fps"];
 				if (gThrVarStaticOptions.cameraFps == 0) {
 					throw std::invalid_argument("invalid value for gstreamer[fps]");
 				}
+				///
 				gThrVarStaticOptions.pngOutputPath = (std::string)defConfJson["png_output_path"];
 				gThrVarStaticOptions.outputPngs = (bool)defConfJson["output_pngs"];
+				///
 				gThrVarStaticOptions.calibOutputPath = (std::string)defConfJson["calib_output_path"];
+				///
+				gThrVarStaticOptions.procEnabled.bnc = (bool)defConfJson["processing_enabled"]["bnc"];
+				gThrVarStaticOptions.procEnabled.cal = (bool)defConfJson["processing_enabled"]["cal"];
+				gThrVarStaticOptions.procEnabled.pt = (bool)defConfJson["processing_enabled"]["pt"];
+				gThrVarStaticOptions.procEnabled.tr = (bool)defConfJson["processing_enabled"]["tr"];
+				gThrVarStaticOptions.procEnabled.overlCam = (bool)defConfJson["processing_enabled"]["overlay_cam"];
+				gThrVarStaticOptions.procEnabled.overlCal = (bool)defConfJson["processing_enabled"]["overlay_cal"];
 			} catch (json::type_error& ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
@@ -108,8 +140,6 @@ namespace fcapcfgfile {
 		StaticOptionsStc resStc;
 		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
 
-		initStcStaticOptions();
-		//
 		thrLock.lock();
 		resStc = gThrVarStaticOptions;
 		thrLock.unlock();
@@ -121,29 +151,6 @@ namespace fcapcfgfile {
 
 	void CfgFile::log(const std::string &message) {
 		std::cout << "CFG: " << message << std::endl;
-	}
-
-	void CfgFile::initStcStaticOptions() {
-		std::unique_lock<std::mutex> thrLock{gThrMtxStaticOptions, std::defer_lock};
-
-		thrLock.lock();
-		if (! gThrVarSetStaticOptions) {
-			gThrVarStaticOptions.serverPort = fcapsettings::SETT_DEFAULT_SERVER_PORT;
-			gThrVarStaticOptions.gstreamerResolutionCapture = fcapsettings::SETT_DEFAULT_CAPTURE_SZ;
-			gThrVarStaticOptions.resolutionOutput = fcapsettings::SETT_DEFAULT_OUTPUT_SZ;
-			gThrVarStaticOptions.cameraFps = fcapsettings::SETT_DEFAULT_FPS;
-			gThrVarStaticOptions.camL = fcapconstants::CamIdEn::CAM_0;
-			gThrVarStaticOptions.camR = fcapconstants::CamIdEn::CAM_1;
-			gThrVarStaticOptions.camSourceType = fcapconstants::CamSourceEn::UNSPECIFIED;
-			gThrVarStaticOptions.camSource0 = "";
-			gThrVarStaticOptions.camSource1 = "";
-			gThrVarStaticOptions.pngOutputPath = ".";
-			gThrVarStaticOptions.outputPngs = false;
-			gThrVarStaticOptions.calibOutputPath = ".";
-			//
-			gThrVarSetStaticOptions = true;
-		}
-		thrLock.unlock();
 	}
 
 	std::string CfgFile::getDefaultStaticConfig() {

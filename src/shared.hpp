@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "constants.hpp"
+#include "settings.hpp"
 #include "frame/frame_queue.hpp"
 
 namespace fcapshared {
@@ -23,6 +24,33 @@ namespace fcapshared {
 		std::map<fcapconstants::CamIdEn, bool> procPtDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procPtChangedRectCorners;
 		std::map<fcapconstants::CamIdEn, std::vector<cv::Point>> procPtRectCorners;
+
+		RuntimeOptionsStc() {
+			reset();
+		}
+
+		void reset() {
+			outputCams = fcapconstants::OutputCamsEn::CAM_L;
+			cameraFps = 0;
+			//
+			procBncAdjBrightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
+			procBncAdjContrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
+			//
+			procCalDone[fcapconstants::CamIdEn::CAM_0] = false;
+			procCalDone[fcapconstants::CamIdEn::CAM_1] = false;
+			procCalDoReset[fcapconstants::CamIdEn::CAM_0] = false;
+			procCalDoReset[fcapconstants::CamIdEn::CAM_1] = false;
+			procCalShowCalibChessboardPoints = fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS;
+			//
+			procPtDone[fcapconstants::CamIdEn::CAM_0] = false;
+			procPtDone[fcapconstants::CamIdEn::CAM_1] = false;
+			procPtDoReset[fcapconstants::CamIdEn::CAM_0] = false;
+			procPtDoReset[fcapconstants::CamIdEn::CAM_1] = false;
+			procPtChangedRectCorners[fcapconstants::CamIdEn::CAM_0] = false;
+			procPtChangedRectCorners[fcapconstants::CamIdEn::CAM_1] = false;
+			procPtRectCorners[fcapconstants::CamIdEn::CAM_0] = std::vector<cv::Point>();
+			procPtRectCorners[fcapconstants::CamIdEn::CAM_1] = std::vector<cv::Point>();
+		}
 	};
 
 	class Shared {
@@ -50,13 +78,8 @@ namespace fcapshared {
 			static std::mutex gThrMtxNeedToStop;
 			static std::condition_variable gThrCondNeedToStop;
 			//
-			static bool gThrVarSetRuntimeOptions;
 			static RuntimeOptionsStc gThrVarRuntimeOptions;
 			static std::mutex gThrMtxRuntimeOptions;
-
-			//
-
-			static void initStcRuntimeOptions();
 	};
 
 }  // namespace fcapshared
