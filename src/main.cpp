@@ -113,19 +113,19 @@ int main(int argc, char** argv) {
 
 	// shutdown
 	///
-	/**if (fcapsettings::SETT_OPEN_CAM_STREAMS) {
+	/**if (fcapsettings::DBG_OPEN_CAM_STREAMS) {
 		log("Wait for thread #FPROD...");
 	}**/
 	threadProdObj.join();
-	/**if (fcapsettings::SETT_OPEN_CAM_STREAMS) {
+	/**if (fcapsettings::DBG_OPEN_CAM_STREAMS) {
 		log("done.");
 	}**/
 	///
-	/**if (fcapsettings::SETT_OPEN_CAM_STREAMS) {
+	/**if (fcapsettings::DBG_OPEN_CAM_STREAMS) {
 		log("Wait for thread #FCONS...");
 	}**/
 	threadConsObj.join();
-	/**if (fcapsettings::SETT_OPEN_CAM_STREAMS) {
+	/**if (fcapsettings::DBG_OPEN_CAM_STREAMS) {
 		log("done.");
 	}**/
 	///

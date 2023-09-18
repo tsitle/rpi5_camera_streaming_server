@@ -70,7 +70,7 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 
 	void FrameProducer::_startThread_internal(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) {
-		if (! fcapsettings::SETT_OPEN_CAM_STREAMS) {
+		if (! fcapsettings::DBG_OPEN_CAM_STREAMS) {
 			return;
 		}
 
@@ -382,7 +382,7 @@ namespace frame {
 				}
 
 				// restart camera streams if that has been requested
-				if (fcapsettings::SETT_ENABLE_ADAPTIVE_FPS &&
+				if (gStaticOptionsStc.enableAdaptFps &&
 						gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
 						--toRestartCamStreams == 0) {
 					if (getFlagRestartCamStreams()) {

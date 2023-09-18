@@ -39,7 +39,7 @@ namespace frame {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
-		gCompressionParams.push_back(fcapsettings::SETT_JPEG_QUALITY);
+		gCompressionParams.push_back(fcapsettings::JPEG_QUALITY);
 	}
 
 	FrameConsumer::~FrameConsumer() {
@@ -51,7 +51,7 @@ namespace frame {
 	void FrameConsumer::_startThread_internal(
 			http::CbGetRunningHandlersCount cbGetRunningHandlersCount,
 			http::CbBroadcastFrameToStreamingClients cbBroadcastFrameToStreamingClients) {
-		if (! fcapsettings::SETT_OPEN_CAM_STREAMS) {
+		if (! fcapsettings::DBG_OPEN_CAM_STREAMS) {
 			return;
 		}
 
@@ -210,7 +210,7 @@ namespace frame {
 				}
 
 				// check if we need to adjust the framerate
-				if (fcapsettings::SETT_ENABLE_ADAPTIVE_FPS &&
+				if (gStaticOptionsStc.enableAdaptFps &&
 						haveFrames &&
 						gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER &&
 						optsRt.cameraFps > 1 &&

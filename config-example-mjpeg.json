@@ -24,5 +24,6 @@
 		"tr": true,
 		"overlay_cam": true,
 		"overlay_cal": false
-	}
+	},
+	"enable_adaptive_fps": true
 }

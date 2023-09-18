@@ -5,7 +5,6 @@
 
 #include "cfgfile.hpp"
 #include "shared.hpp"
-#include "json/json.hpp"
 
 using namespace std::chrono_literals;
 using json = nlohmann::json;
@@ -38,15 +37,7 @@ namespace fcapcfgfile {
 		thrLock.unlock();
 
 		//
-		json defConfJson;
-		try {
-			std::string defConfStr = getDefaultStaticConfig();
-
-			defConfJson = json::parse(defConfStr);
-		} catch (json::parse_error& ex) {
-			log("parse error in DEFAULTS at byte " + std::to_string(ex.byte));
-			return false;
-		}
+		json defConfJson = getDefaultStaticConfig();
 
 		//
 		thrLock.lock();
@@ -116,6 +107,8 @@ namespace fcapcfgfile {
 				gThrVarStaticOptions.procEnabled.tr = (bool)defConfJson["processing_enabled"]["tr"];
 				gThrVarStaticOptions.procEnabled.overlCam = (bool)defConfJson["processing_enabled"]["overlay_cam"];
 				gThrVarStaticOptions.procEnabled.overlCal = (bool)defConfJson["processing_enabled"]["overlay_cal"];
+				///
+				gThrVarStaticOptions.enableAdaptFps = (bool)defConfJson["enable_adaptive_fps"];
 			} catch (json::type_error& ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
@@ -153,38 +146,37 @@ namespace fcapcfgfile {
 		std::cout << "CFG: " << message << std::endl;
 	}
 
-	std::string CfgFile::getDefaultStaticConfig() {
-		std::ostringstream ss;
-
-		ss << "{"
-				<< "\"server_port\": " << std::to_string(fcapsettings::SETT_DEFAULT_SERVER_PORT) << ","
-				<< "\"resolution_output\": \""
-								<< std::to_string(fcapsettings::SETT_DEFAULT_OUTPUT_SZ.width)
-								<< "x"
-								<< std::to_string(fcapsettings::SETT_DEFAULT_OUTPUT_SZ.height)
-								<< "\","
-				<< "\"camera_assignment\": {"
-						<< "\"left\": \"" << fcapconstants::CONFFILE_CAMID_0 << "\","
-						<< "\"right\": \"" << fcapconstants::CONFFILE_CAMID_1 << "\""
-					<< "},"
-				<< "\"camera_source\": {"
-						<< "\"type\": \"" << fcapconstants::CONFFILE_CAMSRC_UNSPEC << "\","
-						<< "\"cam0\": \"\","
-						<< "\"cam1\": \"\","
-						<< "\"fps\": " << std::to_string(fcapsettings::SETT_DEFAULT_FPS) << ","
-						<< "\"gstreamer\": {"
-								<< "\"resolution_capture\": \""
-										<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.width)
-										<< "x"
-										<< std::to_string(fcapsettings::SETT_DEFAULT_CAPTURE_SZ.height)
-										<< "\""
-							<< "}"
-					<< "},"
-				<< "\"png_output_path\": \".\","
-				<< "\"output_pngs\": false,"
-				<< "\"calib_output_path\": \".\""
-			<< "}";
-		return ss.str();
+	json CfgFile::getDefaultStaticConfig() {
+		json j = {
+				{"server_port", fcapsettings::DEFAULT_SERVER_PORT},
+				{"resolution_output", std::to_string(fcapsettings::DEFAULT_OUTPUT_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_OUTPUT_SZ.height)},
+				{"camera_assignment", {
+						{"left", fcapconstants::CONFFILE_CAMID_0},
+						{"right", fcapconstants::CONFFILE_CAMID_1}
+					}},
+				{"camera_source", {
+						{"type", fcapconstants::CONFFILE_CAMSRC_UNSPEC},
+						{"cam0", ""},
+						{"cam1", ""},
+						{"fps", fcapsettings::DEFAULT_FPS},
+						{"gstreamer", {
+								{"resolution_capture", std::to_string(fcapsettings::DEFAULT_CAPTURE_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_CAPTURE_SZ.height)}
+							}}
+					}},
+				{"png_output_path", "."},
+				{"output_pngs", fcapsettings::DEFAULT_OUTPUT_PNGS},
+				{"calib_output_path", "."},
+				{"processing_enabled", {
+						{"bnc", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"pt", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"tr", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"overlay_cam", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"overlay_cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING}
+					}},
+				{"enable_adaptive_fps", fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS}
+			};
+		return j;
 	}
 
 	cv::Size CfgFile::getSizeFromString(const std::string &x, const std::string &nameArg) {

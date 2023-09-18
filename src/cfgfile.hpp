@@ -6,6 +6,9 @@
 
 #include "constants.hpp"
 #include "settings.hpp"
+#include "json/json.hpp"
+
+using json = nlohmann::json;
 
 namespace fcapcfgfile {
 
@@ -45,25 +48,27 @@ namespace fcapcfgfile {
 		bool outputPngs;
 		std::string calibOutputPath;
 		ProcEnabledStc procEnabled;
+		bool enableAdaptFps;
 
 		StaticOptionsStc() {
 			reset();
 		}
 
 		void reset() {
-			serverPort = fcapsettings::SETT_DEFAULT_SERVER_PORT;
-			gstreamerResolutionCapture = fcapsettings::SETT_DEFAULT_CAPTURE_SZ;
-			resolutionOutput = fcapsettings::SETT_DEFAULT_OUTPUT_SZ;
-			cameraFps = fcapsettings::SETT_DEFAULT_FPS;
+			serverPort = fcapsettings::DEFAULT_SERVER_PORT;
+			gstreamerResolutionCapture = fcapsettings::DEFAULT_CAPTURE_SZ;
+			resolutionOutput = fcapsettings::DEFAULT_OUTPUT_SZ;
+			cameraFps = fcapsettings::DEFAULT_FPS;
 			camL = fcapconstants::CamIdEn::CAM_0;
 			camR = fcapconstants::CamIdEn::CAM_1;
 			camSourceType = fcapconstants::CamSourceEn::UNSPECIFIED;
 			camSource0 = "";
 			camSource1 = "";
 			pngOutputPath = ".";
-			outputPngs = false;
+			outputPngs = fcapsettings::DEFAULT_OUTPUT_PNGS;
 			calibOutputPath = ".";
 			procEnabled.reset();
+			enableAdaptFps = fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS;
 		}
 	};
 
@@ -80,7 +85,7 @@ namespace fcapcfgfile {
 			//
 
 			static void log(const std::string &message);
-			static std::string getDefaultStaticConfig();
+			static json getDefaultStaticConfig();
 			static cv::Size getSizeFromString(const std::string &x, const std::string &nameArg);
 			static fcapconstants::CamSourceEn getCamSourceFromString(const std::string &x, const std::string &nameArg);
 			static fcapconstants::CamIdEn getCamIdFromString(const std::string &x, const std::string &nameArg);
