@@ -286,7 +286,7 @@ namespace http {
 		return resB;
 	}
 
-	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA() {
+	bool HandleRouteGet::__handleRoute_PROC_TR_DELTA_x(fcapconstants::CamIdEn camId) {
 		bool resB = false;
 		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 		cv::Point tmpPoint;
@@ -297,25 +297,29 @@ namespace http {
 				cv::Point(-10000, -10000),
 				cv::Point(10000, 10000)
 			);
-		if (resB && gPHndCltData->curCamId() == NULL) {
-			gPHndCltData->respErrMsg = "cannot set delta on both cameras";
-			resB = false;
-		}
-		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[*gPHndCltData->curCamId()]) {
+		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[camId]) {
 			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
-			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = tmpPoint;
-			pRtOptsOut->procTrChangedDelta[*gPHndCltData->curCamId()] = true;
+			pRtOptsOut->procTrDelta[camId] = tmpPoint;
+			pRtOptsOut->procTrChangedDelta[camId] = true;
 			fcapshared::Shared::setRuntimeOptions_procTrDelta(
-					*gPHndCltData->curCamId(),
+					camId,
 					tmpPoint
 				);
 			fcapshared::Shared::setRuntimeOptions_procTrChangedDelta(
-					*gPHndCltData->curCamId(),
+					camId,
 					true
 				);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA_L() {
+		return __handleRoute_PROC_TR_DELTA_x(gPHndCltData->staticOptionsStc.camL);
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA_R() {
+		return __handleRoute_PROC_TR_DELTA_x(gPHndCltData->staticOptionsStc.camR);
 	}
 
 	bool HandleRouteGet::_handleRoute_PROC_TR_RESET() {

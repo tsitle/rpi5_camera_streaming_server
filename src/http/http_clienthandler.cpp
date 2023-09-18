@@ -490,11 +490,18 @@ namespace http {
 				}
 			}
 			//
-			if (gHndCltData.curCamId() != NULL) {
-				cv::Point tmpPnt = gHndCltData.rtOptsNew.procTrDelta[*gHndCltData.curCamId()];
-				jsonObj["procTrDelta_x"] = tmpPnt.x;
-				jsonObj["procTrDelta_y"] = tmpPnt.y;
-			}
+			cv::Point tmpPntL = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camL];
+			cv::Point tmpPntR = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camR];
+			jsonObj["procTrDelta"] = {
+					{"L", {
+							{"x", tmpPntL.x},
+							{"y", tmpPntL.y}
+						}},
+					{"R", {
+							{"x", tmpPntR.x},
+							{"y", tmpPntR.y}
+						}}
+				};
 		} else {
 			jsonObj["message"] = gHndCltData.respErrMsg;
 		}
