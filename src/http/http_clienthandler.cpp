@@ -1,7 +1,6 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
-//#include <string>  // for stoi()
 #include <sys/socket.h>  // ::setsockopt()
 #include <unistd.h>  // ::write()
 #include <opencv2/opencv.hpp>

@@ -1,8 +1,6 @@
 #ifndef HTTP_HANDLEROUTE_GET_HPP_
 #define HTTP_HANDLEROUTE_GET_HPP_
 
-//#include <stdlib.h>
-
 #include "http_handleclient_data.hpp"
 
 namespace http {

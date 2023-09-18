@@ -1,10 +1,6 @@
 #ifndef HTTP_CLIENTHANDLER_HPP_
 #define HTTP_CLIENTHANDLER_HPP_
 
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string>
-
 #include "http_handleclient_data.hpp"
 #include "http_handleroute_get.hpp"
 
