@@ -6,9 +6,6 @@
 
 #include "constants.hpp"
 #include "settings.hpp"
-#include "json/json.hpp"
-
-using json = nlohmann::json;
 
 namespace fcapcfgfile {
 
@@ -85,7 +82,7 @@ namespace fcapcfgfile {
 			//
 
 			static void log(const std::string &message);
-			static json getDefaultStaticConfig();
+			static void getDefaultStaticConfig(void **ppJsonObj);
 			static cv::Size getSizeFromString(const std::string &x, const std::string &nameArg);
 			static fcapconstants::CamSourceEn getCamSourceFromString(const std::string &x, const std::string &nameArg);
 			static fcapconstants::CamIdEn getCamIdFromString(const std::string &x, const std::string &nameArg);
