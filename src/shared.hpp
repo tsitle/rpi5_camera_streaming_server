@@ -73,26 +73,26 @@ namespace fcapshared {
 			///
 			static RuntimeOptionsStc getRuntimeOptions();
 			///
-			static void setRuntimeOptions_outputCams(const fcapconstants::OutputCamsEn val);
-			static void setRuntimeOptions_cameraFps(const uint8_t val);
+			static void setRtOpts_outputCams(const fcapconstants::OutputCamsEn val);
+			static void setRtOpts_cameraFps(const uint8_t val);
 			///
-			static void setRuntimeOptions_procBncChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procBncAdjBrightness(const int16_t val);
-			static void setRuntimeOptions_procBncAdjContrast(const int16_t val);
+			static void setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procBncAdjBrightness(const int16_t val);
+			static void setRtOpts_procBncAdjContrast(const int16_t val);
 			///
-			static void setRuntimeOptions_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procCalChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val);
+			static void setRtOpts_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procCalChanged(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procCalShowCalibChessboardPoints(const bool val);
 			///
-			static void setRuntimeOptions_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procPtChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
+			static void setRtOpts_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procPtChanged(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
 			///
-			static void setRuntimeOptions_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procTrChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRuntimeOptions_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
+			static void setRtOpts_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procTrChanged(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
 			//
 			static bool fileExists(const std::string &fname);
 

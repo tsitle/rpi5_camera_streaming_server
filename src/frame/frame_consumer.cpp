@@ -243,7 +243,7 @@ namespace frame {
 										(tmpDfX > 30 && lastCameraFps > 3 ? 3 : 1))
 							);
 						log("Reducing FPS to " + std::to_string(optsRt.cameraFps) + "...");
-						fcapshared::Shared::setRuntimeOptions_cameraFps(optsRt.cameraFps);
+						fcapshared::Shared::setRtOpts_cameraFps(optsRt.cameraFps);
 						//
 						FrameProducer::setFlagRestartCamStreams();
 						// wait a little while for cam streams to have been reloaded

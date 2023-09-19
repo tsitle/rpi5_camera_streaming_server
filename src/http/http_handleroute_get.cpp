@@ -98,7 +98,7 @@ namespace http {
 			}
 		}
 		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(pRtOptsOut->outputCams);
+			fcapshared::Shared::setRtOpts_outputCams(pRtOptsOut->outputCams);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -140,7 +140,7 @@ namespace http {
 			}
 		}
 		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(pRtOptsOut->outputCams);
+			fcapshared::Shared::setRtOpts_outputCams(pRtOptsOut->outputCams);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -163,7 +163,7 @@ namespace http {
 			gPHndCltData->respErrMsg = "cannot swap cameras";
 		}
 		if (resB) {
-			fcapshared::Shared::setRuntimeOptions_outputCams(pRtOptsOut->outputCams);
+			fcapshared::Shared::setRtOpts_outputCams(pRtOptsOut->outputCams);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -180,8 +180,8 @@ namespace http {
 				fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
 			);
 		if (resB && pRtOptsOut->procBncAdjBrightness != gPHndCltData->rtOptsCur.procBncAdjBrightness) {
-			fcapshared::Shared::setRuntimeOptions_procBncChanged(*gPHndCltData->curCamId(), true);
-			fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(pRtOptsOut->procBncAdjBrightness);
+			fcapshared::Shared::setRtOpts_procBncChanged(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procBncAdjBrightness(pRtOptsOut->procBncAdjBrightness);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -198,8 +198,8 @@ namespace http {
 				fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
 			);
 		if (resB && pRtOptsOut->procBncAdjContrast != gPHndCltData->rtOptsCur.procBncAdjContrast) {
-			fcapshared::Shared::setRuntimeOptions_procBncChanged(*gPHndCltData->curCamId(), true);
-			fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(pRtOptsOut->procBncAdjContrast);
+			fcapshared::Shared::setRtOpts_procBncChanged(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procBncAdjContrast(pRtOptsOut->procBncAdjContrast);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -212,8 +212,8 @@ namespace http {
 		log("200 Path=" + gRequUriPath);
 		resB = getBoolFromQuery(pRtOptsOut->procCalShowCalibChessboardPoints);
 		if (resB && pRtOptsOut->procCalShowCalibChessboardPoints != gPHndCltData->rtOptsCur.procCalShowCalibChessboardPoints) {
-			fcapshared::Shared::setRuntimeOptions_procCalChanged(*gPHndCltData->curCamId(), true);
-			fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(pRtOptsOut->procCalShowCalibChessboardPoints);
+			fcapshared::Shared::setRtOpts_procCalChanged(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procCalShowCalibChessboardPoints(pRtOptsOut->procCalShowCalibChessboardPoints);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -229,7 +229,7 @@ namespace http {
 			resB = true;
 			pRtOptsOut->procCalDoReset[*gPHndCltData->curCamId()] = true;
 			pRtOptsOut->procCalDone[*gPHndCltData->curCamId()] = false;
-			fcapshared::Shared::setRuntimeOptions_procCalDoReset(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procCalDoReset(*gPHndCltData->curCamId(), true);
 		} else {
 			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
 		}
@@ -260,8 +260,8 @@ namespace http {
 			pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()].push_back(tmpPoint);
 			pRtOptsOut->procPtDone[*gPHndCltData->curCamId()] =
 					(pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()].size() == fcapconstants::PROC_PT_RECTCORNERS_MAX);
-			fcapshared::Shared::setRuntimeOptions_procPtChanged(*gPHndCltData->curCamId(), true);
-			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(
+			fcapshared::Shared::setRtOpts_procPtChanged(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procPtRectCorners(
 					*gPHndCltData->curCamId(),
 					pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()]
 				);
@@ -281,7 +281,7 @@ namespace http {
 			pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()].clear();
 			pRtOptsOut->procPtDone[*gPHndCltData->curCamId()] = false;
 			pRtOptsOut->procPtDoReset[*gPHndCltData->curCamId()] = true;
-			fcapshared::Shared::setRuntimeOptions_procPtDoReset(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procPtDoReset(*gPHndCltData->curCamId(), true);
 		} else {
 			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
 		}
@@ -304,8 +304,8 @@ namespace http {
 			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
 			pRtOptsOut->procTrDelta[camId] = tmpPoint;
 			pRtOptsOut->procTrChanged[camId] = true;
-			fcapshared::Shared::setRuntimeOptions_procTrDelta(camId, tmpPoint);
-			fcapshared::Shared::setRuntimeOptions_procTrChanged(camId, true);
+			fcapshared::Shared::setRtOpts_procTrDelta(camId, tmpPoint);
+			fcapshared::Shared::setRtOpts_procTrChanged(camId, true);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
@@ -329,7 +329,7 @@ namespace http {
 			resB = true;
 			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = cv::Point();
 			pRtOptsOut->procTrDoReset[*gPHndCltData->curCamId()] = true;
-			fcapshared::Shared::setRuntimeOptions_procTrDoReset(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procTrDoReset(*gPHndCltData->curCamId(), true);
 		} else {
 			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
 		}

@@ -245,7 +245,7 @@ namespace frame {
 		//
 		if (camSourceL.length() == 0 && optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			optsRt.outputCams = fcapconstants::OutputCamsEn::CAM_R;
-			fcapshared::Shared::setRuntimeOptions_outputCams(optsRt.outputCams);
+			fcapshared::Shared::setRtOpts_outputCams(optsRt.outputCams);
 		}
 
 		//

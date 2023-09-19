@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 	fcapcfgfile::StaticOptionsStc staticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 	//
-	fcapshared::Shared::setRuntimeOptions_cameraFps(staticOptionsStc.cameraFps);
+	fcapshared::Shared::setRtOpts_cameraFps(staticOptionsStc.cameraFps);
 
 	//
 	if (! initSignalHandlers()) {

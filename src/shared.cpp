@@ -52,7 +52,7 @@ namespace fcapshared {
 		return resStc;
 	}
 
-	void Shared::setRuntimeOptions_outputCams(const fcapconstants::OutputCamsEn val) {
+	void Shared::setRtOpts_outputCams(const fcapconstants::OutputCamsEn val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -60,7 +60,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_cameraFps(const uint8_t val) {
+	void Shared::setRtOpts_cameraFps(const uint8_t val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -68,7 +68,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procBncChanged(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -76,7 +76,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procBncAdjBrightness(const int16_t val) {
+	void Shared::setRtOpts_procBncAdjBrightness(const int16_t val) {
 		if (val < fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS) {
 			return;
 		}
@@ -88,7 +88,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procBncAdjContrast(const int16_t val) {
+	void Shared::setRtOpts_procBncAdjContrast(const int16_t val) {
 		if (val < fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST) {
 			return;
 		}
@@ -100,7 +100,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procCalDone(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procCalDone(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -108,7 +108,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -116,7 +116,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procCalChanged(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procCalChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -124,7 +124,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val) {
+	void Shared::setRtOpts_procCalShowCalibChessboardPoints(const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -132,7 +132,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procPtDone(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procPtDone(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -140,7 +140,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -148,7 +148,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procPtChanged(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procPtChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -156,7 +156,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val) {
+	void Shared::setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -169,7 +169,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -177,7 +177,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procTrChanged(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procTrChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
@@ -185,7 +185,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
+	void Shared::setRtOpts_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
