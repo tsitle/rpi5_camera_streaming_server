@@ -80,6 +80,10 @@ namespace frame {
 	void FrameQueueRawInput::appendFramesToQueue(const cv::Mat *pFrameRawL, const cv::Mat *pFrameRawR) {
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
+		if (pFrameRawL == nullptr && pFrameRawR == nullptr) {
+			return;
+		}
+		//
 		thrLock.lock();
 		//
 		if (gCountInBuf == fcapsettings::QUEUE_SIZE) {
@@ -115,14 +119,27 @@ namespace frame {
 		bool haveMoreFrames = false;
 		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
 
+		if (pFrameRawL == nullptr && pFrameRawR == nullptr) {
+			return false;
+		}
+		//
 		thrLock.lock();
 		if (gThrCond.wait_for(thrLock, 1ms, []{ return gThrVarHaveFrames; })) {
 			if (gCountInBuf != 0) {
+				resB = true;
 				if (pFrameRawL != nullptr) {
-					*pFrameRawL = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camL][gIxToOutput]);
+					if (gEntriesUsedSz[gStaticOptionsStc.camL][gIxToOutput] == 0) {
+						resB = false;
+					} else {
+						*pFrameRawL = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camL][gIxToOutput]);
+					}
 				}
-				if (pFrameRawR != nullptr) {
-					*pFrameRawR = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camR][gIxToOutput]);
+				if (resB && pFrameRawR != nullptr) {
+					if (gEntriesUsedSz[gStaticOptionsStc.camR][gIxToOutput] == 0) {
+						resB = false;
+					} else {
+						*pFrameRawR = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camR][gIxToOutput]);
+					}
 				}
 				if (++gIxToOutput == fcapsettings::QUEUE_SIZE) {
 					gIxToOutput = 0;
@@ -130,7 +147,6 @@ namespace frame {
 				--gCountInBuf;
 				gThrVarHaveFrames = (gCountInBuf != 0);
 				haveMoreFrames = gThrVarHaveFrames;
-				resB = true;
 			} else {
 				/*log("count 0");*/
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
