@@ -180,6 +180,7 @@ namespace http {
 				fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
 			);
 		if (resB && pRtOptsOut->procBncAdjBrightness != gPHndCltData->rtOptsCur.procBncAdjBrightness) {
+			fcapshared::Shared::setRuntimeOptions_procBncChanged(*gPHndCltData->curCamId(), true);
 			fcapshared::Shared::setRuntimeOptions_procBncAdjBrightness(pRtOptsOut->procBncAdjBrightness);
 		}
 		gPHndCltData->respReturnJson = true;
@@ -197,6 +198,7 @@ namespace http {
 				fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
 			);
 		if (resB && pRtOptsOut->procBncAdjContrast != gPHndCltData->rtOptsCur.procBncAdjContrast) {
+			fcapshared::Shared::setRuntimeOptions_procBncChanged(*gPHndCltData->curCamId(), true);
 			fcapshared::Shared::setRuntimeOptions_procBncAdjContrast(pRtOptsOut->procBncAdjContrast);
 		}
 		gPHndCltData->respReturnJson = true;
@@ -210,6 +212,7 @@ namespace http {
 		log("200 Path=" + gRequUriPath);
 		resB = getBoolFromQuery(pRtOptsOut->procCalShowCalibChessboardPoints);
 		if (resB && pRtOptsOut->procCalShowCalibChessboardPoints != gPHndCltData->rtOptsCur.procCalShowCalibChessboardPoints) {
+			fcapshared::Shared::setRuntimeOptions_procCalChanged(*gPHndCltData->curCamId(), true);
 			fcapshared::Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(pRtOptsOut->procCalShowCalibChessboardPoints);
 		}
 		gPHndCltData->respReturnJson = true;
@@ -257,7 +260,7 @@ namespace http {
 			pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()].push_back(tmpPoint);
 			pRtOptsOut->procPtDone[*gPHndCltData->curCamId()] =
 					(pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()].size() == fcapconstants::PROC_PT_RECTCORNERS_MAX);
-			fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRuntimeOptions_procPtChanged(*gPHndCltData->curCamId(), true);
 			fcapshared::Shared::setRuntimeOptions_procPtRectCorners(
 					*gPHndCltData->curCamId(),
 					pRtOptsOut->procPtRectCorners[*gPHndCltData->curCamId()]
@@ -300,15 +303,9 @@ namespace http {
 		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[camId]) {
 			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
 			pRtOptsOut->procTrDelta[camId] = tmpPoint;
-			pRtOptsOut->procTrChangedDelta[camId] = true;
-			fcapshared::Shared::setRuntimeOptions_procTrDelta(
-					camId,
-					tmpPoint
-				);
-			fcapshared::Shared::setRuntimeOptions_procTrChangedDelta(
-					camId,
-					true
-				);
+			pRtOptsOut->procTrChanged[camId] = true;
+			fcapshared::Shared::setRuntimeOptions_procTrDelta(camId, tmpPoint);
+			fcapshared::Shared::setRuntimeOptions_procTrChanged(camId, true);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;

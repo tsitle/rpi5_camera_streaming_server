@@ -68,6 +68,14 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_procBncChanged(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procBncChanged[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRuntimeOptions_procBncAdjBrightness(const int16_t val) {
 		if (val < fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS) {
 			return;
@@ -108,6 +116,14 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRuntimeOptions_procCalChanged(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procCalChanged[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRuntimeOptions_procCalShowCalibChessboardPoints(const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
@@ -132,11 +148,11 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procPtChangedRectCorners(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRuntimeOptions_procPtChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
-		gThrVarRuntimeOptions.procPtChangedRectCorners[camId] = val;
+		gThrVarRuntimeOptions.procPtChanged[camId] = val;
 		thrLock.unlock();
 	}
 
@@ -161,11 +177,11 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRuntimeOptions_procTrChangedDelta(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRuntimeOptions_procTrChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
-		gThrVarRuntimeOptions.procTrChangedDelta[camId] = val;
+		gThrVarRuntimeOptions.procTrChanged[camId] = val;
 		thrLock.unlock();
 	}
 

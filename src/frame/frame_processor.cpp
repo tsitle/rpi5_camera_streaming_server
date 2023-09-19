@@ -162,21 +162,33 @@ namespace frame {
 	}
 
 	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
-		subProcsStc.bnc.setBrightness(gPOptsRt->procBncAdjBrightness);
-		subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
-		//
-		subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints);
-		//
-		if (gPOptsRt->procPtChangedRectCorners[subProcsStc.camId]) {
-			subProcsStc.pt.setRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
-			fcapshared::Shared::setRuntimeOptions_procPtChangedRectCorners(subProcsStc.camId, false);
-			gPOptsRt->procPtChangedRectCorners[subProcsStc.camId] = false;
+		if (gPOptsRt->procBncChanged[subProcsStc.camId]) {
+			subProcsStc.bnc.setBrightness(gPOptsRt->procBncAdjBrightness);
+			subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
+			//
+			fcapshared::Shared::setRuntimeOptions_procBncChanged(subProcsStc.camId, false);
+			gPOptsRt->procBncChanged[subProcsStc.camId] = false;
 		}
 		//
-		if (gPOptsRt->procTrChangedDelta[subProcsStc.camId]) {
+		if (gPOptsRt->procCalChanged[subProcsStc.camId]) {
+			subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints);
+			//
+			fcapshared::Shared::setRuntimeOptions_procCalChanged(subProcsStc.camId, false);
+			gPOptsRt->procCalChanged[subProcsStc.camId] = false;
+		}
+		//
+		if (gPOptsRt->procPtChanged[subProcsStc.camId]) {
+			subProcsStc.pt.setRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
+			//
+			fcapshared::Shared::setRuntimeOptions_procPtChanged(subProcsStc.camId, false);
+			gPOptsRt->procPtChanged[subProcsStc.camId] = false;
+		}
+		//
+		if (gPOptsRt->procTrChanged[subProcsStc.camId]) {
 			subProcsStc.tr.setDelta(gPOptsRt->procTrDelta[subProcsStc.camId].x, gPOptsRt->procTrDelta[subProcsStc.camId].y);
-			fcapshared::Shared::setRuntimeOptions_procTrChangedDelta(subProcsStc.camId, false);
-			gPOptsRt->procTrChangedDelta[subProcsStc.camId] = false;
+			//
+			fcapshared::Shared::setRuntimeOptions_procTrChanged(subProcsStc.camId, false);
+			gPOptsRt->procTrChanged[subProcsStc.camId] = false;
 		}
 	}
 
@@ -184,6 +196,7 @@ namespace frame {
 		bool tmpBool;
 		bool skipPt = false;
 		bool skipTr = false;
+		bool skipFlip = false;
 
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
@@ -255,12 +268,13 @@ namespace frame {
 			}
 			//
 			if (subProcsStc.pt.getNeedRectCorners()) {
+				skipFlip = true;
 				skipTr = true;
 			}
 		}
 
 		// flip
-		if (gStaticOptionsStc.procEnabled.flip) {
+		if (gStaticOptionsStc.procEnabled.flip && ! skipFlip) {
 			subProcsStc.flip.processFrame(frame);
 		}
 
