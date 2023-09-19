@@ -175,6 +175,8 @@ namespace frame {
 
 	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame) {
 		bool tmpBool;
+		bool skipPt = false;
+		bool skipTr = false;
 
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
@@ -191,6 +193,13 @@ namespace frame {
 				gPOptsRt->procCalDone[subProcsStc.camId] = false;
 				//
 				subProcsStc.cal.resetData();
+				// also reset subsequent SubProcs' data
+				///
+				fcapshared::Shared::setRuntimeOptions_procPtDoReset(subProcsStc.camId, true);
+				gPOptsRt->procPtDoReset[subProcsStc.camId] = true;
+				///
+				fcapshared::Shared::setRuntimeOptions_procTrDoReset(subProcsStc.camId, true);
+				gPOptsRt->procTrDoReset[subProcsStc.camId] = true;
 			}
 			//
 			subProcsStc.cal.processFrame(frame);
@@ -201,7 +210,7 @@ namespace frame {
 				gPOptsRt->procCalDone[subProcsStc.camId] = tmpBool;
 			}
 			if (! tmpBool) {
-				return;
+				skipPt = true;
 			}
 		}
 
@@ -218,6 +227,10 @@ namespace frame {
 				gPOptsRt->procPtRectCorners[subProcsStc.camId] = std::vector<cv::Point>();
 				//
 				subProcsStc.pt.resetData();
+				// also reset subsequent SubProcs' data
+				///
+				fcapshared::Shared::setRuntimeOptions_procTrDoReset(subProcsStc.camId, true);
+				gPOptsRt->procTrDoReset[subProcsStc.camId] = true;
 			} else {
 				tmpBool = ! subProcsStc.pt.getNeedRectCorners();
 				if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
@@ -230,7 +243,13 @@ namespace frame {
 				}
 			}
 			//
-			subProcsStc.pt.processFrame(frame);
+			if (! skipPt) {
+				subProcsStc.pt.processFrame(frame);
+			}
+			//
+			if (subProcsStc.pt.getNeedRectCorners()) {
+				skipTr = true;
+			}
 		}
 
 		// translation
@@ -242,7 +261,9 @@ namespace frame {
 				subProcsStc.tr.resetData();
 			}
 			//
-			subProcsStc.tr.processFrame(frame);
+			if (! skipTr) {
+				subProcsStc.tr.processFrame(frame);
+			}
 			//
 			cv::Point tmpPnt;
 			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
