@@ -139,9 +139,16 @@ namespace frame {
 			fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, SubProcsStc &subProcsStc) {
 		subProcsStc.camId = camId;
 		subProcsStc.outputCams = outputCams;
+		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.bnc);
+		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.cal);
+		//
+		subProcsStc.flip.setData(gStaticOptionsStc.flip[camId].hor, gStaticOptionsStc.flip[camId].ver);
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.flip);
+		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.pt);
+		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.tr);
 	}
 
@@ -250,6 +257,11 @@ namespace frame {
 			if (subProcsStc.pt.getNeedRectCorners()) {
 				skipTr = true;
 			}
+		}
+
+		// flip
+		if (gStaticOptionsStc.procEnabled.flip) {
+			subProcsStc.flip.processFrame(frame);
 		}
 
 		// translation

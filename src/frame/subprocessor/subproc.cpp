@@ -38,7 +38,7 @@ namespace framesubproc {
 				break;
 			default:
 				ciStr = "-";
-				ocStr = "B";
+				ocStr = "BOTH";
 		}
 		
 		std::cout << "FSUBPROC[CAM" << ciStr << ocStr << "_" + spName + "] " << message << std::endl;

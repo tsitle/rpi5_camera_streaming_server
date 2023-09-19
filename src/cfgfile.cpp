@@ -105,12 +105,18 @@ namespace fcapcfgfile {
 				///
 				gThrVarStaticOptions.procEnabled.bnc = (bool)(*pDefConfJson)["processing_enabled"]["bnc"];
 				gThrVarStaticOptions.procEnabled.cal = (bool)(*pDefConfJson)["processing_enabled"]["cal"];
+				gThrVarStaticOptions.procEnabled.flip = (bool)(*pDefConfJson)["processing_enabled"]["flip"];
 				gThrVarStaticOptions.procEnabled.pt = (bool)(*pDefConfJson)["processing_enabled"]["pt"];
 				gThrVarStaticOptions.procEnabled.tr = (bool)(*pDefConfJson)["processing_enabled"]["tr"];
 				gThrVarStaticOptions.procEnabled.overlCam = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cam"];
 				gThrVarStaticOptions.procEnabled.overlCal = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cal"];
 				///
 				gThrVarStaticOptions.enableAdaptFps = (bool)(*pDefConfJson)["enable_adaptive_fps"];
+				///
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].hor = (bool)(*pDefConfJson)["flip"]["cam0"]["horizontal"];
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].ver = (bool)(*pDefConfJson)["flip"]["cam0"]["vertical"];
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].hor = (bool)(*pDefConfJson)["flip"]["cam1"]["horizontal"];
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].ver = (bool)(*pDefConfJson)["flip"]["cam1"]["vertical"];
 			} catch (json::type_error& ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
@@ -175,12 +181,23 @@ namespace fcapcfgfile {
 				{"processing_enabled", {
 						{"bnc", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"flip", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"pt", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"tr", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"overlay_cam", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"overlay_cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING}
 					}},
-				{"enable_adaptive_fps", fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS}
+				{"enable_adaptive_fps", fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS},
+				{"flip", {
+						{"cam0", {
+								{"horizontal", false},
+								{"vertical", false}
+							}},
+						{"cam1", {
+								{"horizontal", false},
+								{"vertical", false}
+							}}
+					}}
 			};
 	}
 

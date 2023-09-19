@@ -22,8 +22,19 @@
 		"cal": false,
 		"pt": true,
 		"tr": true,
+		"flip": true,
 		"overlay_cam": true,
 		"overlay_cal": false
 	},
-	"enable_adaptive_fps": true
+	"enable_adaptive_fps": true,
+	"flip": {
+		"cam0": {
+			"horizontal": false,
+			"vertical": false
+		},
+		"cam1": {
+			"horizontal": true,
+			"vertical": false
+		}
+	}
 }

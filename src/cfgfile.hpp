@@ -12,6 +12,7 @@ namespace fcapcfgfile {
 	struct ProcEnabledStc {
 		bool bnc;
 		bool cal;
+		bool flip;
 		bool pt;
 		bool tr;
 		bool overlCam;
@@ -24,10 +25,25 @@ namespace fcapcfgfile {
 		void reset() {
 			bnc = true;
 			cal = true;
+			flip = true;
 			pt = true;
 			tr = true;
 			overlCam = true;
 			overlCal = true;
+		}
+	};
+
+	struct FlipStc {
+		bool hor;
+		bool ver;
+
+		FlipStc() {
+			reset();
+		}
+
+		void reset() {
+			hor = false;
+			ver = false;
 		}
 	};
 
@@ -46,6 +62,7 @@ namespace fcapcfgfile {
 		std::string calibOutputPath;
 		ProcEnabledStc procEnabled;
 		bool enableAdaptFps;
+		std::map<fcapconstants::CamIdEn, FlipStc> flip;
 
 		StaticOptionsStc() {
 			reset();
@@ -66,6 +83,8 @@ namespace fcapcfgfile {
 			calibOutputPath = ".";
 			procEnabled.reset();
 			enableAdaptFps = fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS;
+			flip[fcapconstants::CamIdEn::CAM_0] = FlipStc();
+			flip[fcapconstants::CamIdEn::CAM_1] = FlipStc();
 		}
 	};
 
