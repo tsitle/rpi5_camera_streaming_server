@@ -170,6 +170,7 @@ namespace framesubproc {
 
 	void FrameSubProcessorCalibrate::renderUndistorted(cv::Mat &frame) {
 		cv::Mat frameOrg = frame.clone();
+		frame = cv::Mat();
 		if (gOcvSettingsStc.useFisheye) {
 			/**log("CAL", "render undistorted fisheye");**/
 			cv::fisheye::undistortImage(
@@ -266,7 +267,7 @@ namespace framesubproc {
 	bool FrameSubProcessorCalibrate::_calibrateAndSaveToFile(
 			OcvSettingsStc &s, cv::Size imageSize, cv::Mat &outpCameraMatrix, cv::Mat &outpDistCoeffs,
 			std::vector<std::vector<cv::Point2f>> imagePoints) {
-		const bool _DO_RELEASE_OBJECT = false;
+		const bool _DO_RELEASE_OBJECT = true;
 		bool resB;
 		std::vector<cv::Mat> outpRvecs, outpTvecs;
 		std::vector<float> outpReprojErrs;
