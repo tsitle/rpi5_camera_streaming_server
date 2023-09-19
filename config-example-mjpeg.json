@@ -34,7 +34,7 @@
 		},
 		"cam1": {
 			"horizontal": true,
-			"vertical": false
+			"vertical": true
 		}
 	}
 }
