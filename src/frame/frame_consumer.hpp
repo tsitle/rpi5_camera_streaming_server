@@ -9,14 +9,13 @@
 #include "../cfgfile.hpp"
 #include "../http/http_tcp_server.hpp"
 #include "frame_processor.hpp"
-#include "frame_queue.hpp"
+#include "frame_queue_rawinput.hpp"
 
 namespace frame {
 
 	class FrameConsumer {
 		public:
-			static FrameQueueRaw gFrameQueueInpL;
-			static FrameQueueRaw gFrameQueueInpR;
+			static FrameQueueRawInput gFrameQueueInp;
 
 			static std::thread startThread(
 					http::CbGetRunningHandlersCount cbGetRunningHandlersCount,

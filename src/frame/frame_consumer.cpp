@@ -11,8 +11,7 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
-	FrameQueueRaw FrameConsumer::gFrameQueueInpL;
-	FrameQueueRaw FrameConsumer::gFrameQueueInpR;
+	FrameQueueRawInput FrameConsumer::gFrameQueueInp;
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -78,7 +77,6 @@ namespace frame {
 		bool haveExc = false;
 		bool isFirstFrameDropTest = true;
 		uint32_t toNeedToStop = 100;
-		uint32_t toFrameL = 100;
 		fcapshared::RuntimeOptionsStc optsRt = fcapshared::Shared::getRuntimeOptions();
 		fcapconstants::OutputCamsEn optsLastOutputCams = optsRt.outputCams;
 		uint32_t toCheckFps = optsRt.cameraFps * 2;
@@ -129,29 +127,19 @@ namespace frame {
 				// read frames from queues
 				if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 					/**log("get L");**/
-					haveFrames = gFrameQueueInpL.getFrameFromQueue(frameL);
+					haveFrames = gFrameQueueInp.getFramesFromQueue(&frameL, nullptr);
 				} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 					/**log("get R");**/
-					haveFrames = gFrameQueueInpR.getFrameFromQueue(frameR);
+					haveFrames = gFrameQueueInp.getFramesFromQueue(nullptr, &frameR);
 				} else {
-					/**log("get B R");**/
-					haveFrameR = gFrameQueueInpR.getFrameFromQueue(frameR);
-					if (! haveFrameR) {
+					/**log("get BOTH");**/
+					haveFrameR = gFrameQueueInp.getFramesFromQueue(&frameL, &frameR);
+					if (! haveFrameR || frameR.empty()) {
 						std::this_thread::sleep_for(std::chrono::milliseconds(5));
 						continue;
 					}
-					/**log("get B L");**/
-					haveFrameL = false;
-					while (! haveFrameL && toFrameL != 0) {
-						haveFrameL = gFrameQueueInpL.getFrameFromQueue(frameL);
-						if (! haveFrameL) {
-							--toFrameL;
-							std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)((1.0 / (float)(gStaticOptionsStc.cameraFps * 5)) * 1000.0)));
-						}
-					}
-					toFrameL = 100;
+					haveFrameL = (! frameL.empty());
 					if (! haveFrameL) {
-						/**log("get B L giving up");**/
 						continue;
 					}
 					haveFrames = true;
@@ -218,24 +206,13 @@ namespace frame {
 					bool resetCounts = false;
 
 					reloadCamStreams = false;
-					if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R &&
-							gFrameQueueInpL.getDroppedFramesCount() > 10) {
-						log("dropped fames inpL=" + std::to_string(gFrameQueueInpL.getDroppedFramesCount()));
-						reloadCamStreams = (! isFirstFrameDropTest);
-						resetCounts = true;
-					} else if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L &&
-							gFrameQueueInpR.getDroppedFramesCount() > 10) {
-						log("dropped fames inpR=" + std::to_string(gFrameQueueInpR.getDroppedFramesCount()));
+					if (gFrameQueueInp.getDroppedFramesCount() > 10) {
+						log("dropped fames inp=" + std::to_string(gFrameQueueInp.getDroppedFramesCount()));
 						reloadCamStreams = (! isFirstFrameDropTest);
 						resetCounts = true;
 					}
 					if (reloadCamStreams) {
-						uint32_t tmpDfL = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R ?
-								gFrameQueueInpL.getDroppedFramesCount() : 0);
-						uint32_t tmpDfR = (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L ?
-								gFrameQueueInpR.getDroppedFramesCount() : 0);
-						uint32_t tmpDfX = (tmpDfL > tmpDfR ? tmpDfL : tmpDfR);
-						//
+						uint32_t tmpDfX = gFrameQueueInp.getDroppedFramesCount();
 						uint8_t lastCameraFps = fcapshared::Shared::getRuntimeOptions().cameraFps;
 						optsRt.cameraFps = lastCameraFps - (
 								tmpDfX > 100 && lastCameraFps > 10 ? 10 :
@@ -255,8 +232,7 @@ namespace frame {
 					}
 					if (resetCounts) {
 						isFirstFrameDropTest = false;
-						gFrameQueueInpL.resetDroppedFramesCount();
-						gFrameQueueInpR.resetDroppedFramesCount();
+						gFrameQueueInp.resetDroppedFramesCount();
 					}
 				}
 			}

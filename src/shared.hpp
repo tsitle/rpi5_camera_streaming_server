@@ -8,7 +8,6 @@
 
 #include "constants.hpp"
 #include "settings.hpp"
-#include "frame/frame_queue.hpp"
 
 namespace fcapshared {
 

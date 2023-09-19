@@ -291,6 +291,23 @@ namespace frame {
 			uint32_t toRestartCamStreams = optsRt.cameraFps;
 			bool grabOkL;
 			bool grabOkR;
+			cv::Mat frameL = cv::Mat();  // Mat is a 'n-dimensional dense array class'
+			cv::Mat frameR = cv::Mat();
+			cv::Mat *pFrameL = nullptr;
+			cv::Mat *pFrameR = nullptr;
+			fcapconstants::OutputCamsEn lastOutputCams = optsRt.outputCams;
+
+			switch (optsRt.outputCams) {
+				case fcapconstants::OutputCamsEn::CAM_L:
+					pFrameL = &frameL;
+					break;
+				case fcapconstants::OutputCamsEn::CAM_R:
+					pFrameR = &frameR;
+					break;
+				default:
+					pFrameL = &frameL;
+					pFrameR = &frameR;
+			}
 
 			/**auto timeStart = std::chrono::steady_clock::now();**/
 			/**log("Grabbing frames...");**/
@@ -320,12 +337,28 @@ namespace frame {
 				if (--toOpts == 0) {
 					optsRt = fcapshared::Shared::getRuntimeOptions();
 					//
+					if (lastOutputCams != optsRt.outputCams) {
+						switch (optsRt.outputCams) {
+							case fcapconstants::OutputCamsEn::CAM_L:
+								pFrameL = &frameL;
+								pFrameR = nullptr;
+								break;
+							case fcapconstants::OutputCamsEn::CAM_R:
+								pFrameL = nullptr;
+								pFrameR = &frameR;
+								break;
+							default:
+								pFrameL = &frameL;
+								pFrameR = &frameR;
+						}
+						//
+						FrameConsumer::gFrameQueueInp.flushQueue();
+						//
+						lastOutputCams = optsRt.outputCams;
+					}
+					//
 					toOpts = 10;
 				}
-
-				// create frame containers here to avoid false input
-				cv::Mat frameL = cv::Mat();  // Mat is a 'n-dimensional dense array class'
-				cv::Mat frameR = cv::Mat();
 
 				// grab frames in a synchronized manner
 				///
@@ -372,14 +405,7 @@ namespace frame {
 				/**log("retrieve done");**/
 
 				// store frames
-				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_R) {
-					/**log("app L #" + std::to_string(frameNr));**/
-					FrameConsumer::gFrameQueueInpL.appendFrameToQueue(frameL);
-				}
-				if (optsRt.outputCams != fcapconstants::OutputCamsEn::CAM_L) {
-					/**log("app R #" + std::to_string(frameNr));**/
-					FrameConsumer::gFrameQueueInpR.appendFrameToQueue(frameR);
-				}
+				FrameConsumer::gFrameQueueInp.appendFramesToQueue(pFrameL, pFrameR);
 
 				// restart camera streams if that has been requested
 				if (gStaticOptionsStc.enableAdaptFps &&
@@ -431,8 +457,8 @@ namespace frame {
 				log("still waiting for queues...");
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			needToWait = ! (FrameConsumer::gFrameQueueInpL.isQueueEmpty() &&
-					FrameConsumer::gFrameQueueInpR.isQueueEmpty());
+			needToWait = ! (FrameConsumer::gFrameQueueInp.isQueueEmpty() &&
+					FrameConsumer::gFrameQueueInp.isQueueEmpty());
 			//
 			if (needToWait) {
 				needToWait = (gCbGetRunningHandlersCount() > 0);

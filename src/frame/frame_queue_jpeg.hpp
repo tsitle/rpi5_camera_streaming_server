@@ -1,5 +1,5 @@
-#ifndef FRAME_QUEUE_HPP_
-#define FRAME_QUEUE_HPP_
+#ifndef FRAME_QUEUE_JPEG_HPP_
+#define FRAME_QUEUE_JPEG_HPP_
 
 #include <condition_variable>
 #include <thread>
@@ -37,17 +37,6 @@ namespace frame {
 			void appendFrameToQueueBytes(void *pData, const uint32_t dataSz);
 	};
 
-	class FrameQueueRaw : public FrameQueue {
-		public:
-			FrameQueueRaw();
-			~FrameQueueRaw();
-			void appendFrameToQueue(cv::Mat &frameRaw);
-			bool getFrameFromQueue(cv::Mat &frameRawOut);
-
-		private:
-			cv::Size gFrameSz;
-	};
-
 	class FrameQueueJpeg : public FrameQueue {
 		public:
 			FrameQueueJpeg();
@@ -58,4 +47,4 @@ namespace frame {
 
 }  // namespace frame
 
-#endif  // FRAME_QUEUE_HPP_
+#endif  // FRAME_QUEUE_JPEG_HPP_

@@ -1,7 +1,7 @@
 #include <chrono>
 #include <stdio.h>
 
-#include "frame_queue.hpp"
+#include "frame_queue_jpeg.hpp"
 
 using namespace std::chrono_literals;
 
@@ -115,62 +115,6 @@ namespace frame {
 		/**if (gIsForJpegs) { log("app end"); }**/
 		thrLock.unlock();
 		gThrCond.notify_all();
-	}
-
-	// -----------------------------------------------------------------------------
-	// -----------------------------------------------------------------------------
-
-	FrameQueueRaw::FrameQueueRaw() :
-			FrameQueue(false),
-			gFrameSz(0, 0) {
-	}
-
-	FrameQueueRaw::~FrameQueueRaw() {
-	}
-
-	void FrameQueueRaw::appendFrameToQueue(cv::Mat &frameRaw) {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
-
-		/**if (frameRaw.type() != CV_8UC3) {
-			log("invalid type " + std::to_string(frameRaw.type()));
-			return;
-		}**/
-		/**log("fR.t=" + std::to_string(frameRaw.total()) +
-				", fR.c=" + std::to_string(frameRaw.channels()) +
-				", fR.e=" + std::to_string(frameRaw.elemSize()));**/
-		thrLock.lock();
-		if (gFrameSz.width == 0) {
-			gFrameSz.width = frameRaw.cols;
-			gFrameSz.height = frameRaw.rows;
-		}
-		thrLock.unlock();
-		//
-		uint32_t newEntrySz = (uint32_t)(frameRaw.total() * frameRaw.channels());
-		appendFrameToQueueBytes(reinterpret_cast<unsigned char*>(&frameRaw.data[0]), newEntrySz);
-	}
-
-	bool FrameQueueRaw::getFrameFromQueue(cv::Mat &frameRawOut) {
-		bool resB = false;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
-
-		thrLock.lock();
-		if (gThrCond.wait_for(thrLock, 1ms, []{ return true; })) {
-			if (gCountInBuf != 0) {
-				/**log("get beg ix=" + std::to_string(gIxToOutput));**/
-				frameRawOut = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gIxToOutput]);
-				/**log("get end");**/
-				if (++gIxToOutput == fcapsettings::QUEUE_SIZE) {
-					gIxToOutput = 0;
-				}
-				--gCountInBuf;
-				resB = true;
-			} else {
-				/*log("count 0");*/
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			}
-		}
-		thrLock.unlock();
-		return resB;
 	}
 
 	// -----------------------------------------------------------------------------

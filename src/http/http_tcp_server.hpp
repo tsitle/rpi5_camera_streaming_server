@@ -8,7 +8,7 @@
 #include <string>
 
 #include "../settings.hpp"
-#include "../frame/frame_queue.hpp"
+#include "../frame/frame_queue_jpeg.hpp"
 
 namespace http {
 
