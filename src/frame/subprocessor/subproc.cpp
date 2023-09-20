@@ -20,6 +20,10 @@ namespace framesubproc {
 		gOutputCams = outputCams;
 	}
 
+	void FrameSubProcessor::setOutputFrameSize(const cv::Size &frameSz) {
+		gOutpFrameSz = frameSz;
+	}
+
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 

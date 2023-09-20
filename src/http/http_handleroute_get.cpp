@@ -219,6 +219,27 @@ namespace http {
 		return resB;
 	}
 
+	bool HandleRouteGet::_handleRoute_PROC_CAL_START() {
+		bool resB = false;
+
+		log("200 Path=" + gRequUriPath);
+		if (gPHndCltData->curCamId() != NULL) {
+			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
+
+			resB = true;
+			pRtOptsOut->procCalDoStart[*gPHndCltData->curCamId()] = true;
+			pRtOptsOut->procCalDoReset[*gPHndCltData->curCamId()] = true;
+			pRtOptsOut->procCalDone[*gPHndCltData->curCamId()] = false;
+			fcapshared::Shared::setRtOpts_procCalDoStart(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procCalDoReset(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procCalDone(*gPHndCltData->curCamId(), false);
+		} else {
+			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
+		}
+		gPHndCltData->respReturnJson = true;
+		return resB;
+	}
+
 	bool HandleRouteGet::_handleRoute_PROC_CAL_RESET() {
 		bool resB = false;
 
@@ -227,9 +248,12 @@ namespace http {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;
+			pRtOptsOut->procCalDoStart[*gPHndCltData->curCamId()] = false;
 			pRtOptsOut->procCalDoReset[*gPHndCltData->curCamId()] = true;
 			pRtOptsOut->procCalDone[*gPHndCltData->curCamId()] = false;
+			fcapshared::Shared::setRtOpts_procCalDoStart(*gPHndCltData->curCamId(), false);
 			fcapshared::Shared::setRtOpts_procCalDoReset(*gPHndCltData->curCamId(), true);
+			fcapshared::Shared::setRtOpts_procCalDone(*gPHndCltData->curCamId(), false);
 		} else {
 			gPHndCltData->respErrMsg = "cannot perform reset on both cameras";
 		}

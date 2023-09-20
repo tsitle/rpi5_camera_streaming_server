@@ -30,6 +30,7 @@ namespace framesubproc {
 			std::vector<cv::Point> getRectCorners();
 			bool getNeedRectCorners();
 			void resetData();
+			void loadData();
 			void processFrame(cv::Mat &frame);
 		
 		private:

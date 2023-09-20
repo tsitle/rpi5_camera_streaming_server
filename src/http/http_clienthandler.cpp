@@ -416,8 +416,23 @@ namespace http {
 		jsonObj["result"] = (success ? "success" : "error");
 		if (success) {
 			fcapconstants::OutputCamsEn outputCams = gHndCltData.rtOptsNew.outputCams;
+			bool tmpProcCalRunning;
 			bool tmpProcCalDone;
 			bool tmpProcPtDone;
+
+			//
+			if (gHndCltData.curCamId() == NULL) {
+				tmpProcCalRunning = (gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_0] &&
+						gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] &&
+						gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] &&
+						gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
+			} else {
+				tmpProcCalRunning = gHndCltData.rtOptsNew.procCalDoStart[*gHndCltData.curCamId()];
+				tmpProcCalDone = gHndCltData.rtOptsNew.procCalDone[*gHndCltData.curCamId()];
+				tmpProcPtDone = gHndCltData.rtOptsNew.procPtDone[*gHndCltData.curCamId()];
+			}
 
 			//
 			std::string tmpAvail;
@@ -469,15 +484,8 @@ namespace http {
 			jsonObj["procBncAdjBrightness"] = gHndCltData.rtOptsNew.procBncAdjBrightness;
 			jsonObj["procBncAdjContrast"] = gHndCltData.rtOptsNew.procBncAdjContrast;
 			//
-			if (gHndCltData.curCamId() == NULL) {
-				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] &&
-						gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
-				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] &&
-						gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
-			} else {
-				tmpProcCalDone = gHndCltData.rtOptsNew.procCalDone[*gHndCltData.curCamId()];
-				tmpProcPtDone = gHndCltData.rtOptsNew.procPtDone[*gHndCltData.curCamId()];
-			}
+			jsonObj["procCalRunning"] = tmpProcCalRunning;
+			//
 			jsonObj["procCalDone"] = tmpProcCalDone;
 			//
 			jsonObj["procCalShowCalibChessboardPoints"] = gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints;

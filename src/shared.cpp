@@ -116,6 +116,14 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRtOpts_procCalDoStart(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procCalDoStart[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRtOpts_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 

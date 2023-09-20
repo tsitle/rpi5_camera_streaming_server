@@ -75,16 +75,16 @@ namespace framesubproc {
 		gTries = 0;
 	}
 
+	void FrameSubProcessorCalibrate::loadData() {
+		gLoadedFromFile = loadCalibrationDataFromFile(gOutpFrameSz);
+		if (gLoadedFromFile) {
+			gCalibrated = true;
+		}
+	}
+
 	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame) {
 		if (gTries == MAX_TRIES || gWriteToFileFailed) {
 			return;
-		}
-		//
-		if (! (gCalibrated || gLoadedFromFile || gLoadFromFileFailed)) {
-			gLoadedFromFile = loadCalibrationDataFromFile(frame.size());
-			if (gLoadedFromFile) {
-				gCalibrated = true;
-			}
 		}
 		//
 		if (! gCalibrated) {

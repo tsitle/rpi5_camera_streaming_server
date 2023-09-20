@@ -24,6 +24,7 @@ namespace http {
 					{"/proc/bnc/brightness", &HandleRouteGet::_handleRoute_PROC_BNC_BRIGHTN},
 					{"/proc/bnc/contrast", &HandleRouteGet::_handleRoute_PROC_BNC_CONTRAST},
 					{"/proc/cal/showchesscorners", &HandleRouteGet::_handleRoute_PROC_CAL_SHOWCHESSCORNERS},
+					{"/proc/cal/start", &HandleRouteGet::_handleRoute_PROC_CAL_START},
 					{"/proc/cal/reset", &HandleRouteGet::_handleRoute_PROC_CAL_RESET},
 					{"/proc/pt/rect_corner", &HandleRouteGet::_handleRoute_PROC_PT_RECTCORNER},
 					{"/proc/pt/reset", &HandleRouteGet::_handleRoute_PROC_PT_RESET},
@@ -50,6 +51,7 @@ namespace http {
 			bool _handleRoute_PROC_BNC_BRIGHTN();
 			bool _handleRoute_PROC_BNC_CONTRAST();
 			bool _handleRoute_PROC_CAL_SHOWCHESSCORNERS();
+			bool _handleRoute_PROC_CAL_START();
 			bool _handleRoute_PROC_CAL_RESET();
 			bool _handleRoute_PROC_PT_RECTCORNER();
 			bool _handleRoute_PROC_PT_RESET();

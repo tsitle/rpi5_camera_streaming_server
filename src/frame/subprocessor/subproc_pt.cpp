@@ -92,16 +92,16 @@ namespace framesubproc {
 		deletePtDataFile();
 	}
 
+	void FrameSubProcessorPerspectiveTransf::loadData() {
+		gLoadedFromFile = loadPtDataFromFile(gOutpFrameSz);
+		if (gLoadedFromFile) {
+			gHaveAllCorners = true;
+		}
+	}
+
 	void FrameSubProcessorPerspectiveTransf::processFrame(cv::Mat &frame) {
 		if (gWriteToFileFailed) {
 			return;
-		}
-		//
-		if (! (gHaveAllCorners || gLoadedFromFile || gLoadFromFileFailed)) {
-			gLoadedFromFile = loadPtDataFromFile(frame.size());
-			if (gLoadedFromFile) {
-				gHaveAllCorners = true;
-			}
 		}
 		//
 		if (! gHaveAllCorners) {
