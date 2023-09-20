@@ -299,6 +299,12 @@ namespace frame {
 				gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
 			}
 		}
+
+		// set Camera-Ready flag
+		if (! gPOptsRt->cameraReady[subProcsStc.camId]) {
+			fcapshared::Shared::setRtOpts_cameraReady(subProcsStc.camId, true);
+			gPOptsRt->cameraReady[subProcsStc.camId] = true;
+		}
 	}
 
 	void FrameProcessor::procAddTextOverlayCams(

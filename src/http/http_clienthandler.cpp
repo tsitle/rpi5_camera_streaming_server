@@ -447,6 +447,12 @@ namespace http {
 			jsonObj["outputCams"] = tmpOc;
 
 			//
+			jsonObj["cameraReady"] = {
+					{"L", gHndCltData.rtOptsNew.cameraReady[gHndCltData.staticOptionsStc.camL]},
+					{"R", gHndCltData.rtOptsNew.cameraReady[gHndCltData.staticOptionsStc.camR]}
+				};
+
+			//
 			jsonObj["enabledProc"] = {
 					{"bnc", gHndCltData.staticOptionsStc.procEnabled.bnc},
 					{"cal", gHndCltData.staticOptionsStc.procEnabled.cal},

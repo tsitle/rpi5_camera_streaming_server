@@ -14,6 +14,7 @@ namespace fcapshared {
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
 		uint8_t cameraFps;
+		std::map<fcapconstants::CamIdEn, bool> cameraReady;
 		std::map<fcapconstants::CamIdEn, bool> procBncChanged;
 		int16_t procBncAdjBrightness;
 		int16_t procBncAdjContrast;
@@ -47,6 +48,8 @@ namespace fcapshared {
 		}
 
 		void _resetForCamId(fcapconstants::CamIdEn camId) {
+			cameraReady[camId] = false;
+			//
 			procBncChanged[camId] = false;
 			//
 			procCalDone[camId] = false;
@@ -74,6 +77,7 @@ namespace fcapshared {
 			///
 			static void setRtOpts_outputCams(const fcapconstants::OutputCamsEn val);
 			static void setRtOpts_cameraFps(const uint8_t val);
+			static void setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val);
 			///
 			static void setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procBncAdjBrightness(const int16_t val);

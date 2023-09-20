@@ -68,6 +68,14 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.cameraReady[camId] = val;
+		thrLock.unlock();
+	}
+
 	void Shared::setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
