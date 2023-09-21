@@ -9,10 +9,10 @@ LVAR_PATH="ProgCpp/opencv_mjpeg_streaming_server"
 #rm build/*.png 2>/dev/null
 
 rsync -va --delete \
-        comp.sh run.sh src \
-        $LVAR_REMOTE_HOST:$LVAR_PATH/ || exit 1
+	comp.sh run.sh src \
+	$LVAR_REMOTE_HOST:$LVAR_PATH/ || exit 1
 rsync -va config-$LVAR_REMOTE_HOST.json \
-        $LVAR_REMOTE_HOST:$LVAR_PATH/config.json || exit 1
+	$LVAR_REMOTE_HOST:$LVAR_PATH/config.json || exit 1
 
 ssh -t "$LVAR_REMOTE_HOST" "cd $LVAR_PATH; bash run.sh -c ../config.json $@"
 
