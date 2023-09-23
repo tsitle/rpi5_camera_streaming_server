@@ -13,6 +13,7 @@ namespace fcapcfgfile {
 		bool bnc;
 		bool cal;
 		bool flip;
+		bool grid;
 		bool pt;
 		bool tr;
 		bool overlCam;
@@ -26,6 +27,7 @@ namespace fcapcfgfile {
 			bnc = true;
 			cal = true;
 			flip = true;
+			grid = true;
 			pt = true;
 			tr = true;
 			overlCam = true;

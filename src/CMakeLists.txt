@@ -36,6 +36,7 @@ add_executable( HttpCamServer
 		frame/subprocessor/subproc_bnc.cpp
 		frame/subprocessor/subproc_calibrate.cpp
 		frame/subprocessor/subproc_flip.cpp
+		frame/subprocessor/subproc_grid.cpp
 		frame/subprocessor/subproc_pt.cpp
 		frame/subprocessor/subproc_text.cpp
 		frame/subprocessor/subproc_tr.cpp

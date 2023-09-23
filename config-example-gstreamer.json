@@ -20,9 +20,10 @@
 	"processing_enabled": {
 		"bnc": true,
 		"cal": false,
+		"flip": true,
+		"grid": true,
 		"pt": true,
 		"tr": true,
-		"flip": true,
 		"overlay_cam": true,
 		"overlay_cal": false
 	},

@@ -9,6 +9,7 @@
 #include "subprocessor/subproc_bnc.hpp"
 #include "subprocessor/subproc_calibrate.hpp"
 #include "subprocessor/subproc_flip.hpp"
+#include "subprocessor/subproc_grid.hpp"
 #include "subprocessor/subproc_pt.hpp"
 #include "subprocessor/subproc_text.hpp"
 #include "subprocessor/subproc_tr.hpp"
@@ -21,6 +22,7 @@ namespace frame {
 		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
 		framesubproc::FrameSubProcessorCalibrate cal;
 		framesubproc::FrameSubProcessorFlip flip;
+		framesubproc::FrameSubProcessorGrid grid;
 		framesubproc::FrameSubProcessorTranslation tr;
 		framesubproc::FrameSubProcessorPerspectiveTransf pt;
 	};

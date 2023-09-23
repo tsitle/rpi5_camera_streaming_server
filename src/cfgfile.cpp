@@ -106,6 +106,7 @@ namespace fcapcfgfile {
 				gThrVarStaticOptions.procEnabled.bnc = (bool)(*pDefConfJson)["processing_enabled"]["bnc"];
 				gThrVarStaticOptions.procEnabled.cal = (bool)(*pDefConfJson)["processing_enabled"]["cal"];
 				gThrVarStaticOptions.procEnabled.flip = (bool)(*pDefConfJson)["processing_enabled"]["flip"];
+				gThrVarStaticOptions.procEnabled.grid = (bool)(*pDefConfJson)["processing_enabled"]["grid"];
 				gThrVarStaticOptions.procEnabled.pt = (bool)(*pDefConfJson)["processing_enabled"]["pt"];
 				gThrVarStaticOptions.procEnabled.tr = (bool)(*pDefConfJson)["processing_enabled"]["tr"];
 				gThrVarStaticOptions.procEnabled.overlCam = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cam"];
@@ -182,6 +183,7 @@ namespace fcapcfgfile {
 						{"bnc", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"flip", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"grid", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"pt", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"tr", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"overlay_cam", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},

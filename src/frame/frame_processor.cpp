@@ -148,6 +148,8 @@ namespace frame {
 		subProcsStc.flip.setData(gStaticOptionsStc.flip[camId].hor, gStaticOptionsStc.flip[camId].ver);
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.flip);
 		//
+		_initSubProcs_fspObj(camId, outputCams, subProcsStc.grid);
+		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.pt);
 		subProcsStc.pt.loadData();
 		//
@@ -308,6 +310,11 @@ namespace frame {
 				fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
 				gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
 			}
+		}
+
+		// grid
+		if (gStaticOptionsStc.procEnabled.grid) {
+			subProcsStc.grid.processFrame(frame);
 		}
 
 		// set Camera-Ready flag
