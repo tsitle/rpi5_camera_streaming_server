@@ -65,7 +65,8 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string outpFn = buildDataFilename("TR");
+		std::string extraQual = buildFnExtraQual();
+		std::string outpFn = buildDataFilename("TR", extraQual);
 
 		log("TR", "writing Translation data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
@@ -85,7 +86,8 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = buildDataFilename("TR");
+		std::string extraQual = buildFnExtraQual();
+		std::string inpFn = buildDataFilename("TR", extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -117,12 +119,22 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorTranslation::deleteTrDataFile() {
-		deleteDataFile("TR");
+		std::string extraQual = buildFnExtraQual();
+
+		deleteDataFile("TR", extraQual);
 		gLoadedFromFile = false;
 		gTrDataStc.reset();
 		gLastTrDataStc.reset();
 		gTransMatrix.at<double>(0, 2) = 0.0;
 		gTransMatrix.at<double>(1, 2) = 0.0;
+	}
+
+	std::string FrameSubProcessorTranslation::buildFnExtraQual() {
+		std::string extraQual = (gStaticOptionsStc.procEnabled.cal ? "wcal" : "");
+		if (gStaticOptionsStc.procEnabled.pt) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wpt");
+		}
+		return extraQual;
 	}
 
 }  // namespace framesubproc

@@ -50,7 +50,7 @@ namespace framesubproc {
 
 	// -----------------------------------------------------------------------------
 
-	std::string FrameSubProcessor::buildDataFilename(const std::string &spName) {
+	std::string FrameSubProcessor::buildDataFilename(const std::string &spName, const std::string &extraQualifiers) {
 		std::string camSrcStr;
 		switch (gStaticOptionsStc.camSourceType) {
 			case fcapconstants::CamSourceEn::GSTREAMER:
@@ -70,6 +70,7 @@ namespace framesubproc {
 						: "") +
 				std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" +
 				std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+				(! extraQualifiers.empty() ? "-" + extraQualifiers : "") +
 				".yaml";
 	}
 
@@ -148,8 +149,8 @@ namespace framesubproc {
 		return true;
 	}
 
-	void FrameSubProcessor::deleteDataFile(const std::string &spName) {
-		std::string dataFn = buildDataFilename(spName);
+	void FrameSubProcessor::deleteDataFile(const std::string &spName, const std::string &extraQualifiers) {
+		std::string dataFn = buildDataFilename(spName, extraQualifiers);
 
 		if (! fcapshared::Shared::fileExists(dataFn)) {
 			return;

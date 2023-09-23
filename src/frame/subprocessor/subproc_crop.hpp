@@ -31,7 +31,6 @@ namespace framesubproc {
 		private:
 			std::vector<cv::Point> gOptRectCorners;
 			bool gHaveAllCorners;
-			bool gHaveSomeCorners;
 			CropDataStc gCropDataStc;
 			bool gLoadedFromFile;
 			bool gLoadFromFileFailed;
@@ -42,6 +41,7 @@ namespace framesubproc {
 			void saveCropDataToFile();
 			bool loadCropDataFromFile(cv::Size imageSize);
 			void deleteCropDataFile();
+			std::string buildFnExtraQual();
 	};
 
 }  // namespace framesubproc

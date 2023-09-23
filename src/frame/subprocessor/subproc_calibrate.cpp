@@ -196,7 +196,7 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = buildDataFilename("CAL");
+		std::string inpFn = buildDataFilename("CAL", "");
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -257,7 +257,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::deleteCalibrationDataFile() {
-		deleteDataFile("CAL");
+		deleteDataFile("CAL", "");
 		gLoadedFromFile = false;
 		gCalibrationDataStc.reset();
 	}
@@ -499,7 +499,7 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string outpFn = buildDataFilename("CAL");
+		std::string outpFn = buildDataFilename("CAL", "");
 
 		log("CAL", "writing Calibration data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);

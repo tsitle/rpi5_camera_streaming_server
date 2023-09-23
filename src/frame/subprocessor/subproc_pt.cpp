@@ -132,7 +132,8 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string outpFn = buildDataFilename("PT");
+		std::string extraQual = buildFnExtraQual();
+		std::string outpFn = buildDataFilename("PT", extraQual);
 
 		log("PT", "writing PersTransf data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
@@ -156,7 +157,8 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = buildDataFilename("PT");
+		std::string extraQual = buildFnExtraQual();
+		std::string inpFn = buildDataFilename("PT", extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -189,9 +191,16 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorPerspectiveTransf::deletePtDataFile() {
-		deleteDataFile("PT");
+		std::string extraQual = buildFnExtraQual();
+
+		deleteDataFile("PT", extraQual);
 		gLoadedFromFile = false;
 		gPtDataStc.reset();
+	}
+
+	std::string FrameSubProcessorPerspectiveTransf::buildFnExtraQual() {
+		std::string extraQual = (gStaticOptionsStc.procEnabled.cal ? "wcal" : "");
+		return extraQual;
 	}
 
 }  // namespace framesubproc

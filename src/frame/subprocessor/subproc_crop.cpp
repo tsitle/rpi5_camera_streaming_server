@@ -7,7 +7,6 @@ namespace framesubproc {
 	FrameSubProcessorCrop::FrameSubProcessorCrop() :
 			FrameSubProcessor(),
 			gHaveAllCorners(false),
-			gHaveSomeCorners(false),
 			gLoadedFromFile(false),
 			gLoadFromFileFailed(false),
 			gWriteToFileFailed(false) {
@@ -42,9 +41,6 @@ namespace framesubproc {
 		}
 		//
 		if (! gHaveAllCorners) {
-			if (! gHaveSomeCorners) {
-				return;
-			}
 			// draw only the first four circles
 			uint8_t tmpSz = gOptRectCorners.size();
 			for (uint8_t x = 1; x <= tmpSz; x++) {
@@ -69,7 +65,8 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string outpFn = buildDataFilename("CROP");
+		std::string extraQual = buildFnExtraQual();
+		std::string outpFn = buildDataFilename("CROP", extraQual);
 
 		log("CROP", "writing Translation data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
@@ -93,7 +90,8 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = buildDataFilename("CROP");
+		std::string extraQual = buildFnExtraQual();
+		std::string inpFn = buildDataFilename("CROP", extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -125,9 +123,22 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCrop::deleteCropDataFile() {
-		deleteDataFile("CROP");
+		std::string extraQual = buildFnExtraQual();
+
+		deleteDataFile("CROP", extraQual);
 		gLoadedFromFile = false;
 		gCropDataStc.reset();
+	}
+
+	std::string FrameSubProcessorCrop::buildFnExtraQual() {
+		std::string extraQual = (gStaticOptionsStc.procEnabled.cal ? "wcal" : "");
+		if (gStaticOptionsStc.procEnabled.pt) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wpt");
+		}
+		if (gStaticOptionsStc.procEnabled.tr) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wtr");
+		}
+		return extraQual;
 	}
 
 }  // namespace framesubproc

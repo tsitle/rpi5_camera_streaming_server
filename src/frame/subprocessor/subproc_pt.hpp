@@ -47,6 +47,7 @@ namespace framesubproc {
 			void savePtDataToFile();
 			bool loadPtDataFromFile(cv::Size imageSize);
 			void deletePtDataFile();
+			std::string buildFnExtraQual();
 	};
 
 }  // namespace framesubproc
