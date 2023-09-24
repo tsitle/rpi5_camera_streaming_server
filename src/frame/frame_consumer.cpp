@@ -236,7 +236,7 @@ namespace frame {
 					}
 				}
 			}
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			log("ERROR: " + std::string(err.what()));
 			haveExc = true;
 		}

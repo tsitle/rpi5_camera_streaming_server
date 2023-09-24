@@ -29,6 +29,7 @@ namespace framesubproc {
 			void setRectCorners(const std::vector<cv::Point> &val);
 			std::vector<cv::Point> getRectCorners();
 			bool getNeedRectCorners();
+			void setRoiOutputSz(const cv::Size &val);
 			void resetData();
 			void loadData();
 			void processFrame(cv::Mat &frame);
@@ -38,6 +39,7 @@ namespace framesubproc {
 			bool gHaveAllCorners;
 			bool gHaveSomeCorners;
 			PtDataStc gPtDataStc;
+			cv::Size gRoiOutputSz;
 			bool gLoadedFromFile;
 			bool gLoadFromFileFailed;
 			bool gWriteToFileFailed;

@@ -14,7 +14,7 @@ namespace framesubproc {
 			FrameSubProcessor();
 			~FrameSubProcessor();
 			void setCamIdAndOutputCams(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams);
-			void setInputFrameSize(const cv::Size &frameSz);
+			virtual void setInputFrameSize(const cv::Size &frameSz);
 			virtual void processFrame(cv::Mat &frame) = 0;
 
 		protected:

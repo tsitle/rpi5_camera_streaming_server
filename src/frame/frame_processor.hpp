@@ -43,8 +43,11 @@ namespace frame {
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
 			SubProcsStc gSubProcsL;
 			SubProcsStc gSubProcsR;
-			int8_t gLastOutputCamsInt;
-			int8_t gLastIsCalibratedInt;
+			int8_t gLastOverlCamsOutputCamsInt;
+			int8_t gLastOverlCalIsCalibratedInt;
+			int32_t gLastOverlCamsResolutionOutpW;
+			int32_t gLastOverlCalResolutionOutpW;
+			cv::Size gRoiOutputSz;
 
 			//
 

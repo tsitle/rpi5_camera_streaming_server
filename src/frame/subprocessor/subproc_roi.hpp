@@ -24,7 +24,9 @@ namespace framesubproc {
 	class FrameSubProcessorRoi : public FrameSubProcessor {
 		public:
 			FrameSubProcessorRoi();
+			void setInputFrameSize(const cv::Size &frameSz);
 			void setData(const uint8_t roiSizePercent);
+			cv::Size getOutputSz();
 			void resetData();
 			void loadData();
 			void processFrame(cv::Mat &frame);

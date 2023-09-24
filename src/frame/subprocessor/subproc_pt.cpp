@@ -38,25 +38,47 @@ namespace framesubproc {
 			gHaveSomeCorners = true;
 		}
 		if (gOptRectCorners.size() == fcapconstants::PROC_PT_RECTCORNERS_MAX) {
+			uint8_t ixPnt1a = 0;
+			uint8_t ixPnt2a = 1;
+			uint8_t ixPnt3a = 2;
+			uint8_t ixPnt4a = 3;
+			if (gStaticOptionsStc.procEnabled.flip) {
+				if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
+					ixPnt1a = 2;
+					ixPnt2a = 3;
+					ixPnt3a = 0;
+					ixPnt4a = 1;
+				} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+					ixPnt1a = 1;
+					ixPnt2a = 0;
+					ixPnt3a = 3;
+					ixPnt4a = 2;
+				} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+					ixPnt1a = 3;
+					ixPnt2a = 2;
+					ixPnt3a = 1;
+					ixPnt4a = 0;
+				}
+			}
 			// compute destination rectangle corners
-			cv::Point tmpPoint1 = gOptRectCorners[0];
-			cv::Point tmpPoint2 = gOptRectCorners[1];
-			cv::Point tmpPoint3 = gOptRectCorners[2];
+			cv::Point tmpPoint1 = gOptRectCorners[ixPnt1a];
+			cv::Point tmpPoint2 = gOptRectCorners[ixPnt2a];
+			cv::Point tmpPoint3 = gOptRectCorners[ixPnt3a];
 
 			gOptRectCorners.push_back(cv::Point(tmpPoint1.x, tmpPoint1.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint1.x, tmpPoint2.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint1.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint2.y));
 			// store source rectangle corners
-			gPtDataStc.ptsSrc[0] = translatePoint(gOptRectCorners[0]);
-			gPtDataStc.ptsSrc[1] = translatePoint(gOptRectCorners[1]);
-			gPtDataStc.ptsSrc[2] = translatePoint(gOptRectCorners[2]);
-			gPtDataStc.ptsSrc[3] = translatePoint(gOptRectCorners[3]);
+			gPtDataStc.ptsSrc[0] = translatePoint(gOptRectCorners[ixPnt1a]);
+			gPtDataStc.ptsSrc[1] = translatePoint(gOptRectCorners[ixPnt2a]);
+			gPtDataStc.ptsSrc[2] = translatePoint(gOptRectCorners[ixPnt3a]);
+			gPtDataStc.ptsSrc[3] = translatePoint(gOptRectCorners[ixPnt4a]);
 			// store destination rectangle corners
-			gPtDataStc.ptsDst[0] = translatePoint(gOptRectCorners[4]);
-			gPtDataStc.ptsDst[1] = translatePoint(gOptRectCorners[5]);
-			gPtDataStc.ptsDst[2] = translatePoint(gOptRectCorners[6]);
-			gPtDataStc.ptsDst[3] = translatePoint(gOptRectCorners[7]);
+			gPtDataStc.ptsDst[0] = translatePoint(gOptRectCorners[0 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
+			gPtDataStc.ptsDst[1] = translatePoint(gOptRectCorners[1 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
+			gPtDataStc.ptsDst[2] = translatePoint(gOptRectCorners[2 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
+			gPtDataStc.ptsDst[3] = translatePoint(gOptRectCorners[3 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
 			//
 			gHaveAllCorners = true;
 		}
@@ -85,6 +107,11 @@ namespace framesubproc {
 		return (! gHaveAllCorners);
 	}
 
+	void FrameSubProcessorPerspectiveTransf::setRoiOutputSz(const cv::Size &val) {
+		gRoiOutputSz.width = val.width;
+		gRoiOutputSz.height = val.height;
+	}
+
 	void FrameSubProcessorPerspectiveTransf::resetData() {
 		gHaveAllCorners = false;
 		gHaveSomeCorners = false;
@@ -111,8 +138,7 @@ namespace framesubproc {
 			// draw only the first four circles
 			uint8_t tmpSz = gOptRectCorners.size();
 			for (uint8_t x = 1; x <= tmpSz; x++) {
-				cv::Point tmpPoint(gOptRectCorners[x - 1].x - 2, gOptRectCorners[x - 1].y - 2);
-				tmpPoint = translatePoint(tmpPoint);
+				cv::Point tmpPoint = translatePoint(gOptRectCorners[x - 1]);
 				cv::Scalar tmpColor = (x <= fcapconstants::PROC_PT_RECTCORNERS_MAX ? cv::Scalar(255, 0, 0) : cv::Scalar(255, 255, 0));
 				cv::circle(frame, tmpPoint, 5, tmpColor, -1);
 				/**log("PT", "cirle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
@@ -129,57 +155,72 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 
 	cv::Point FrameSubProcessorPerspectiveTransf::translatePoint(const cv::Point &pnt) {
-		cv::Point resPnt = pnt;
+		const uint32_t imgW = gInpFrameSz.width;
+		const uint32_t imgH = gInpFrameSz.height;
+		const uint32_t imgRotW = (gStaticOptionsStc.procEnabled.roi ? imgH : imgW);
+		const uint32_t imgRotH = (gStaticOptionsStc.procEnabled.roi ? imgW : imgH);
+		cv::Point resPnt(
+				pnt.x + (gStaticOptionsStc.procEnabled.roi ? (gInpFrameSz.height - gRoiOutputSz.width) / 2 : 0),
+				pnt.y + (gStaticOptionsStc.procEnabled.roi ? (gInpFrameSz.width - gRoiOutputSz.height) / 2 : 0)
+			);
+
+		/**std::cout << std::endl << "__translatePoint " << pnt << " --> " << resPnt << " delta " << (resPnt - pnt) << std::endl;**/
+		if (imgW == 0 || imgH == 0) {
+			log("PT", "invalid gRoiOutputSz");
+			return resPnt;
+		}
+		if (resPnt.x < 0) {
+			resPnt.x = 0;
+		}
+		if (resPnt.y < 0) {
+			resPnt.y = 0;
+		}
 
 		if (gStaticOptionsStc.procEnabled.flip) {
 			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = gInpFrameSz.width - 1 - pnt.x;
-				resPnt.y = pnt.y;
+				resPnt.x = imgRotW - 1 - resPnt.x;
+				resPnt.y = resPnt.y;
 			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = pnt.x;
-				resPnt.y = gInpFrameSz.height - 1 - pnt.y;
+				resPnt.x = resPnt.x;
+				resPnt.y = imgRotH - 1 - resPnt.y;
 			} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = gInpFrameSz.width - 1 - pnt.x;
-				resPnt.y = gInpFrameSz.height - 1 - pnt.y;
+				resPnt.x = imgRotW - 1 - resPnt.x;
+				resPnt.y = imgRotH - 1 - resPnt.y;
 			}
 		}
 		if (gStaticOptionsStc.procEnabled.roi) {
-			const uint32_t imgW = gInpFrameSz.width;
-			const uint32_t imgH = gInpFrameSz.height;
-			const int32_t centerX = (int32_t)((imgW - 1) / 2);
-			const int32_t centerY = (int32_t)((imgH - 1) / 2);
-			const float rotAngle = 90.0;
+			const int32_t centerRotX = (int32_t)((imgRotW - 1) / 2);  // use center of rotated image
+			const int32_t centerRotY = (int32_t)((imgRotH - 1) / 2);
+			const float rotAngle = -90.0;
 
 			//
 			///
-			cv::Mat transMtx = cv::getRotationMatrix2D(cv::Point(centerX, centerY), rotAngle, 1);
+			/**std::cout << "__ getRotationMatrix2D (" << imgRotW << "x" << imgRotH << ")" << std::endl;**/
+			cv::Mat transMtx = cv::getRotationMatrix2D(cv::Point(centerRotX, centerRotY), rotAngle, 1);
 			/// determine bounding rectangle, center not relevant
-			cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), gInpFrameSz, rotAngle).boundingRect2f();
+			cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), cv::Size(imgRotW, imgRotH), rotAngle).boundingRect2f();
 			/// adjust transformation matrix
-			transMtx.at<double>(0, 2) += (bbox.width / 2.0) - (imgW / 2.0);
-			transMtx.at<double>(1, 2) += (bbox.height / 2.0) - (imgH / 2.0);
-			std::cout << std::endl << "tm x" << bbox.x << ", y" << bbox.y << ", w" << bbox.width << ", h" << bbox.height << std::endl;
+			transMtx.at<double>(0, 2) += (bbox.width / 2.0) - (imgRotW / 2.0);
+			transMtx.at<double>(1, 2) += (bbox.height / 2.0) - (imgRotH / 2.0);
+			/**std::cout << "__ tm x" << bbox.x << ", y" << bbox.y << ", w" << bbox.width << ", h" << bbox.height << std::endl;**/
 
 			cv::Point3d pnt3d = cv::Point3d(resPnt.x, resPnt.y, 1);
 			cv::Mat pntDst = (transMtx * cv::Mat(pnt3d)).t();
 
-			resPnt.x = pntDst.at<double>(0) - bbox.width;
-			resPnt.y = pntDst.at<double>(1) + bbox.width;
-			std::cout << "roi " << pnt3d << " ---> " << pntDst << " ---> " << resPnt << std::endl;
+			resPnt.x = (int32_t)pntDst.at<double>(0) /*- (gInpFrameSz.width - gRoiOutputSz.height)*/;
+			resPnt.y = (int32_t)pntDst.at<double>(1) /*- (gInpFrameSz.height - gRoiOutputSz.width)*/;
+			/**std::cout << "__ roi " << pnt3d << " ---> " << pntDst << " ---> ";**/
 			if (resPnt.x < 0) {
 				resPnt.x = 0;
-				std::cout << "__roi " << resPnt << std::endl;
-			} else if (resPnt.x >= imgW) {
+			} else if (resPnt.x >= (int32_t)imgW) {
 				resPnt.x = imgW - 1;
-				std::cout << "__roi " << resPnt << std::endl;
 			}
 			if (resPnt.y < 0) {
 				resPnt.y = 0;
-				std::cout << "__roi " << resPnt << std::endl;
-			} else if (resPnt.y >= imgH) {
+			} else if (resPnt.y >= (int32_t)imgH) {
 				resPnt.y = imgH - 1;
-				std::cout << "__roi " << resPnt << std::endl;
 			}
+			/**std::cout << resPnt << std::endl;**/
 		}
 		return resPnt;
 	}

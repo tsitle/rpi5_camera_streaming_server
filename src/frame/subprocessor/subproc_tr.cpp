@@ -27,8 +27,8 @@ namespace framesubproc {
 			}
 			gLastTrDataStc = gTrDataStc;
 		}
-		gTransMatrix.at<double>(0, 2) = (double)gTrDataStc.dx;
-		gTransMatrix.at<double>(1, 2) = (double)gTrDataStc.dy;
+		gTransMatrix.at<double>(0, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataStc.dy : gTrDataStc.dx);
+		gTransMatrix.at<double>(1, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataStc.dx : gTrDataStc.dy);
 	}
 
 	void FrameSubProcessorTranslation::getDelta(int32_t &valDx, int32_t &valDy) {

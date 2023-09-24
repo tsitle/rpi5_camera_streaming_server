@@ -387,42 +387,48 @@ namespace http {
 	// -----------------------------------------------------------------------------
 
 	bool HandleRouteGet::getBoolFromQuery(bool &valOut) {
+		bool resB = true;
+
 		try {
 			if (gRequUriQuery.empty()) {
-				throw;
+				throw std::exception();
 			}
 			if (gRequUriQuery.compare("0") != 0 && gRequUriQuery.compare("1") != 0) {
-				throw;
+				throw std::exception();
 			}
 			valOut = (gRequUriQuery.compare("1") == 0);
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			gPHndCltData->respErrMsg = "invalid boolean value (allowed: 0 and 1)";
-			return false;
+			resB = false;
 		}
-		return true;
+		return resB;
 	}
 
 	bool HandleRouteGet::getIntFromQuery(int16_t &valOut, const int16_t valMin, const int16_t valMax) {
+		bool resB = true;
+
 		try {
 			if (gRequUriQuery.empty()) {
-				throw;
+				throw std::exception();
 			}
 			int16_t tmpInt = stoi(gRequUriQuery);
 			if (tmpInt < valMin || tmpInt > valMax) {
-				throw;
+				throw std::exception();
 			}
 			valOut = tmpInt;
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			gPHndCltData->respErrMsg = "invalid integer value (allowed: " + std::to_string(valMin) + ".." + std::to_string(valMax) + ")";
-			return false;
+			resB = false;
 		}
-		return true;
+		return resB;
 	}
 
 	bool HandleRouteGet::getOutputCamsFromQuery(fcapconstants::OutputCamsEn &valOut) {
+		bool resB = true;
+
 		try {
 			if (gRequUriQuery.empty()) {
-				throw;
+				throw std::exception();
 			}
 			if (gRequUriQuery.compare("L") == 0) {
 				valOut = fcapconstants::OutputCamsEn::CAM_L;
@@ -431,28 +437,30 @@ namespace http {
 			} else if (gRequUriQuery.compare("BOTH") == 0)  {
 				valOut = fcapconstants::OutputCamsEn::CAM_BOTH;
 			} else {
-				throw;
+				throw std::exception();
 			}
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			gPHndCltData->respErrMsg = "invalid output camera (allowed: 'L', 'R', 'BOTH')";
-			return false;
+			resB = false;
 		}
-		return true;
+		return resB;
 	}
 
 	void HandleRouteGet::_stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2) {
 		if (valIn.empty()) {
-			throw;
+			throw std::exception();
 		}
 		size_t posIx = valIn.find(split);
 		if (posIx == std::string::npos) {
-			throw;
+			throw std::exception();
 		}
 		valOut1 = valIn.substr(0, posIx);
 		valOut2 = valIn.substr(posIx + 1);
 	}
 
 	bool HandleRouteGet::getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax) {
+		bool resB = true;
+
 		try {
 			std::string strA1;
 			std::string strA1k;
@@ -469,26 +477,26 @@ namespace http {
 			} else if (strA1k.compare("y") == 0) {
 				valOut.y = stoi(strA1v);
 			} else {
-				throw;
+				throw std::exception();
 			}
 			if (strA2k.compare("x") == 0) {
 				valOut.x = stoi(strA2v);
 			} else if (strA2k.compare("y") == 0) {
 				valOut.y = stoi(strA2v);
 			} else {
-				throw;
+				throw std::exception();
 			}
 			if (valOut.x < valMin.x || valOut.x > valMax.x) {
-				throw;
+				throw std::exception();
 			}
 			if (valOut.y < valMin.y || valOut.y > valMax.y) {
-				throw;
+				throw std::exception();
 			}
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			gPHndCltData->respErrMsg = "invalid coordinates (example: 'x=1&y=2')";
-			return false;
+			resB = false;
 		}
-		return true;
+		return resB;
 	}
 
 	// -----------------------------------------------------------------------------

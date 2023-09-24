@@ -11,15 +11,26 @@ namespace framesubproc {
 			gWriteToFileFailed(false) {
 	}
 
+	void FrameSubProcessorRoi::setInputFrameSize(const cv::Size &frameSz) {
+		FrameSubProcessor::setInputFrameSize(frameSz);
+		setData(gRoiDataStc.percent);
+	}
+
 	void FrameSubProcessorRoi::setData(const uint8_t roiSizePercent) {
 		uint8_t lastPerc = gRoiDataStc.percent;
 
 		gRoiDataStc.percent = (roiSizePercent < 10 ? 10 : roiSizePercent);
-		gRoiDataStc.sizeW = 0;
-		gRoiDataStc.sizeH = 0;
+		gRoiDataStc.sizeW = (uint32_t)((double)gInpFrameSz.height * ((double)gRoiDataStc.percent / 100.0));
+		gRoiDataStc.sizeH = (uint32_t)(((double)gRoiDataStc.sizeW / 16.0) * 9.0);
 		if (lastPerc != gRoiDataStc.percent) {
 			saveRoiDataToFile();
 		}
+		/**log("ROI", "set roiSizePercent to " + std::to_string(roiSizePercent) + ", osz=" +
+				std::to_string(gRoiDataStc.sizeW) + "x" + std::to_string(gRoiDataStc.sizeH));**/
+	}
+
+	cv::Size FrameSubProcessorRoi::getOutputSz() {
+		return cv::Size(gRoiDataStc.sizeW, gRoiDataStc.sizeH);
 	}
 
 	void FrameSubProcessorRoi::resetData() {
@@ -36,8 +47,7 @@ namespace framesubproc {
 		}
 		//
 		if (gRoiDataStc.sizeW == 0 || gRoiDataStc.sizeH == 0) {
-			gRoiDataStc.sizeW = (uint32_t)((double)frame.size().height * ((double)gRoiDataStc.percent / 100.0));
-			gRoiDataStc.sizeH = (uint32_t)(((double)gRoiDataStc.sizeW / 16.0) * 9.0);
+			return;
 		}
 		//
 		int32_t imgW = frame.cols;
@@ -64,8 +74,6 @@ namespace framesubproc {
 		imgW = frameRot.cols;
 		imgH = frameRot.rows;
 
-		frame = frameRot.clone();
-		return;
 		// crop
 		centerX = (int32_t)((imgW - 1) / 2);
 		centerY = (int32_t)((imgH - 1) / 2);
@@ -86,7 +94,21 @@ namespace framesubproc {
 		if (colRange.end >= imgW) {
 			colRange.end = imgW - 1;
 		}
+
 		frame = frameRot(rowRange, colRange);
+		/*
+		cv::Mat frameCropped = frameRot(rowRange, colRange);
+
+		// resize
+		cv::resize(
+				frameCropped,
+				frame,
+				gStaticOptionsStc.resolutionInputStream,
+				0.0,
+				0.0,
+				cv::INTER_LINEAR
+			);
+		*/
 	}
 
 	// -----------------------------------------------------------------------------
@@ -142,6 +164,9 @@ namespace framesubproc {
 		int32_t tmpInt;
 		fs["roiSizePercent"] >> tmpInt;
 		gRoiDataStc.percent = (uint8_t)tmpInt;
+
+		//
+		setData(gRoiDataStc.percent);
 
 		//
 		log("ROI", "__reading done");

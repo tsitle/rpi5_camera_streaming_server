@@ -437,7 +437,7 @@ namespace frame {
 			log("PFMT(" + pipeFormat1Str + "/" + pipeFormat2Str + "): Elapsed time: " +
 					std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count()) +
 					" ms");**/
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			log("ERROR: " + std::string(err.what()));
 		}
 

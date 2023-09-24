@@ -119,18 +119,18 @@ namespace fcapcfgfile {
 				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].ver = (bool)(*pDefConfJson)["flip"]["cam0"]["vertical"];
 				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].hor = (bool)(*pDefConfJson)["flip"]["cam1"]["horizontal"];
 				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].ver = (bool)(*pDefConfJson)["flip"]["cam1"]["vertical"];
-			} catch (json::type_error& ex) {
+			} catch (json::type_error &ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
 				thrLock.unlock();
 				delete pDefConfJson;
 				return false;
-			} catch (std::invalid_argument& ex) {
+			} catch (std::invalid_argument &ex) {
 				log("Error while processing config file '" + fcapconstants::CONFIG_FILENAME + "': " + ex.what());
 				thrLock.unlock();
 				delete pDefConfJson;
 				return false;
 			}
-		} catch (json::parse_error& ex) {
+		} catch (json::parse_error &ex) {
 			log("Parsing error in config file '" + fcapconstants::CONFIG_FILENAME + "' at byte " + std::to_string(ex.byte));
 			thrLock.unlock();
 			delete pDefConfJson;
@@ -216,7 +216,7 @@ namespace fcapcfgfile {
 		int intH = -1;
 		try {
 			intW = stoi(strW);
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			intW = -1;
 		}
 		if (intW < 1 || intW > fcapconstants::IMAGE_SIZE_MAX) {
@@ -224,7 +224,7 @@ namespace fcapcfgfile {
 		}
 		try {
 			intH = stoi(strH);
-		} catch (std::exception& err) {
+		} catch (std::exception &err) {
 			intH = -1;
 		}
 		if (intH < 1 || intH > fcapconstants::IMAGE_SIZE_MAX) {
