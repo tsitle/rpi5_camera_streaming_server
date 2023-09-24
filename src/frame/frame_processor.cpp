@@ -136,6 +136,9 @@ namespace frame {
 		if (gStaticOptionsStc.procEnabled.roi) {
 			gOtherSubProcRoi.loadData();
 			gRoiOutputSz = gOtherSubProcRoi.getOutputSz();
+			fcapshared::Shared::setRtOpts_procRoiSizePerc(
+					gOtherSubProcRoi.getSizePercent()
+				);
 		} else {
 			gRoiOutputSz = gStaticOptionsStc.resolutionInputStream;
 		}

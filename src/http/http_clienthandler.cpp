@@ -478,7 +478,10 @@ namespace http {
 			jsonObj["enabledProc"] = {
 					{"bnc", gHndCltData.staticOptionsStc.procEnabled.bnc},
 					{"cal", gHndCltData.staticOptionsStc.procEnabled.cal},
+					{"flip", gHndCltData.staticOptionsStc.procEnabled.flip},
+					{"grid", gHndCltData.staticOptionsStc.procEnabled.grid},
 					{"pt", gHndCltData.staticOptionsStc.procEnabled.pt},
+					{"roi", gHndCltData.staticOptionsStc.procEnabled.roi},
 					{"tr", gHndCltData.staticOptionsStc.procEnabled.tr},
 					{"overlCal", gHndCltData.staticOptionsStc.procEnabled.overlCal},
 					{"overlCam", gHndCltData.staticOptionsStc.procEnabled.overlCam}

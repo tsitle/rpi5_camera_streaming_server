@@ -27,6 +27,7 @@ namespace framesubproc {
 			void setInputFrameSize(const cv::Size &frameSz);
 			void setData(const uint8_t roiSizePercent);
 			cv::Size getOutputSz();
+			uint8_t getSizePercent();
 			void resetData();
 			void loadData();
 			void processFrame(cv::Mat &frame);

@@ -33,6 +33,10 @@ namespace framesubproc {
 		return cv::Size(gRoiDataStc.sizeW, gRoiDataStc.sizeH);
 	}
 
+	uint8_t FrameSubProcessorRoi::getSizePercent() {
+		return gRoiDataStc.percent;
+	}
+
 	void FrameSubProcessorRoi::resetData() {
 		deleteRoiDataFile();
 	}
