@@ -225,6 +225,7 @@ namespace http {
 	}
 
 	void TcpServer::closeServer() {
+		::shutdown(gServerSocket, SHUT_RDWR);
 		::close(gServerSocket);
 	}
 

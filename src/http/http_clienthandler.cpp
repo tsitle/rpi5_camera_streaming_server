@@ -79,7 +79,14 @@ namespace http {
 	}
 
 	ClientHandler::~ClientHandler() {
+		char buffer[BUFFER_SIZE] = {0};
+		int32_t bytesReceived;
+
 		/*log(gHndCltData.thrIx, "close socket");**/
+		::shutdown(gClientSocket, SHUT_RDWR);
+		while ((bytesReceived = ::read(gClientSocket, buffer, BUFFER_SIZE)) > 0) {
+			// read until no more data arrives
+		}
 		::close(gClientSocket);
 	}
 
