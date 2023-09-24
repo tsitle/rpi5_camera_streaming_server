@@ -46,7 +46,7 @@ namespace framesubproc {
 		}
 		//
 		if (! (gLoadedFromFile || gLoadFromFileFailed)) {
-			gLoadedFromFile = loadTrDataFromFile(frame.size());
+			gLoadedFromFile = loadTrDataFromFile();
 		}
 		//
 		if (gTrDataStc.equal(EMPTY_TR_DATA)) {
@@ -81,7 +81,7 @@ namespace framesubproc {
 		gWriteToFileFailed = (! fcapshared::Shared::fileExists(outpFn));
 	}
 
-	bool FrameSubProcessorTranslation::loadTrDataFromFile(cv::Size imageSize) {
+	bool FrameSubProcessorTranslation::loadTrDataFromFile() {
 		if (gLoadedFromFile || gLoadFromFileFailed) {
 			return false;
 		}
@@ -99,7 +99,7 @@ namespace framesubproc {
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("TR", imageSize, fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header("TR", fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -120,8 +120,9 @@ namespace framesubproc {
 
 	void FrameSubProcessorTranslation::deleteTrDataFile() {
 		std::string extraQual = buildFnExtraQual();
+		std::string outpFn = buildDataFilename("TR", extraQual);
 
-		deleteDataFile("TR", extraQual);
+		deleteDataFile("TR", outpFn);
 		gLoadedFromFile = false;
 		gTrDataStc.reset();
 		gLastTrDataStc.reset();

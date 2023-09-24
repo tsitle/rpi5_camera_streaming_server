@@ -156,8 +156,8 @@ namespace frame {
 		}
 		pipeline += " ! videoscale";
 		pipeline += " ! video/x-raw,format=" + format2Str +
-				",width=" + std::to_string(gStaticOptionsStc.resolutionOutput.width) +
-				",height=" + std::to_string(gStaticOptionsStc.resolutionOutput.height);
+				",width=" + std::to_string(gStaticOptionsStc.resolutionInputStream.width) +
+				",height=" + std::to_string(gStaticOptionsStc.resolutionInputStream.height);
 		pipeline += " ! appsink";
 		return pipeline;
 	}

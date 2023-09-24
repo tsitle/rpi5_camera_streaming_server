@@ -20,8 +20,8 @@ namespace framesubproc {
 		gOutputCams = outputCams;
 	}
 
-	void FrameSubProcessor::setOutputFrameSize(const cv::Size &frameSz) {
-		gOutpFrameSz = frameSz;
+	void FrameSubProcessor::setInputFrameSize(const cv::Size &frameSz) {
+		gInpFrameSz = frameSz;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ namespace framesubproc {
 
 	// -----------------------------------------------------------------------------
 
-	std::string FrameSubProcessor::buildDataFilename(const std::string &spName, const std::string &extraQualifiers) {
+	std::string FrameSubProcessor::buildDataFilename(const std::string &spName, const std::string &extraQualifiers, const bool addCamName) {
 		std::string camSrcStr;
 		switch (gStaticOptionsStc.camSourceType) {
 			case fcapconstants::CamSourceEn::GSTREAMER:
@@ -62,14 +62,15 @@ namespace framesubproc {
 			default:
 				camSrcStr = "unspec";
 		}
-		return gStaticOptionsStc.calibOutputPath + "/" + spName + "-cam" + std::to_string((int)gCamId) + "-" +
+		return gStaticOptionsStc.calibOutputPath + "/" + spName +
+				(addCamName ? "-cam" + std::to_string((int)gCamId) : std::string("")) + "-" +
 				camSrcStr + "-" +
 				(gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER ?
 						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.width) + "x" +
 						std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.height) + "-"
 						: "") +
-				std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" +
-				std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+				std::to_string(gStaticOptionsStc.resolutionInputStream.width) + "x" +
+				std::to_string(gStaticOptionsStc.resolutionInputStream.height) +
 				(! extraQualifiers.empty() ? "-" + extraQualifiers : "") +
 				".yaml";
 	}
@@ -88,10 +89,10 @@ namespace framesubproc {
 		if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER) {
 			fs << "gstreamer_resolution_capture" << gStaticOptionsStc.gstreamerResolutionCapture;
 		}
-		fs << "resolution_output" << gStaticOptionsStc.resolutionOutput;
+		fs << "resolution_input_stream" << gStaticOptionsStc.resolutionInputStream;
 	}
 
-	bool FrameSubProcessor::loadDataFromFile_header(const std::string &spName, cv::Size &imageSize, cv::FileStorage &fs) {
+	bool FrameSubProcessor::loadDataFromFile_header(const std::string &spName, cv::FileStorage &fs) {
 		int cfileInt;
 		cv::Size cfileSz;
 
@@ -128,30 +129,22 @@ namespace framesubproc {
 			}
 		}
 		///
-		fs["resolution_output"] >> cfileSz;
-		if (cfileSz != gStaticOptionsStc.resolutionOutput) {
-			log(spName, "resolution_output from PersTransf data file "
-					"does not match current resolution_output (is=" +
+		fs["resolution_input_stream"] >> cfileSz;
+		if (cfileSz != gStaticOptionsStc.resolutionInputStream) {
+			log(spName, "resolution_input_stream from PersTransf data file "
+					"does not match current resolution_input_stream (is=" +
 					std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
 					", exp=" +
-					std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" +
-					std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+					std::to_string(gStaticOptionsStc.resolutionInputStream.width) + "x" +
+					std::to_string(gStaticOptionsStc.resolutionInputStream.height) +
 					")");
-			return false;
-		}
-		if (cfileSz != imageSize) {
-			log(spName, "resolution_output from PersTransf data file does not match current image size (is=" +
-					std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
-					", exp=" + std::to_string(imageSize.width) + "x" + std::to_string(imageSize.height) + ")");
 			return false;
 		}
 
 		return true;
 	}
 
-	void FrameSubProcessor::deleteDataFile(const std::string &spName, const std::string &extraQualifiers) {
-		std::string dataFn = buildDataFilename(spName, extraQualifiers);
-
+	void FrameSubProcessor::deleteDataFile(const std::string &spName, const std::string &dataFn) {
 		if (! fcapshared::Shared::fileExists(dataFn)) {
 			return;
 		}

@@ -48,15 +48,15 @@ namespace framesubproc {
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint1.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint2.y));
 			// store source rectangle corners
-			gPtDataStc.ptsSrc[0] = gOptRectCorners[0];
-			gPtDataStc.ptsSrc[1] = gOptRectCorners[1];
-			gPtDataStc.ptsSrc[2] = gOptRectCorners[2];
-			gPtDataStc.ptsSrc[3] = gOptRectCorners[3];
+			gPtDataStc.ptsSrc[0] = translatePoint(gOptRectCorners[0]);
+			gPtDataStc.ptsSrc[1] = translatePoint(gOptRectCorners[1]);
+			gPtDataStc.ptsSrc[2] = translatePoint(gOptRectCorners[2]);
+			gPtDataStc.ptsSrc[3] = translatePoint(gOptRectCorners[3]);
 			// store destination rectangle corners
-			gPtDataStc.ptsDst[0] = gOptRectCorners[4];
-			gPtDataStc.ptsDst[1] = gOptRectCorners[5];
-			gPtDataStc.ptsDst[2] = gOptRectCorners[6];
-			gPtDataStc.ptsDst[3] = gOptRectCorners[7];
+			gPtDataStc.ptsDst[0] = translatePoint(gOptRectCorners[4]);
+			gPtDataStc.ptsDst[1] = translatePoint(gOptRectCorners[5]);
+			gPtDataStc.ptsDst[2] = translatePoint(gOptRectCorners[6]);
+			gPtDataStc.ptsDst[3] = translatePoint(gOptRectCorners[7]);
 			//
 			gHaveAllCorners = true;
 		}
@@ -93,7 +93,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorPerspectiveTransf::loadData() {
-		gLoadedFromFile = loadPtDataFromFile(gOutpFrameSz);
+		gLoadedFromFile = loadPtDataFromFile();
 		if (gLoadedFromFile) {
 			gHaveAllCorners = true;
 		}
@@ -112,6 +112,7 @@ namespace framesubproc {
 			uint8_t tmpSz = gOptRectCorners.size();
 			for (uint8_t x = 1; x <= tmpSz; x++) {
 				cv::Point tmpPoint(gOptRectCorners[x - 1].x - 2, gOptRectCorners[x - 1].y - 2);
+				tmpPoint = translatePoint(tmpPoint);
 				cv::Scalar tmpColor = (x <= fcapconstants::PROC_PT_RECTCORNERS_MAX ? cv::Scalar(255, 0, 0) : cv::Scalar(255, 255, 0));
 				cv::circle(frame, tmpPoint, 5, tmpColor, -1);
 				/**log("PT", "cirle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
@@ -126,6 +127,62 @@ namespace framesubproc {
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
+
+	cv::Point FrameSubProcessorPerspectiveTransf::translatePoint(const cv::Point &pnt) {
+		cv::Point resPnt = pnt;
+
+		if (gStaticOptionsStc.procEnabled.flip) {
+			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
+				resPnt.x = gInpFrameSz.width - 1 - pnt.x;
+				resPnt.y = pnt.y;
+			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+				resPnt.x = pnt.x;
+				resPnt.y = gInpFrameSz.height - 1 - pnt.y;
+			} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+				resPnt.x = gInpFrameSz.width - 1 - pnt.x;
+				resPnt.y = gInpFrameSz.height - 1 - pnt.y;
+			}
+		}
+		if (gStaticOptionsStc.procEnabled.roi) {
+			const uint32_t imgW = gInpFrameSz.width;
+			const uint32_t imgH = gInpFrameSz.height;
+			const int32_t centerX = (int32_t)((imgW - 1) / 2);
+			const int32_t centerY = (int32_t)((imgH - 1) / 2);
+			const float rotAngle = 90.0;
+
+			//
+			///
+			cv::Mat transMtx = cv::getRotationMatrix2D(cv::Point(centerX, centerY), rotAngle, 1);
+			/// determine bounding rectangle, center not relevant
+			cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), gInpFrameSz, rotAngle).boundingRect2f();
+			/// adjust transformation matrix
+			transMtx.at<double>(0, 2) += (bbox.width / 2.0) - (imgW / 2.0);
+			transMtx.at<double>(1, 2) += (bbox.height / 2.0) - (imgH / 2.0);
+			std::cout << std::endl << "tm x" << bbox.x << ", y" << bbox.y << ", w" << bbox.width << ", h" << bbox.height << std::endl;
+
+			cv::Point3d pnt3d = cv::Point3d(resPnt.x, resPnt.y, 1);
+			cv::Mat pntDst = (transMtx * cv::Mat(pnt3d)).t();
+
+			resPnt.x = pntDst.at<double>(0) - bbox.width;
+			resPnt.y = pntDst.at<double>(1) + bbox.width;
+			std::cout << "roi " << pnt3d << " ---> " << pntDst << " ---> " << resPnt << std::endl;
+			if (resPnt.x < 0) {
+				resPnt.x = 0;
+				std::cout << "__roi " << resPnt << std::endl;
+			} else if (resPnt.x >= imgW) {
+				resPnt.x = imgW - 1;
+				std::cout << "__roi " << resPnt << std::endl;
+			}
+			if (resPnt.y < 0) {
+				resPnt.y = 0;
+				std::cout << "__roi " << resPnt << std::endl;
+			} else if (resPnt.y >= imgH) {
+				resPnt.y = imgH - 1;
+				std::cout << "__roi " << resPnt << std::endl;
+			}
+		}
+		return resPnt;
+	}
 
 	void FrameSubProcessorPerspectiveTransf::savePtDataToFile() {
 		if (gWriteToFileFailed) {
@@ -152,7 +209,7 @@ namespace framesubproc {
 		gWriteToFileFailed = (! fcapshared::Shared::fileExists(outpFn));
 	}
 
-	bool FrameSubProcessorPerspectiveTransf::loadPtDataFromFile(cv::Size imageSize) {
+	bool FrameSubProcessorPerspectiveTransf::loadPtDataFromFile() {
 		if (gLoadedFromFile || gLoadFromFileFailed) {
 			return false;
 		}
@@ -170,7 +227,7 @@ namespace framesubproc {
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("PT", imageSize, fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header("PT", fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -192,8 +249,9 @@ namespace framesubproc {
 
 	void FrameSubProcessorPerspectiveTransf::deletePtDataFile() {
 		std::string extraQual = buildFnExtraQual();
+		std::string outpFn = buildDataFilename("PT", extraQual);
 
-		deleteDataFile("PT", extraQual);
+		deleteDataFile("PT", outpFn);
 		gLoadedFromFile = false;
 		gPtDataStc.reset();
 	}

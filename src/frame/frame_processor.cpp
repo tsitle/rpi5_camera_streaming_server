@@ -34,10 +34,10 @@ namespace frame {
 		initSubProcs();
 
 		//
-		log("Output Framesize: " +
-				std::to_string(gStaticOptionsStc.resolutionOutput.width) +
+		log("Input Stream Framesize: " +
+				std::to_string(gStaticOptionsStc.resolutionInputStream.width) +
 				"x" +
-				std::to_string(gStaticOptionsStc.resolutionOutput.height));
+				std::to_string(gStaticOptionsStc.resolutionInputStream.height));
 	}
 
 	FrameProcessor::~FrameProcessor() {
@@ -49,6 +49,20 @@ namespace frame {
 	}
 
 	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut) {
+		// check frame size
+		if (pFrameL != NULL &&
+				(pFrameL->size().width != gStaticOptionsStc.resolutionInputStream.width ||
+					pFrameL->size().height != gStaticOptionsStc.resolutionInputStream.height)) {
+			log("input frame size CAM_L doesn't match resolutionInputStream");
+			return;
+		}
+		if (pFrameR != NULL &&
+				(pFrameR->size().width != gStaticOptionsStc.resolutionInputStream.width ||
+					pFrameR->size().height != gStaticOptionsStc.resolutionInputStream.height)) {
+			log("input frame size CAM_R doesn't match resolutionInputStream");
+			return;
+		}
+
 		// do the actual processing
 		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING) {
 			if (pFrameL != NULL) {
@@ -57,6 +71,7 @@ namespace frame {
 			if (pFrameR != NULL) {
 				procDefaults(gSubProcsR, *pFrameR);
 			}
+			// adjust color channels
 			if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH &&
 					pFrameR->channels() != pFrameL->channels()) {
 				int channL = pFrameL->channels();
@@ -104,18 +119,21 @@ namespace frame {
 			}
 		}
 
-		// resize frame
+		// TODO: resize frame
+		return;
 		bool needToResizeFrame = (
-				pFrameOut->cols != gStaticOptionsStc.resolutionOutput.width ||
-				pFrameOut->rows != gStaticOptionsStc.resolutionOutput.height
+				pFrameOut->cols != gStaticOptionsStc.resolutionInputStream.width ||
+				pFrameOut->rows != gStaticOptionsStc.resolutionInputStream.height
 			);
 		if (needToResizeFrame) {
 			log("resizing image from " +
-					std::to_string(pFrameOut->cols) + "x" + std::to_string(pFrameOut->rows) +
+					std::to_string(pFrameOut->cols) + "x" +
+					std::to_string(pFrameOut->rows) +
 					" to " +
-					std::to_string(gStaticOptionsStc.resolutionOutput.width) + "x" + std::to_string(gStaticOptionsStc.resolutionOutput.height) +
+					std::to_string(gStaticOptionsStc.resolutionInputStream.width) + "x" +
+					std::to_string(gStaticOptionsStc.resolutionInputStream.height) +
 					" ...");
-			cv::resize(*pFrameOut, *pFrameOut, gStaticOptionsStc.resolutionOutput, 0.0, 0.0, cv::INTER_LINEAR);
+			cv::resize(*pFrameOut, *pFrameOut, gStaticOptionsStc.resolutionInputStream, 0.0, 0.0, cv::INTER_LINEAR);
 		}
 	}
 
@@ -128,6 +146,10 @@ namespace frame {
 
 	void FrameProcessor::initSubProcs() {
 		// other FrameSubProcs for the master output
+		///
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcRoi);
+		gOtherSubProcRoi.loadData();
+		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCams);
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCal);
 		//
@@ -156,12 +178,22 @@ namespace frame {
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.tr);
 	}
 
-	void FrameProcessor::_initSubProcs_fspObj(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, framesubproc::FrameSubProcessor &fsp) {
+	void FrameProcessor::_initSubProcs_fspObj(
+			fcapconstants::CamIdEn camId,
+			fcapconstants::OutputCamsEn outputCams,
+			framesubproc::FrameSubProcessor &fsp) {
 		fsp.setCamIdAndOutputCams(camId, outputCams);
-		fsp.setOutputFrameSize(gStaticOptionsStc.resolutionOutput);
+		fsp.setInputFrameSize(gStaticOptionsStc.resolutionInputStream);
 	}
 
 	void FrameProcessor::updateSubProcsSettings() {
+		if (gPOptsRt->procRoiChanged) {
+			gOtherSubProcRoi.setData(gPOptsRt->procRoiSizePerc);
+			//
+			fcapshared::Shared::setRtOpts_procRoiChanged(false);
+			gPOptsRt->procRoiChanged = false;
+		}
+		//
 		_updateSubProcsSettings_stc(gSubProcsL);
 		_updateSubProcsSettings_stc(gSubProcsR);
 	}
@@ -201,7 +233,6 @@ namespace frame {
 		bool tmpBool;
 		bool skipPt = false;
 		bool skipTr = false;
-		bool skipFlip = false;
 
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
@@ -280,14 +311,26 @@ namespace frame {
 			}
 			//
 			if (subProcsStc.pt.getNeedRectCorners()) {
-				skipFlip = true;
 				skipTr = true;
 			}
 		}
 
 		// flip
-		if (gStaticOptionsStc.procEnabled.flip && ! skipFlip) {
+		if (gStaticOptionsStc.procEnabled.flip) {
 			subProcsStc.flip.processFrame(frame);
+		}
+
+		// region of interest
+		if (gStaticOptionsStc.procEnabled.roi) {
+			gOtherSubProcRoi.processFrame(frame);
+		}
+
+		// update output frame size
+		if (frame.size().width != gPOptsRt->resolutionOutput.width ||
+				frame.size().height != gPOptsRt->resolutionOutput.height) {
+			fcapshared::Shared::setRtOpts_resolutionOutput(frame.size());
+			gPOptsRt->resolutionOutput.width = frame.size().width;
+			gPOptsRt->resolutionOutput.height = frame.size().height;
 		}
 
 		// translation
@@ -327,7 +370,7 @@ namespace frame {
 	void FrameProcessor::procAddTextOverlayCams(
 			cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams) {
 		if (gLastOutputCamsInt == -1 || gLastOutputCamsInt != (int8_t)outputCams) {
-			double scale = (double)gStaticOptionsStc.resolutionOutput.width / 1280.0;
+			double scale = (double)gPOptsRt->resolutionOutput.width / 1280.0;
 			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR, scale);
 			gLastOutputCamsInt = (int)outputCams;
 		}
@@ -339,7 +382,7 @@ namespace frame {
 			return;
 		}
 		if (gLastIsCalibratedInt == -1 || gLastIsCalibratedInt != (int8_t)isCalibrated) {
-			double scale = (double)gStaticOptionsStc.resolutionOutput.width / 1280.0;
+			double scale = (double)gPOptsRt->resolutionOutput.width / 1280.0;
 			gOtherSubProcTextCal.setText(
 					isCalibrated ? TEXT_CAL_TXT_ISCAL : TEXT_CAL_TXT_UNCAL,
 					TEXT_CAL_COORD + cv::Point(0, gOtherSubProcTextCams.getTextBottomY() + 5),

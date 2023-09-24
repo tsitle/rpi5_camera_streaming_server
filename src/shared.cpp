@@ -68,6 +68,15 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
+	void Shared::setRtOpts_resolutionOutput(const cv::Size &val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.resolutionOutput.width = val.width;
+		gThrVarRuntimeOptions.resolutionOutput.height = val.height;
+		thrLock.unlock();
+	}
+
 	void Shared::setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
@@ -182,6 +191,22 @@ namespace fcapshared {
 			cv::Point tmpPoint = val[x - 1];
 			gThrVarRuntimeOptions.procPtRectCorners[camId].push_back(tmpPoint);
 		}
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procRoiChanged(const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procRoiChanged = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procRoiSizePerc(const uint8_t val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procRoiSizePerc = val;
 		thrLock.unlock();
 	}
 

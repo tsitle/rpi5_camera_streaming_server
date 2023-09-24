@@ -63,9 +63,9 @@ namespace fcapcfgfile {
 					throw std::invalid_argument("invalid value for server_port");
 				}
 				///
-				gThrVarStaticOptions.resolutionOutput = getSizeFromString(
-						(std::string)(*pDefConfJson)["resolution_output"],
-						"resolution_output"
+				gThrVarStaticOptions.resolutionInputStream = getSizeFromString(
+						(std::string)(*pDefConfJson)["resolution_input_stream"],
+						"resolution_input_stream"
 					);
 				///
 				gThrVarStaticOptions.camL = getCamIdFromString(
@@ -108,6 +108,7 @@ namespace fcapcfgfile {
 				gThrVarStaticOptions.procEnabled.flip = (bool)(*pDefConfJson)["processing_enabled"]["flip"];
 				gThrVarStaticOptions.procEnabled.grid = (bool)(*pDefConfJson)["processing_enabled"]["grid"];
 				gThrVarStaticOptions.procEnabled.pt = (bool)(*pDefConfJson)["processing_enabled"]["pt"];
+				gThrVarStaticOptions.procEnabled.roi = (bool)(*pDefConfJson)["processing_enabled"]["roi"];
 				gThrVarStaticOptions.procEnabled.tr = (bool)(*pDefConfJson)["processing_enabled"]["tr"];
 				gThrVarStaticOptions.procEnabled.overlCam = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cam"];
 				gThrVarStaticOptions.procEnabled.overlCal = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cal"];
@@ -162,7 +163,7 @@ namespace fcapcfgfile {
 	void CfgFile::getDefaultStaticConfig(void **ppJsonObj) {
 		*((json**)ppJsonObj) = new json {
 				{"server_port", fcapsettings::DEFAULT_SERVER_PORT},
-				{"resolution_output", std::to_string(fcapsettings::DEFAULT_OUTPUT_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_OUTPUT_SZ.height)},
+				{"resolution_input_stream", std::to_string(fcapsettings::DEFAULT_INPUT_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_INPUT_SZ.height)},
 				{"camera_assignment", {
 						{"left", fcapconstants::CONFFILE_CAMID_0},
 						{"right", fcapconstants::CONFFILE_CAMID_1}
@@ -185,6 +186,7 @@ namespace fcapcfgfile {
 						{"flip", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"grid", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"pt", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
+						{"roi", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"tr", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"overlay_cam", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
 						{"overlay_cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING}

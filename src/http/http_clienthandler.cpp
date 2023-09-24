@@ -478,8 +478,8 @@ namespace http {
 				};
 
 			//
-			jsonObj["resolutionOutput_w"] = gHndCltData.staticOptionsStc.resolutionOutput.width;
-			jsonObj["resolutionOutput_h"] = gHndCltData.staticOptionsStc.resolutionOutput.height;
+			jsonObj["resolutionOutput_w"] = gHndCltData.rtOptsNew.resolutionOutput.width;
+			jsonObj["resolutionOutput_h"] = gHndCltData.rtOptsNew.resolutionOutput.height;
 			//
 			jsonObj["procBncAdjBrightness"] = gHndCltData.rtOptsNew.procBncAdjBrightness;
 			jsonObj["procBncAdjContrast"] = gHndCltData.rtOptsNew.procBncAdjContrast;
@@ -503,6 +503,8 @@ namespace http {
 							"-");
 				}
 			}
+			//
+			jsonObj["procRoiSizePerc"] = gHndCltData.rtOptsNew.procRoiSizePerc;
 			//
 			cv::Point tmpPntL = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camL];
 			cv::Point tmpPntR = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camR];

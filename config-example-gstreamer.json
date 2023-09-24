@@ -1,6 +1,6 @@
 {
 	"server_port": 8090,
-	"resolution_output": "1280x720",
+	"resolution_input_stream": "1280x720",
 	"camera_assignment": {
 		"left": "cam1",
 		"right": "cam0"
@@ -23,6 +23,7 @@
 		"flip": true,
 		"grid": true,
 		"pt": true,
+		"roi": true,
 		"tr": true,
 		"overlay_cam": true,
 		"overlay_cal": false

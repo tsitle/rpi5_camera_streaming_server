@@ -15,6 +15,7 @@ namespace fcapcfgfile {
 		bool flip;
 		bool grid;
 		bool pt;
+		bool roi;
 		bool tr;
 		bool overlCam;
 		bool overlCal;
@@ -29,6 +30,7 @@ namespace fcapcfgfile {
 			flip = true;
 			grid = true;
 			pt = true;
+			roi = true;
 			tr = true;
 			overlCam = true;
 			overlCal = true;
@@ -52,7 +54,7 @@ namespace fcapcfgfile {
 	struct StaticOptionsStc {
 		uint16_t serverPort;
 		cv::Size gstreamerResolutionCapture;
-		cv::Size resolutionOutput;
+		cv::Size resolutionInputStream;
 		uint8_t cameraFps;
 		fcapconstants::CamIdEn camL;
 		fcapconstants::CamIdEn camR;
@@ -73,7 +75,7 @@ namespace fcapcfgfile {
 		void reset() {
 			serverPort = fcapsettings::DEFAULT_SERVER_PORT;
 			gstreamerResolutionCapture = fcapsettings::DEFAULT_CAPTURE_SZ;
-			resolutionOutput = fcapsettings::DEFAULT_OUTPUT_SZ;
+			resolutionInputStream = fcapsettings::DEFAULT_INPUT_SZ;
 			cameraFps = fcapsettings::DEFAULT_FPS;
 			camL = fcapconstants::CamIdEn::CAM_0;
 			camR = fcapconstants::CamIdEn::CAM_1;

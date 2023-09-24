@@ -44,8 +44,9 @@ namespace framesubproc {
 
 			//
 
+			cv::Point translatePoint(const cv::Point &pnt);
 			void savePtDataToFile();
-			bool loadPtDataFromFile(cv::Size imageSize);
+			bool loadPtDataFromFile();
 			void deletePtDataFile();
 			std::string buildFnExtraQual();
 	};

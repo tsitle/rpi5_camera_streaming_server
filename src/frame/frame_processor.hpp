@@ -11,6 +11,7 @@
 #include "subprocessor/subproc_flip.hpp"
 #include "subprocessor/subproc_grid.hpp"
 #include "subprocessor/subproc_pt.hpp"
+#include "subprocessor/subproc_roi.hpp"
 #include "subprocessor/subproc_text.hpp"
 #include "subprocessor/subproc_tr.hpp"
 
@@ -37,6 +38,7 @@ namespace frame {
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
+			framesubproc::FrameSubProcessorRoi gOtherSubProcRoi;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
 			SubProcsStc gSubProcsL;

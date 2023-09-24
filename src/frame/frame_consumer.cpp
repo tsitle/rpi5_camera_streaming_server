@@ -65,8 +65,8 @@ namespace frame {
 	}
 
 	void FrameConsumer::runX2() {
-		cv::Mat frameL(gStaticOptionsStc.resolutionOutput, CV_8UC3);
-		cv::Mat frameR(gStaticOptionsStc.resolutionOutput, CV_8UC3);
+		cv::Mat frameL(gStaticOptionsStc.resolutionInputStream, CV_8UC3);
+		cv::Mat frameR(gStaticOptionsStc.resolutionInputStream, CV_8UC3);
 		uint32_t frameNr = 0;
 		char strBufPath[512];
 		char strBufFn[1024];

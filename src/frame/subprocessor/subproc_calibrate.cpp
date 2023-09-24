@@ -76,7 +76,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::loadData() {
-		gLoadedFromFile = loadCalibrationDataFromFile(gOutpFrameSz);
+		gLoadedFromFile = loadCalibrationDataFromFile();
 		if (gLoadedFromFile) {
 			gCalibrated = true;
 		}
@@ -191,7 +191,7 @@ namespace framesubproc {
 		}
 	}
 
-	bool FrameSubProcessorCalibrate::loadCalibrationDataFromFile(cv::Size imageSize) {
+	bool FrameSubProcessorCalibrate::loadCalibrationDataFromFile() {
 		if (gLoadedFromFile || gLoadFromFileFailed) {
 			return false;
 		}
@@ -209,7 +209,7 @@ namespace framesubproc {
 		int cfileInt;
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("CAL", imageSize, fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header("CAL", fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -257,7 +257,9 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::deleteCalibrationDataFile() {
-		deleteDataFile("CAL", "");
+		std::string outpFn = buildDataFilename("CAL", "");
+
+		deleteDataFile("CAL", outpFn);
 		gLoadedFromFile = false;
 		gCalibrationDataStc.reset();
 	}

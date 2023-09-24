@@ -28,6 +28,7 @@ namespace http {
 					{"/proc/cal/reset", &HandleRouteGet::_handleRoute_PROC_CAL_RESET},
 					{"/proc/pt/rect_corner", &HandleRouteGet::_handleRoute_PROC_PT_RECTCORNER},
 					{"/proc/pt/reset", &HandleRouteGet::_handleRoute_PROC_PT_RESET},
+					{"/proc/roi/size", &HandleRouteGet::_handleRoute_PROC_ROI_SIZE},
 					{"/proc/tr/delta/L", &HandleRouteGet::_handleRoute_PROC_TR_DELTA_L},
 					{"/proc/tr/delta/R", &HandleRouteGet::_handleRoute_PROC_TR_DELTA_R},
 					{"/proc/tr/reset", &HandleRouteGet::_handleRoute_PROC_TR_RESET},
@@ -55,6 +56,7 @@ namespace http {
 			bool _handleRoute_PROC_CAL_RESET();
 			bool _handleRoute_PROC_PT_RECTCORNER();
 			bool _handleRoute_PROC_PT_RESET();
+			bool _handleRoute_PROC_ROI_SIZE();
 			bool __handleRoute_PROC_TR_DELTA_x(fcapconstants::CamIdEn camId);
 			bool _handleRoute_PROC_TR_DELTA_L();
 			bool _handleRoute_PROC_TR_DELTA_R();

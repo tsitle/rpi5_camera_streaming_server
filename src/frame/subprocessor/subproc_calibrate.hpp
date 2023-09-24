@@ -72,7 +72,7 @@ namespace framesubproc {
 			void findCorners(cv::Mat &frame, bool &foundCorners, std::vector<cv::Point2f> &corners);
 			bool calibrate(cv::Mat &frame);
 			void renderUndistorted(cv::Mat &frame);
-			bool loadCalibrationDataFromFile(cv::Size imageSize);
+			bool loadCalibrationDataFromFile();
 			void deleteCalibrationDataFile();
 			//
 			bool _calibrateAndSaveToFile(

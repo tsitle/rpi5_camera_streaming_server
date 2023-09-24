@@ -14,6 +14,7 @@ namespace fcapshared {
 	struct RuntimeOptionsStc {
 		fcapconstants::OutputCamsEn outputCams;
 		uint8_t cameraFps;
+		cv::Size resolutionOutput;
 		std::map<fcapconstants::CamIdEn, bool> cameraReady;
 		std::map<fcapconstants::CamIdEn, bool> procBncChanged;
 		int16_t procBncAdjBrightness;
@@ -27,6 +28,8 @@ namespace fcapshared {
 		std::map<fcapconstants::CamIdEn, bool> procPtDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procPtChanged;
 		std::map<fcapconstants::CamIdEn, std::vector<cv::Point>> procPtRectCorners;
+		bool procRoiChanged;
+		uint8_t procRoiSizePerc;
 		std::map<fcapconstants::CamIdEn, bool> procTrDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procTrChanged;
 		std::map<fcapconstants::CamIdEn, cv::Point> procTrDelta;
@@ -38,11 +41,15 @@ namespace fcapshared {
 		void reset() {
 			outputCams = fcapconstants::OutputCamsEn::CAM_L;
 			cameraFps = 0;
+			resolutionOutput = cv::Size(0, 0);
 			//
 			procBncAdjBrightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
 			procBncAdjContrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
 			//
 			procCalShowCalibChessboardPoints = fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS;
+			//
+			procRoiChanged = false;
+			procRoiSizePerc = 100;
 			//
 			_resetForCamId(fcapconstants::CamIdEn::CAM_0);
 			_resetForCamId(fcapconstants::CamIdEn::CAM_1);
@@ -79,6 +86,7 @@ namespace fcapshared {
 			///
 			static void setRtOpts_outputCams(const fcapconstants::OutputCamsEn val);
 			static void setRtOpts_cameraFps(const uint8_t val);
+			static void setRtOpts_resolutionOutput(const cv::Size &val);
 			static void setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val);
 			///
 			static void setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val);
@@ -95,6 +103,9 @@ namespace fcapshared {
 			static void setRtOpts_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procPtChanged(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
+			///
+			static void setRtOpts_procRoiChanged(const bool val);
+			static void setRtOpts_procRoiSizePerc(const uint8_t val);
 			///
 			static void setRtOpts_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procTrChanged(const fcapconstants::CamIdEn camId, const bool val);
