@@ -47,6 +47,7 @@ namespace framesubproc {
 			//
 
 			cv::Point translatePoint(const cv::Point &pnt);
+			cv::Point getUntranslatedCorner(const uint8_t ix);
 			void savePtDataToFile();
 			bool loadPtDataFromFile();
 			void deletePtDataFile();

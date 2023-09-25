@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "../../settings.hpp"
 #include "../../shared.hpp"
 #include "subproc_pt.hpp"
@@ -38,47 +40,28 @@ namespace framesubproc {
 			gHaveSomeCorners = true;
 		}
 		if (gOptRectCorners.size() == fcapconstants::PROC_PT_RECTCORNERS_MAX) {
-			uint8_t ixPnt1a = 0;
-			uint8_t ixPnt2a = 1;
-			uint8_t ixPnt3a = 2;
-			uint8_t ixPnt4a = 3;
-			if (gStaticOptionsStc.procEnabled.flip) {
-				if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
-					ixPnt1a = 2;
-					ixPnt2a = 3;
-					ixPnt3a = 0;
-					ixPnt4a = 1;
-				} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-					ixPnt1a = 1;
-					ixPnt2a = 0;
-					ixPnt3a = 3;
-					ixPnt4a = 2;
-				} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-					ixPnt1a = 3;
-					ixPnt2a = 2;
-					ixPnt3a = 1;
-					ixPnt4a = 0;
-				}
-			}
-			// compute destination rectangle corners
-			cv::Point tmpPoint1 = gOptRectCorners[ixPnt1a];
-			cv::Point tmpPoint2 = gOptRectCorners[ixPnt2a];
-			cv::Point tmpPoint3 = gOptRectCorners[ixPnt3a];
+			cv::Point tmpPoint1 = translatePoint(getUntranslatedCorner(0));
+			cv::Point tmpPoint2 = translatePoint(getUntranslatedCorner(1));
+			cv::Point tmpPoint3 = translatePoint(getUntranslatedCorner(2));
+			cv::Point tmpPoint4 = translatePoint(getUntranslatedCorner(3));
 
+			// store source rectangle corners
+			gPtDataStc.ptsSrc[0] = tmpPoint1;
+			gPtDataStc.ptsSrc[1] = tmpPoint2;
+			gPtDataStc.ptsSrc[2] = tmpPoint3;
+			gPtDataStc.ptsSrc[3] = tmpPoint4;
+
+			// compute destination rectangle corners
 			gOptRectCorners.push_back(cv::Point(tmpPoint1.x, tmpPoint1.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint1.x, tmpPoint2.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint1.y));
 			gOptRectCorners.push_back(cv::Point(tmpPoint3.x, tmpPoint2.y));
-			// store source rectangle corners
-			gPtDataStc.ptsSrc[0] = translatePoint(gOptRectCorners[ixPnt1a]);
-			gPtDataStc.ptsSrc[1] = translatePoint(gOptRectCorners[ixPnt2a]);
-			gPtDataStc.ptsSrc[2] = translatePoint(gOptRectCorners[ixPnt3a]);
-			gPtDataStc.ptsSrc[3] = translatePoint(gOptRectCorners[ixPnt4a]);
+
 			// store destination rectangle corners
-			gPtDataStc.ptsDst[0] = translatePoint(gOptRectCorners[0 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
-			gPtDataStc.ptsDst[1] = translatePoint(gOptRectCorners[1 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
-			gPtDataStc.ptsDst[2] = translatePoint(gOptRectCorners[2 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
-			gPtDataStc.ptsDst[3] = translatePoint(gOptRectCorners[3 + fcapconstants::PROC_PT_RECTCORNERS_MAX]);
+			gPtDataStc.ptsDst[0] = gOptRectCorners[0 + fcapconstants::PROC_PT_RECTCORNERS_MAX];
+			gPtDataStc.ptsDst[1] = gOptRectCorners[1 + fcapconstants::PROC_PT_RECTCORNERS_MAX];
+			gPtDataStc.ptsDst[2] = gOptRectCorners[2 + fcapconstants::PROC_PT_RECTCORNERS_MAX];
+			gPtDataStc.ptsDst[3] = gOptRectCorners[3 + fcapconstants::PROC_PT_RECTCORNERS_MAX];
 			//
 			gHaveAllCorners = true;
 		}
@@ -145,6 +128,39 @@ namespace framesubproc {
 			}
 			return;
 		}
+		//
+		/**
+		cv::Point tmpLastPoint = cv::Point(-1, -1);
+		for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
+			cv::Point tmpPoint = gPtDataStc.ptsSrc[x - 1];
+			cv::Scalar tmpColor;
+			switch (x) {
+				case 1:
+					tmpColor = cv::Scalar(255, 0, 0);  // blue
+					break;
+				case 2:
+					tmpColor = cv::Scalar(0, 255, 0);  // green
+					break;
+				case 3:
+					tmpColor = cv::Scalar(0, 0, 255);  // red
+					break;
+				default:
+					tmpColor = cv::Scalar(255, 0, 255);  // purple
+			}
+			cv::circle(frame, tmpPoint, 5, tmpColor, -1);
+			if (tmpLastPoint != cv::Point(-1, -1)) {
+				cv::line(
+						frame,
+						tmpLastPoint,
+						tmpPoint,
+						cv::Scalar(0, 255, 255),
+						1
+					);
+			}
+			tmpLastPoint = tmpPoint;
+		}
+		**/
+		//
 		cv::Mat transMatrix = cv::getPerspectiveTransform(gPtDataStc.ptsSrc, gPtDataStc.ptsDst);
 		cv::Mat frameIn = frame.clone();
 		frame = cv::Mat();
@@ -178,11 +194,21 @@ namespace framesubproc {
 
 		if (gStaticOptionsStc.procEnabled.flip) {
 			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = imgRotW - 1 - resPnt.x;
-				resPnt.y = resPnt.y;
+				if (gStaticOptionsStc.procEnabled.roi) {
+					resPnt.x = resPnt.x;
+					resPnt.y = imgRotH - 1 - resPnt.y;
+				} else {
+					resPnt.x = imgRotW - 1 - resPnt.x;
+					resPnt.y = resPnt.y;
+				}
 			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = resPnt.x;
-				resPnt.y = imgRotH - 1 - resPnt.y;
+				if (gStaticOptionsStc.procEnabled.roi) {
+					resPnt.x = imgRotW - 1 - resPnt.x;
+					resPnt.y = resPnt.y;
+				} else {
+					resPnt.x = resPnt.x;
+					resPnt.y = imgRotH - 1 - resPnt.y;
+				}
 			} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
 				resPnt.x = imgRotW - 1 - resPnt.x;
 				resPnt.y = imgRotH - 1 - resPnt.y;
@@ -223,6 +249,73 @@ namespace framesubproc {
 			/**std::cout << resPnt << std::endl;**/
 		}
 		return resPnt;
+	}
+
+	cv::Point FrameSubProcessorPerspectiveTransf::getUntranslatedCorner(const uint8_t ix) {
+		uint8_t ixPnt1a = 0;
+		uint8_t ixPnt2a = 1;
+		uint8_t ixPnt3a = 2;
+		uint8_t ixPnt4a = 3;
+
+		if (gOptRectCorners.size() < fcapconstants::PROC_PT_RECTCORNERS_MAX) {
+			throw std::invalid_argument("gOptRectCorners incomplete");
+		}
+
+		if (gStaticOptionsStc.procEnabled.flip &&
+				gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
+			if (gStaticOptionsStc.procEnabled.roi) {
+				ixPnt1a = 0;
+				ixPnt2a = 2;
+				ixPnt3a = 1;
+				ixPnt4a = 3;
+			} else {
+				ixPnt1a = 2;
+				ixPnt2a = 3;
+				ixPnt3a = 0;
+				ixPnt4a = 1;
+			}
+		} else if (gStaticOptionsStc.procEnabled.flip &&
+				! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+			if (gStaticOptionsStc.procEnabled.roi) {
+				ixPnt1a = 3;
+				ixPnt2a = 1;
+				ixPnt3a = 2;
+				ixPnt4a = 0;
+			} else {
+				ixPnt1a = 1;
+				ixPnt2a = 0;
+				ixPnt3a = 3;
+				ixPnt4a = 2;
+			}
+		} else if (gStaticOptionsStc.procEnabled.flip &&
+				gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+			if (gStaticOptionsStc.procEnabled.roi) {
+				ixPnt1a = 2;
+				ixPnt2a = 0;
+				ixPnt3a = 3;
+				ixPnt4a = 1;
+			} else {
+				ixPnt1a = 3;
+				ixPnt2a = 2;
+				ixPnt3a = 1;
+				ixPnt4a = 0;
+			}
+		} else if (gStaticOptionsStc.procEnabled.roi) {
+			ixPnt1a = 1;
+			ixPnt2a = 3;
+			ixPnt3a = 0;
+			ixPnt4a = 2;
+		}
+		switch (ix) {
+			case 0:
+				return gOptRectCorners[ixPnt1a];
+			case 1:
+				return gOptRectCorners[ixPnt2a];
+			case 2:
+				return gOptRectCorners[ixPnt3a];
+			default:
+				return gOptRectCorners[ixPnt4a];
+		}
 	}
 
 	void FrameSubProcessorPerspectiveTransf::savePtDataToFile() {
@@ -278,7 +371,7 @@ namespace framesubproc {
 		gPtDataStc.reset();
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
 			loadDataFromFile_point2f(fs, "pt_points_src", x, gPtDataStc.ptsSrc[x]);
-			gOptRectCorners.push_back(gPtDataStc.ptsSrc[x]);
+			gOptRectCorners.push_back(cv::Point(x * 10 + 100, x * 10 + 100));  // dummy
 		}
 		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
 			loadDataFromFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
@@ -299,6 +392,21 @@ namespace framesubproc {
 
 	std::string FrameSubProcessorPerspectiveTransf::buildFnExtraQual() {
 		std::string extraQual = (gStaticOptionsStc.procEnabled.cal ? "wcal" : "");
+
+		if (gStaticOptionsStc.procEnabled.roi) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wroi");
+		}
+		if (gStaticOptionsStc.procEnabled.flip &&
+				(gStaticOptionsStc.flip[gCamId].hor || gStaticOptionsStc.flip[gCamId].ver)) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wflip");
+			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
+				extraQual += "H";
+			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+				extraQual += "V";
+			} else {
+				extraQual += "B";
+			}
+		}
 		return extraQual;
 	}
 
