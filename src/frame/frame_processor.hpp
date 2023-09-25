@@ -33,7 +33,7 @@ namespace frame {
 			FrameProcessor();
 			~FrameProcessor();
 			void setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt);
-			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut);
+			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr);
 
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
@@ -61,6 +61,7 @@ namespace frame {
 			void procAddTextOverlayCams(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
 			void procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated);
 			bool checkFrameSize(const cv::Mat *pFrame, const std::string camName);
+			void renderMasterOutput(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr);
 	};
 
 }  // namespace frame

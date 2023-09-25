@@ -175,13 +175,13 @@ namespace frame {
 					// process frames
 					if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 						pFrameOut = &frameL;
-						gFrameProcessor.processFrame(&frameL, NULL, pFrameOut);
+						gFrameProcessor.processFrame(&frameL, NULL, pFrameOut, frameNr);
 					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 						pFrameOut = &frameR;
-						gFrameProcessor.processFrame(NULL, &frameR, pFrameOut);
+						gFrameProcessor.processFrame(NULL, &frameR, pFrameOut, frameNr);
 					} else {
 						pFrameOut = &frameBlended;
-						gFrameProcessor.processFrame(&frameL, &frameR, pFrameOut);
+						gFrameProcessor.processFrame(&frameL, &frameR, pFrameOut, frameNr);
 					}
 
 					// output the resulting frame

@@ -50,7 +50,7 @@ namespace frame {
 		updateSubProcsSettings();
 	}
 
-	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut) {
+	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr) {
 		// check frame size
 		if (pFrameL != NULL && ! checkFrameSize(pFrameL, "CAM_L")) {
 			return;
@@ -88,7 +88,8 @@ namespace frame {
 			pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
 		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
-			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, *pFrameOut, -1);
+
+			renderMasterOutput(pFrameL, pFrameR, pFrameOut, frameNr);
 		}
 
 		// add text overlays
@@ -414,6 +415,54 @@ namespace frame {
 				")");
 		fcapshared::Shared::setFlagNeedToStop();
 		return false;
+	}
+
+	void FrameProcessor::renderMasterOutput(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr) {
+		/**auto timeStart = std::chrono::steady_clock::now();**/
+
+		if (fcapsettings::SPLITVIEW_FOR_CAMBOTH) {
+			/**
+			 * split view rendering is faster than blended view rendering
+			 */
+			const int32_t centerX = gPOptsRt->resolutionOutput.width / 2;
+			const cv::Range rowRange(0, gPOptsRt->resolutionOutput.height);
+			const cv::Range colRangeL(0, centerX);
+			const cv::Range colRangeR = cv::Range(centerX, gPOptsRt->resolutionOutput.width);
+
+			*pFrameOut = cv::Mat(gPOptsRt->resolutionOutput.height, gPOptsRt->resolutionOutput.width, CV_8UC3);
+			//
+			cv::Mat insetImageForL(
+					*pFrameOut,
+					cv::Rect(0, 0, centerX, gPOptsRt->resolutionOutput.height)
+				);
+			(*pFrameL)(rowRange, colRangeL).copyTo(insetImageForL);
+			//
+			cv::Mat insetImageForR = cv::Mat(
+					*pFrameOut,
+					cv::Rect(centerX, 0, centerX + 1, gPOptsRt->resolutionOutput.height)
+				);
+			(*pFrameR)(rowRange, colRangeR).copyTo(insetImageForR);
+			//
+			cv::line(
+					*pFrameOut,
+					cv::Point(centerX, 0),
+					cv::Point(centerX, gPOptsRt->resolutionOutput.height - 1),
+					cv::Scalar(255, 255, 255),
+					1
+				);
+		} else {
+			/**
+			 * blended view rendering takes about 2.5 times longer than split view rendering
+			 */
+			cv::addWeighted(*pFrameL, /*alpha:*/0.5, *pFrameR, /*beta:*/0.5, /*gamma:*/0, *pFrameOut, -1);
+		}
+
+		/**auto timeEnd = std::chrono::steady_clock::now();
+		if ((frameNr % 10) == 0) {
+			log("blend: Elapsed time: " +
+					std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) +
+					" us");
+		}**/
 	}
 
 }  // namespace frame

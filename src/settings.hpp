@@ -30,6 +30,10 @@ namespace fcapsettings {
 
 	const uint8_t QUEUE_SIZE = 5;  // higher values result in higher latency
 
+	const bool SPLITVIEW_FOR_CAMBOTH = true;  // use split view instead of blended view when both cameras are enabled?
+
+	//
+
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_COL = 4;  // since the image is rotated 90 degress when calibrating, columns and rows need to be swapped here
 	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_ROW = 6;
 	const float CALIB_CHESS_SQUARES_WIDTH_MM = 5.0;  // mm
@@ -41,7 +45,7 @@ namespace fcapsettings {
 	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;
 
 	const bool PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS = false;
-	const bool PROC_CAL_UNDISTORT = false;  // roughly doubles the CPU load
+	const bool PROC_CAL_UNDISTORT = false;  // roughly doubles the CPU load if enabled
 
 }  // namespace fcapsettings
 
