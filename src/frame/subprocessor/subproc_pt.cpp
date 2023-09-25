@@ -15,7 +15,7 @@ namespace framesubproc {
 			gWriteToFileFailed(false) {
 	}
 
-	void FrameSubProcessorPerspectiveTransf::setRectCorners(const std::vector<cv::Point> &val) {
+	void FrameSubProcessorPerspectiveTransf::setManualRectCorners(const std::vector<cv::Point> &val) {
 		uint8_t inpValSz = val.size();
 		bool haveChanged = (inpValSz != gOptRectCorners.size());
 
@@ -35,8 +35,7 @@ namespace framesubproc {
 		gHaveSomeCorners = false;
 		gOptRectCorners.clear();
 		for (uint8_t x = 1; x <= inpValSz && x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-			cv::Point tmpPoint = val[x - 1];
-			gOptRectCorners.push_back(tmpPoint);
+			gOptRectCorners.push_back(val[x - 1]);
 			gHaveSomeCorners = true;
 		}
 		if (gOptRectCorners.size() == fcapconstants::PROC_PT_RECTCORNERS_MAX) {
@@ -75,7 +74,48 @@ namespace framesubproc {
 		}
 	}
 
-	std::vector<cv::Point> FrameSubProcessorPerspectiveTransf::getRectCorners() {
+	void FrameSubProcessorPerspectiveTransf::setCalRectCorners(const std::vector<cv::Point> &val) {
+		gOptRectCorners.clear();
+		if (val.size() != fcapconstants::PROC_PT_RECTCORNERS_MAX) {
+			gHaveAllCorners = false;
+			gHaveSomeCorners = false;
+			if (gLoadedFromFile) {
+				deletePtDataFile();
+			}
+			return;
+		}
+		//
+		cv::Point tmpPoint1 = val[0];
+		cv::Point tmpPoint2 = val[1];
+		cv::Point tmpPoint3 = val[2];
+		cv::Point tmpPoint4 = val[3];
+
+		//
+		for (uint8_t x = 0; x < fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
+			gOptRectCorners.push_back(cv::Point(x + 1, x + 1));  // dummy
+		}
+
+		// store source rectangle corners
+		gPtDataStc.ptsSrc[0] = tmpPoint1;
+		gPtDataStc.ptsSrc[1] = tmpPoint2;
+		gPtDataStc.ptsSrc[2] = tmpPoint3;
+		gPtDataStc.ptsSrc[3] = tmpPoint4;
+
+		// compute and store destination rectangle corners
+		gPtDataStc.ptsDst[0] = cv::Point(tmpPoint1.x, tmpPoint1.y);
+		gPtDataStc.ptsDst[1] = cv::Point(tmpPoint1.x, tmpPoint2.y);
+		gPtDataStc.ptsDst[2] = cv::Point(tmpPoint3.x, tmpPoint1.y);
+		gPtDataStc.ptsDst[3] = cv::Point(tmpPoint3.x, tmpPoint2.y);
+
+		//
+		gHaveSomeCorners = true;
+		gHaveAllCorners = true;
+		gLoadedFromFile = false;
+		gLoadFromFileFailed = false;
+		savePtDataToFile();
+	}
+
+	std::vector<cv::Point> FrameSubProcessorPerspectiveTransf::getManualRectCorners() {
 		std::vector<cv::Point> resV;
 		uint8_t inpValSz = gOptRectCorners.size();
 

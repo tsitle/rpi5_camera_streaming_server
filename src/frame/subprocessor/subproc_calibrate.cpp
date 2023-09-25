@@ -65,6 +65,56 @@ namespace framesubproc {
 		return gCalibrated;
 	}
 
+	std::vector<cv::Point> FrameSubProcessorCalibrate::getRectCorners() {
+		std::vector<cv::Point> resVect;
+
+		if (! gCalibrated) {
+			log("CAL", "not calibrated");
+			return resVect;
+		}
+		if (gCalibrationDataStc.imagePoints.empty()) {
+			log("CAL", "missing imagePoints");
+			return resVect;
+		}
+
+		const uint8_t rowCnt = fcapsettings::CALIB_CHESS_SQUARES_INNERCORNERS_ROW;
+		const uint8_t colCnt = fcapsettings::CALIB_CHESS_SQUARES_INNERCORNERS_COL;
+		std::vector<cv::Point2f> lastPnts = gCalibrationDataStc.imagePoints.back();
+
+		if (lastPnts.size() < rowCnt * colCnt) {
+			log("CAL", "invalid vector size (is:" +
+					std::to_string(lastPnts.size()) +
+					", exp=" +
+					std::to_string(rowCnt * colCnt) + ")");
+			return resVect;
+		}
+		resVect.push_back(
+				cv::Point(
+						(int32_t)lastPnts[rowCnt * (colCnt - 1)].x,
+						(int32_t)lastPnts[rowCnt * (colCnt - 1)].y
+					)
+			);
+		resVect.push_back(
+				cv::Point(
+						(int32_t)lastPnts[(rowCnt * colCnt) - 1].x,
+						(int32_t)lastPnts[(rowCnt * colCnt) - 1].y
+					)
+			);
+		resVect.push_back(
+				cv::Point(
+						(int32_t)lastPnts[0].x,
+						(int32_t)lastPnts[0].y
+					)
+			);
+		resVect.push_back(
+				cv::Point(
+						(int32_t)lastPnts[rowCnt - 1].x,
+						(int32_t)lastPnts[rowCnt - 1].y
+					)
+			);
+		return resVect;
+	}
+
 	void FrameSubProcessorCalibrate::resetData() {
 		gCalibrated = false;
 		if (gLoadedFromFile) {

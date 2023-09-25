@@ -209,7 +209,7 @@ namespace frame {
 		}
 		//
 		if (gStaticOptionsStc.procEnabled.pt && gPOptsRt->procPtChanged[subProcsStc.camId]) {
-			subProcsStc.pt.setRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
+			subProcsStc.pt.setManualRectCorners(gPOptsRt->procPtRectCorners[subProcsStc.camId]);
 			subProcsStc.pt.setRoiOutputSz(gRoiOutputSz);
 			//
 			fcapshared::Shared::setRtOpts_procPtChanged(subProcsStc.camId, false);
@@ -291,11 +291,18 @@ namespace frame {
 				gPOptsRt->procTrDoReset[subProcsStc.camId] = true;
 			} else {
 				tmpBool = ! subProcsStc.pt.getNeedRectCorners();
+				if (! tmpBool && gStaticOptionsStc.procEnabled.cal && subProcsStc.cal.getIsCalibrated()) {
+					std::vector<cv::Point> tmpCalCorners = subProcsStc.cal.getRectCorners();
+
+					subProcsStc.pt.setCalRectCorners(tmpCalCorners);
+					tmpBool = true;
+					gPOptsRt->procPtDone[subProcsStc.camId] = ! tmpBool;
+				}
 				if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
 					fcapshared::Shared::setRtOpts_procPtDone(subProcsStc.camId, tmpBool);
 					gPOptsRt->procPtDone[subProcsStc.camId] = tmpBool;
 					//
-					std::vector<cv::Point> tmpCorners = subProcsStc.pt.getRectCorners();
+					std::vector<cv::Point> tmpCorners = subProcsStc.pt.getManualRectCorners();
 					fcapshared::Shared::setRtOpts_procPtRectCorners(subProcsStc.camId, tmpCorners);
 					gPOptsRt->procPtRectCorners[subProcsStc.camId] = tmpCorners;
 				}

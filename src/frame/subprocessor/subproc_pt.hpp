@@ -26,8 +26,9 @@ namespace framesubproc {
 	class FrameSubProcessorPerspectiveTransf : public FrameSubProcessor {
 		public:
 			FrameSubProcessorPerspectiveTransf();
-			void setRectCorners(const std::vector<cv::Point> &val);
-			std::vector<cv::Point> getRectCorners();
+			void setManualRectCorners(const std::vector<cv::Point> &val);
+			void setCalRectCorners(const std::vector<cv::Point> &val);
+			std::vector<cv::Point> getManualRectCorners();
 			bool getNeedRectCorners();
 			void setRoiOutputSz(const cv::Size &val);
 			void resetData();
