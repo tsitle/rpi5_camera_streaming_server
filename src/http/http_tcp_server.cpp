@@ -206,13 +206,25 @@ namespace http {
 	// -----------------------------------------------------------------------------
 
 	bool TcpServer::startServer() {
+		const uint8_t MAX_TRIES = 20;
+		uint8_t tries = MAX_TRIES;
+
 		gServerSocket = ::socket(AF_INET, SOCK_STREAM, 0);
 		if (gServerSocket < 0) {
 			exitWithError("Cannot create socket");
 			return false;
 		}
 
-		if (::bind(gServerSocket, (sockaddr*)&gServerSocketAddress, gServerLenSocketAddr) < 0) {
+		while (tries-- != 0) {
+			if (::bind(gServerSocket, (sockaddr*)&gServerSocketAddress, gServerLenSocketAddr) >= 0) {
+				break;
+			}
+			if (tries != 0) {
+				log("address blocked (TCP port " + std::to_string(gServerPort) + "). waiting...");
+				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+			}
+		}
+		if (tries == 0) {
 			exitWithError("Cannot connect socket to address");
 			return false;
 		}
