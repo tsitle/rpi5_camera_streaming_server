@@ -31,12 +31,12 @@
 	"enable_adaptive_fps": true,
 	"flip": {
 		"cam0": {
-			"horizontal": false,
-			"vertical": false
-		},
-		"cam1": {
 			"horizontal": true,
 			"vertical": true
+		},
+		"cam1": {
+			"horizontal": false,
+			"vertical": false
 		}
 	}
 }
