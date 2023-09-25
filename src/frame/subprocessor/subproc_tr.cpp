@@ -131,8 +131,23 @@ namespace framesubproc {
 
 	std::string FrameSubProcessorTranslation::buildFnExtraQual() {
 		std::string extraQual = (gStaticOptionsStc.procEnabled.cal ? "wcal" : "");
+
+		if (gStaticOptionsStc.procEnabled.roi) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wroi");
+		}
 		if (gStaticOptionsStc.procEnabled.pt) {
 			extraQual += (extraQual.empty() ? "" : "_") + std::string("wpt");
+		}
+		if (gStaticOptionsStc.procEnabled.flip &&
+				(gStaticOptionsStc.flip[gCamId].hor || gStaticOptionsStc.flip[gCamId].ver)) {
+			extraQual += (extraQual.empty() ? "" : "_") + std::string("wflip");
+			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
+				extraQual += "H";
+			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
+				extraQual += "V";
+			} else {
+				extraQual += "B";
+			}
 		}
 		return extraQual;
 	}
