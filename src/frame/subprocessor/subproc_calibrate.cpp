@@ -117,7 +117,9 @@ namespace framesubproc {
 					);
 			}
 			//
-			renderUndistorted(frame);
+			if (fcapsettings::PROC_CAL_UNDISTORT) {
+				renderUndistorted(frame);
+			}
 		}
 	}
 

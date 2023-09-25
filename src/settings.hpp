@@ -41,6 +41,7 @@ namespace fcapsettings {
 	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;
 
 	const bool PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS = false;
+	const bool PROC_CAL_UNDISTORT = false;  // roughly doubles the CPU load
 
 }  // namespace fcapsettings
 
