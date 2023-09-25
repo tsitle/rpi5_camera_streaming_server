@@ -60,6 +60,7 @@ namespace frame {
 			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);
 			void procAddTextOverlayCams(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
 			void procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated);
+			bool checkFrameSize(const cv::Mat *pFrame, const std::string camName);
 	};
 
 }  // namespace frame

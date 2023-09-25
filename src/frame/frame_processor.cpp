@@ -52,16 +52,10 @@ namespace frame {
 
 	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut) {
 		// check frame size
-		if (pFrameL != NULL &&
-				(pFrameL->size().width != gStaticOptionsStc.resolutionInputStream.width ||
-					pFrameL->size().height != gStaticOptionsStc.resolutionInputStream.height)) {
-			log("input frame size CAM_L doesn't match resolutionInputStream");
+		if (pFrameL != NULL && ! checkFrameSize(pFrameL, "CAM_L")) {
 			return;
 		}
-		if (pFrameR != NULL &&
-				(pFrameR->size().width != gStaticOptionsStc.resolutionInputStream.width ||
-					pFrameR->size().height != gStaticOptionsStc.resolutionInputStream.height)) {
-			log("input frame size CAM_R doesn't match resolutionInputStream");
+		if (pFrameR != NULL && ! checkFrameSize(pFrameR, "CAM_R")) {
 			return;
 		}
 
@@ -397,6 +391,22 @@ namespace frame {
 			gLastOverlCalResolutionOutpW = gPOptsRt->resolutionOutput.width;
 		}
 		gOtherSubProcTextCal.processFrame(frameOut);
+	}
+
+	bool FrameProcessor::checkFrameSize(const cv::Mat *pFrame, const std::string camName) {
+		if (pFrame->size().width == gStaticOptionsStc.resolutionInputStream.width &&
+				pFrame->size().height == gStaticOptionsStc.resolutionInputStream.height) {
+			return true;
+		}
+		log("Error: input frame size " + camName + " doesn't match resolutionInputStream (is:" +
+				std::to_string(pFrame->size().width) + "x" +
+				std::to_string(pFrame->size().height) +
+				", exp:" +
+				std::to_string(gStaticOptionsStc.resolutionInputStream.width) + "x" +
+				std::to_string(gStaticOptionsStc.resolutionInputStream.height) +
+				")");
+		fcapshared::Shared::setFlagNeedToStop();
+		return false;
 	}
 
 }  // namespace frame
