@@ -34,7 +34,8 @@ namespace fcapshared {
 		uint8_t procRoiSizePerc;
 		std::map<fcapconstants::CamIdEn, bool> procTrDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procTrChanged;
-		std::map<fcapconstants::CamIdEn, cv::Point> procTrDelta;
+		std::map<fcapconstants::CamIdEn, cv::Point> procTrFixDelta;
+		std::map<fcapconstants::CamIdEn, cv::Point> procTrDynDelta;
 
 		RuntimeOptionsStc() {
 			reset();
@@ -75,7 +76,8 @@ namespace fcapshared {
 			//
 			procTrDoReset[camId] = false;
 			procTrChanged[camId] = false;
-			procTrDelta[camId] = cv::Point();
+			procTrFixDelta[camId] = cv::Point();
+			procTrDynDelta[camId] = cv::Point();
 		}
 	};
 
@@ -115,7 +117,8 @@ namespace fcapshared {
 			///
 			static void setRtOpts_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procTrChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
+			static void setRtOpts_procTrFixDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
+			static void setRtOpts_procTrDynDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
 			//
 			static bool fileExists(const std::string &fname);
 

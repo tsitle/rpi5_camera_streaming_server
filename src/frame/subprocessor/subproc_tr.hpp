@@ -31,16 +31,18 @@ namespace framesubproc {
 	class FrameSubProcessorTranslation : public FrameSubProcessor {
 		public:
 			FrameSubProcessorTranslation();
-			void setDelta(const int32_t valDx, const int32_t valDy);
-			void getDelta(int32_t &valDx, int32_t &valDy);
+			void setFixDelta(const int32_t valDx, const int32_t valDy);
+			void getFixDelta(int32_t &valDx, int32_t &valDy);
+			void setDynDelta(const int32_t valDx, const int32_t valDy);
 			void resetData();
 			void loadData();
 			void processFrame(cv::Mat &frame);
 		
 		private:
 			const TrDataStc EMPTY_TR_DATA = TrDataStc(0, 0);
-			TrDataStc gTrDataStc;
-			TrDataStc gLastTrDataStc;
+			TrDataStc gTrDataFixStc;
+			TrDataStc gLastTrDataFixStc;
+			TrDataStc gTrDataDynStc;
 			bool gLoadedFromFile;
 			bool gLoadFromFileFailed;
 			bool gWriteToFileFailed;
@@ -48,6 +50,7 @@ namespace framesubproc {
 
 			//
 
+			void updateTranslMtx();
 			void saveTrDataToFile();
 			bool loadTrDataFromFile();
 			void deleteTrDataFile();

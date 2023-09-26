@@ -242,11 +242,19 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRtOpts_procTrDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
+	void Shared::setRtOpts_procTrFixDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
-		gThrVarRuntimeOptions.procTrDelta[camId] = val;
+		gThrVarRuntimeOptions.procTrFixDelta[camId] = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procTrDynDelta(const fcapconstants::CamIdEn camId, const cv::Point val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procTrDynDelta[camId] = val;
 		thrLock.unlock();
 	}
 

@@ -18,22 +18,27 @@ namespace framesubproc {
 		gTransMatrix.at<double>(1, 2) = 0.0;
 	}
 
-	void FrameSubProcessorTranslation::setDelta(const int32_t valDx, const int32_t valDy) {
-		gTrDataStc.dx = valDx;
-		gTrDataStc.dy = valDy;
-		if (! gTrDataStc.equal(gLastTrDataStc)) {
+	void FrameSubProcessorTranslation::setFixDelta(const int32_t valDx, const int32_t valDy) {
+		gTrDataFixStc.dx = valDx;
+		gTrDataFixStc.dy = valDy;
+		if (! gTrDataFixStc.equal(gLastTrDataFixStc)) {
 			if (! gWriteToFileFailed) {
 				saveTrDataToFile();
 			}
-			gLastTrDataStc = gTrDataStc;
+			gLastTrDataFixStc = gTrDataFixStc;
 		}
-		gTransMatrix.at<double>(0, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataStc.dy : gTrDataStc.dx);
-		gTransMatrix.at<double>(1, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataStc.dx : gTrDataStc.dy);
+		updateTranslMtx();
 	}
 
-	void FrameSubProcessorTranslation::getDelta(int32_t &valDx, int32_t &valDy) {
-		valDx = gTrDataStc.dx;
-		valDy = gTrDataStc.dy;
+	void FrameSubProcessorTranslation::getFixDelta(int32_t &valDx, int32_t &valDy) {
+		valDx = gTrDataFixStc.dx;
+		valDy = gTrDataFixStc.dy;
+	}
+
+	void FrameSubProcessorTranslation::setDynDelta(const int32_t valDx, const int32_t valDy) {
+		gTrDataDynStc.dx = valDx;
+		gTrDataDynStc.dy = valDy;
+		updateTranslMtx();
 	}
 
 	void FrameSubProcessorTranslation::resetData() {
@@ -53,7 +58,7 @@ namespace framesubproc {
 			gLoadedFromFile = loadTrDataFromFile();
 		}
 		//
-		if (gTrDataStc.equal(EMPTY_TR_DATA)) {
+		if (gTrDataFixStc.equal(EMPTY_TR_DATA)) {
 			return;
 		}
 		cv::Mat frameIn = frame.clone();
@@ -63,6 +68,13 @@ namespace framesubproc {
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
+
+	void FrameSubProcessorTranslation::updateTranslMtx() {
+		gTransMatrix.at<double>(0, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataFixStc.dy : gTrDataFixStc.dx);
+		gTransMatrix.at<double>(0, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataDynStc.dy : gTrDataDynStc.dx);
+		gTransMatrix.at<double>(1, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataFixStc.dx : gTrDataFixStc.dy);
+		gTransMatrix.at<double>(1, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataDynStc.dx : gTrDataDynStc.dy);
+	}
 
 	void FrameSubProcessorTranslation::saveTrDataToFile() {
 		if (gWriteToFileFailed) {
@@ -79,8 +91,8 @@ namespace framesubproc {
 		saveDataToFile_header(fs);
 
 		//
-		fs << "dx" << gTrDataStc.dx;
-		fs << "dy" << gTrDataStc.dy;
+		fs << "dx" << gTrDataFixStc.dx;
+		fs << "dy" << gTrDataFixStc.dy;
 
 		gWriteToFileFailed = (! fcapshared::Shared::fileExists(outpFn));
 	}
@@ -109,13 +121,13 @@ namespace framesubproc {
 		}
 
 		//
-		gTrDataStc.reset();
-		fs["dx"] >> gTrDataStc.dx;
-		fs["dy"] >> gTrDataStc.dy;
-		gLastTrDataStc = gTrDataStc;
+		gTrDataFixStc.reset();
+		fs["dx"] >> gTrDataFixStc.dx;
+		fs["dy"] >> gTrDataFixStc.dy;
+		gLastTrDataFixStc = gTrDataFixStc;
 
 		//
-		setDelta(gTrDataStc.dx, gTrDataStc.dy);
+		setFixDelta(gTrDataFixStc.dx, gTrDataFixStc.dy);
 
 		log("TR", "__reading done");
 		return true;
@@ -127,10 +139,10 @@ namespace framesubproc {
 
 		deleteDataFile("TR", outpFn);
 		gLoadedFromFile = false;
-		gTrDataStc.reset();
-		gLastTrDataStc.reset();
-		gTransMatrix.at<double>(0, 2) = 0.0;
-		gTransMatrix.at<double>(1, 2) = 0.0;
+		gTrDataFixStc.reset();
+		gLastTrDataFixStc.reset();
+		gTrDataDynStc.reset();
+		setFixDelta(0, 0);
 	}
 
 	std::string FrameSubProcessorTranslation::buildFnExtraQual() {

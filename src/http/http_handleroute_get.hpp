@@ -30,8 +30,10 @@ namespace http {
 					{"/proc/pt/rect_corner", &HandleRouteGet::_handleRoute_PROC_PT_RECTCORNER},
 					{"/proc/pt/reset", &HandleRouteGet::_handleRoute_PROC_PT_RESET},
 					{"/proc/roi/size", &HandleRouteGet::_handleRoute_PROC_ROI_SIZE},
-					{"/proc/tr/delta/L", &HandleRouteGet::_handleRoute_PROC_TR_DELTA_L},
-					{"/proc/tr/delta/R", &HandleRouteGet::_handleRoute_PROC_TR_DELTA_R},
+					{"/proc/tr/fixdelta/L", &HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_L},
+					{"/proc/tr/fixdelta/R", &HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_R},
+					{"/proc/tr/dyndelta/L", &HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_L},
+					{"/proc/tr/dyndelta/R", &HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_R},
 					{"/proc/tr/reset", &HandleRouteGet::_handleRoute_PROC_TR_RESET},
 					{"/status", &HandleRouteGet::_handleRoute_STATUS}
 				};
@@ -60,9 +62,12 @@ namespace http {
 			bool _handleRoute_PROC_PT_RECTCORNER();
 			bool _handleRoute_PROC_PT_RESET();
 			bool _handleRoute_PROC_ROI_SIZE();
-			bool __handleRoute_PROC_TR_DELTA_x(fcapconstants::CamIdEn camId);
-			bool _handleRoute_PROC_TR_DELTA_L();
-			bool _handleRoute_PROC_TR_DELTA_R();
+			bool __handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId);
+			bool _handleRoute_PROC_TR_FIXDELTA_L();
+			bool _handleRoute_PROC_TR_FIXDELTA_R();
+			bool __handleRoute_PROC_TR_DYNDELTA_x(fcapconstants::CamIdEn camId);
+			bool _handleRoute_PROC_TR_DYNDELTA_L();
+			bool _handleRoute_PROC_TR_DYNDELTA_R();
 			bool _handleRoute_PROC_TR_RESET();
 			bool _handleRoute_STATUS();
 			//

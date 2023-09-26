@@ -193,8 +193,8 @@ namespace frame {
 			subProcsStc.tr.loadData();
 			//
 			cv::Point tmpPnt;
-			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
-			fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
+			subProcsStc.tr.getFixDelta(tmpPnt.x, tmpPnt.y);
+			fcapshared::Shared::setRtOpts_procTrFixDelta(subProcsStc.camId, tmpPnt);
 		}
 	}
 
@@ -244,7 +244,8 @@ namespace frame {
 		}
 		//
 		if (gStaticOptionsStc.procEnabled.tr && gPOptsRt->procTrChanged[subProcsStc.camId]) {
-			subProcsStc.tr.setDelta(gPOptsRt->procTrDelta[subProcsStc.camId].x, gPOptsRt->procTrDelta[subProcsStc.camId].y);
+			subProcsStc.tr.setFixDelta(gPOptsRt->procTrFixDelta[subProcsStc.camId].x, gPOptsRt->procTrFixDelta[subProcsStc.camId].y);
+			subProcsStc.tr.setDynDelta(gPOptsRt->procTrDynDelta[subProcsStc.camId].x, gPOptsRt->procTrDynDelta[subProcsStc.camId].y);
 			//
 			fcapshared::Shared::setRtOpts_procTrChanged(subProcsStc.camId, false);
 			gPOptsRt->procTrChanged[subProcsStc.camId] = false;
@@ -366,11 +367,11 @@ namespace frame {
 			//
 			if (tmpDoReset) {
 				cv::Point tmpPnt;
-				subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
-				if (tmpPnt.x != gPOptsRt->procTrDelta[subProcsStc.camId].x ||
-						tmpPnt.y != gPOptsRt->procTrDelta[subProcsStc.camId].y) {
-					fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
-					gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
+				subProcsStc.tr.getFixDelta(tmpPnt.x, tmpPnt.y);
+				if (tmpPnt.x != gPOptsRt->procTrFixDelta[subProcsStc.camId].x ||
+						tmpPnt.y != gPOptsRt->procTrFixDelta[subProcsStc.camId].y) {
+					fcapshared::Shared::setRtOpts_procTrFixDelta(subProcsStc.camId, tmpPnt);
+					gPOptsRt->procTrFixDelta[subProcsStc.camId] = tmpPnt;
 				}
 			}
 		}

@@ -358,7 +358,7 @@ namespace http {
 		return resB;
 	}
 
-	bool HandleRouteGet::__handleRoute_PROC_TR_DELTA_x(fcapconstants::CamIdEn camId) {
+	bool HandleRouteGet::__handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId) {
 		bool resB = false;
 		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 		cv::Point tmpPoint;
@@ -369,23 +369,53 @@ namespace http {
 				cv::Point(-10000, -10000),
 				cv::Point(10000, 10000)
 			);
-		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDelta[camId]) {
+		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrFixDelta[camId]) {
 			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
-			pRtOptsOut->procTrDelta[camId] = tmpPoint;
+			pRtOptsOut->procTrFixDelta[camId] = tmpPoint;
 			pRtOptsOut->procTrChanged[camId] = true;
-			fcapshared::Shared::setRtOpts_procTrDelta(camId, tmpPoint);
+			fcapshared::Shared::setRtOpts_procTrFixDelta(camId, tmpPoint);
 			fcapshared::Shared::setRtOpts_procTrChanged(camId, true);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
 	}
 
-	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA_L() {
-		return __handleRoute_PROC_TR_DELTA_x(gPHndCltData->staticOptionsStc.camL);
+	bool HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_L() {
+		return __handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camL);
 	}
 
-	bool HandleRouteGet::_handleRoute_PROC_TR_DELTA_R() {
-		return __handleRoute_PROC_TR_DELTA_x(gPHndCltData->staticOptionsStc.camR);
+	bool HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_R() {
+		return __handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camR);
+	}
+
+	bool HandleRouteGet::__handleRoute_PROC_TR_DYNDELTA_x(fcapconstants::CamIdEn camId) {
+		bool resB = false;
+		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
+		cv::Point tmpPoint;
+
+		log("200 Path=" + gRequUriPath);
+		resB = getCoordsFromQuery(
+				tmpPoint,
+				cv::Point(-10000, -10000),
+				cv::Point(10000, 10000)
+			);
+		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDynDelta[camId]) {
+			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
+			pRtOptsOut->procTrDynDelta[camId] = tmpPoint;
+			pRtOptsOut->procTrChanged[camId] = true;
+			fcapshared::Shared::setRtOpts_procTrDynDelta(camId, tmpPoint);
+			fcapshared::Shared::setRtOpts_procTrChanged(camId, true);
+		}
+		gPHndCltData->respReturnJson = true;
+		return resB;
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_L() {
+		return __handleRoute_PROC_TR_DYNDELTA_x(gPHndCltData->staticOptionsStc.camL);
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_R() {
+		return __handleRoute_PROC_TR_DYNDELTA_x(gPHndCltData->staticOptionsStc.camR);
 	}
 
 	bool HandleRouteGet::_handleRoute_PROC_TR_RESET() {
@@ -396,7 +426,8 @@ namespace http {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;
-			pRtOptsOut->procTrDelta[*gPHndCltData->curCamId()] = cv::Point();
+			pRtOptsOut->procTrFixDelta[*gPHndCltData->curCamId()] = cv::Point();
+			pRtOptsOut->procTrDynDelta[*gPHndCltData->curCamId()] = cv::Point();
 			pRtOptsOut->procTrDoReset[*gPHndCltData->curCamId()] = true;
 			fcapshared::Shared::setRtOpts_procTrDoReset(*gPHndCltData->curCamId(), true);
 		} else {
