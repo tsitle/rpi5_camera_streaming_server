@@ -96,7 +96,7 @@ namespace frame {
 		}
 
 		// add grid
-		if (gStaticOptionsStc.procEnabled.grid) {
+		if (gPOptsRt->procGridShow) {
 			gOtherSubProcGrid.processFrame(*pFrameOut);
 		}
 
@@ -202,16 +202,16 @@ namespace frame {
 	}
 
 	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
-		if (gStaticOptionsStc.procEnabled.bnc && gPOptsRt->procBncChanged[subProcsStc.camId]) {
+		if (gStaticOptionsStc.procEnabled.bnc && gPOptsRt->procBncChanged) {
 			subProcsStc.bnc.setBrightness(gPOptsRt->procBncAdjBrightness);
 			subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
 			//
-			fcapshared::Shared::setRtOpts_procBncChanged(subProcsStc.camId, false);
-			gPOptsRt->procBncChanged[subProcsStc.camId] = false;
+			fcapshared::Shared::setRtOpts_procBncChanged(false);
+			gPOptsRt->procBncChanged = false;
 		}
 		//
 		if (gStaticOptionsStc.procEnabled.cal && gPOptsRt->procCalChanged[subProcsStc.camId]) {
-			subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints);
+			subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints[subProcsStc.camId]);
 			//
 			fcapshared::Shared::setRtOpts_procCalChanged(subProcsStc.camId, false);
 			gPOptsRt->procCalChanged[subProcsStc.camId] = false;
@@ -420,7 +420,11 @@ namespace frame {
 		return false;
 	}
 
-	void FrameProcessor::renderMasterOutput(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr) {
+	void FrameProcessor::renderMasterOutput(
+			cv::Mat *pFrameL,
+			cv::Mat *pFrameR,
+			cv::Mat *pFrameOut,
+			__attribute__((unused)) const uint32_t frameNr) {
 		/**auto timeStart = std::chrono::steady_clock::now();**/
 
 		if (fcapsettings::SPLITVIEW_FOR_CAMBOTH) {

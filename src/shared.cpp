@@ -85,11 +85,11 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val) {
+	void Shared::setRtOpts_procBncChanged(const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
-		gThrVarRuntimeOptions.procBncChanged[camId] = val;
+		gThrVarRuntimeOptions.procBncChanged = val;
 		thrLock.unlock();
 	}
 
@@ -149,11 +149,27 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRtOpts_procCalShowCalibChessboardPoints(const bool val) {
+	void Shared::setRtOpts_procCalShowCalibChessboardPoints(const fcapconstants::CamIdEn camId, const bool val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();
-		gThrVarRuntimeOptions.procCalShowCalibChessboardPoints = val;
+		gThrVarRuntimeOptions.procCalShowCalibChessboardPoints[camId] = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procGridChanged(const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procGridChanged = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procGridShow(const bool val) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procGridShow = val;
 		thrLock.unlock();
 	}
 

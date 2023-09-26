@@ -425,20 +425,24 @@ namespace http {
 			fcapconstants::OutputCamsEn outputCams = gHndCltData.rtOptsNew.outputCams;
 			bool tmpProcCalRunning;
 			bool tmpProcCalDone;
+			bool tmpProcCalShowChess;
 			bool tmpProcPtDone;
 
 			//
 			if (gHndCltData.curCamId() == NULL) {
-				tmpProcCalRunning = (gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_0] &&
+				tmpProcCalRunning = (gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_0] ||
 						gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_1]);
 				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] &&
 						gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_1]);
 				tmpProcPtDone = (gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_0] &&
 						gHndCltData.rtOptsNew.procPtDone[fcapconstants::CamIdEn::CAM_1]);
+				tmpProcCalShowChess = (gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints[fcapconstants::CamIdEn::CAM_0] ||
+						gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints[fcapconstants::CamIdEn::CAM_1]);
 			} else {
 				tmpProcCalRunning = gHndCltData.rtOptsNew.procCalDoStart[*gHndCltData.curCamId()];
 				tmpProcCalDone = gHndCltData.rtOptsNew.procCalDone[*gHndCltData.curCamId()];
 				tmpProcPtDone = gHndCltData.rtOptsNew.procPtDone[*gHndCltData.curCamId()];
+				tmpProcCalShowChess = gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints[*gHndCltData.curCamId()];
 			}
 
 			//
@@ -479,7 +483,6 @@ namespace http {
 					{"bnc", gHndCltData.staticOptionsStc.procEnabled.bnc},
 					{"cal", gHndCltData.staticOptionsStc.procEnabled.cal},
 					{"flip", gHndCltData.staticOptionsStc.procEnabled.flip},
-					{"grid", gHndCltData.staticOptionsStc.procEnabled.grid},
 					{"pt", gHndCltData.staticOptionsStc.procEnabled.pt},
 					{"roi", gHndCltData.staticOptionsStc.procEnabled.roi},
 					{"tr", gHndCltData.staticOptionsStc.procEnabled.tr},
@@ -498,7 +501,9 @@ namespace http {
 			//
 			jsonObj["procCalDone"] = tmpProcCalDone;
 			//
-			jsonObj["procCalShowCalibChessboardPoints"] = gHndCltData.rtOptsNew.procCalShowCalibChessboardPoints;
+			jsonObj["procCalShowCalibChessboardPoints"] = tmpProcCalShowChess;
+			//
+			jsonObj["procGridShow"] = gHndCltData.rtOptsNew.procGridShow;
 			//
 			jsonObj["procPtDone"] = tmpProcPtDone;
 			//

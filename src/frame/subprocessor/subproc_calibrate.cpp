@@ -10,7 +10,7 @@ namespace framesubproc {
 			gWriteToFileFailed(false),
 			gLoadedFromFile(false),
 			gLoadFromFileFailed(false),
-			gOptShowCalibChessboardPoints(fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS),
+			gOptShowCalibChessboardPoints(false),
 			gTries(0) {
 		gOcvSettingsStc.useFisheye = false;
 		if (gOcvSettingsStc.useFisheye) {

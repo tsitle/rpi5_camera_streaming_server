@@ -16,14 +16,16 @@ namespace fcapshared {
 		uint8_t cameraFps;
 		cv::Size resolutionOutput;
 		std::map<fcapconstants::CamIdEn, bool> cameraReady;
-		std::map<fcapconstants::CamIdEn, bool> procBncChanged;
+		bool procBncChanged;
 		int16_t procBncAdjBrightness;
 		int16_t procBncAdjContrast;
 		std::map<fcapconstants::CamIdEn, bool> procCalDone;
 		std::map<fcapconstants::CamIdEn, bool> procCalDoStart;
 		std::map<fcapconstants::CamIdEn, bool> procCalDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procCalChanged;
-		bool procCalShowCalibChessboardPoints;
+		std::map<fcapconstants::CamIdEn, bool> procCalShowCalibChessboardPoints;
+		bool procGridChanged;
+		bool procGridShow;
 		std::map<fcapconstants::CamIdEn, bool> procPtDone;
 		std::map<fcapconstants::CamIdEn, bool> procPtDoReset;
 		std::map<fcapconstants::CamIdEn, bool> procPtChanged;
@@ -43,10 +45,12 @@ namespace fcapshared {
 			cameraFps = 0;
 			resolutionOutput = cv::Size(0, 0);
 			//
+			procBncChanged = false;
 			procBncAdjBrightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
 			procBncAdjContrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
 			//
-			procCalShowCalibChessboardPoints = fcapsettings::PROC_CAL_DEFAULT_SHOWCALIBCHESSPOINTS;
+			procGridChanged = false;
+			procGridShow = false;
 			//
 			procRoiChanged = false;
 			procRoiSizePerc = 100;
@@ -58,12 +62,11 @@ namespace fcapshared {
 		void _resetForCamId(fcapconstants::CamIdEn camId) {
 			cameraReady[camId] = false;
 			//
-			procBncChanged[camId] = false;
-			//
 			procCalDone[camId] = false;
 			procCalDoStart[camId] = false;
 			procCalDoReset[camId] = false;
 			procCalChanged[camId] = false;
+			procCalShowCalibChessboardPoints[camId] = false;
 			//
 			procPtDone[camId] = false;
 			procPtDoReset[camId] = false;
@@ -89,7 +92,7 @@ namespace fcapshared {
 			static void setRtOpts_resolutionOutput(const cv::Size &val);
 			static void setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val);
 			///
-			static void setRtOpts_procBncChanged(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procBncChanged(const bool val);
 			static void setRtOpts_procBncAdjBrightness(const int16_t val);
 			static void setRtOpts_procBncAdjContrast(const int16_t val);
 			///
@@ -97,7 +100,10 @@ namespace fcapshared {
 			static void setRtOpts_procCalDoStart(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procCalChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procCalShowCalibChessboardPoints(const bool val);
+			static void setRtOpts_procCalShowCalibChessboardPoints(const fcapconstants::CamIdEn camId, const bool val);
+			///
+			static void setRtOpts_procGridChanged(const bool val);
+			static void setRtOpts_procGridShow(const bool val);
 			///
 			static void setRtOpts_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);

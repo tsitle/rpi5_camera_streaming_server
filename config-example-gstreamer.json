@@ -21,7 +21,6 @@
 		"bnc": true,
 		"cal": false,
 		"flip": true,
-		"grid": true,
 		"pt": true,
 		"roi": true,
 		"tr": true,
