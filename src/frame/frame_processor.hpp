@@ -20,7 +20,6 @@ namespace frame {
 	struct SubProcsStc {
 		fcapconstants::OutputCamsEn outputCams;
 		fcapconstants::CamIdEn camId;
-		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
 		framesubproc::FrameSubProcessorCalibrate cal;
 		framesubproc::FrameSubProcessorFlip flip;
 		framesubproc::FrameSubProcessorTranslation tr;
@@ -37,6 +36,7 @@ namespace frame {
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
+			framesubproc::FrameSubProcessorBrightnAndContrast gOtherSubProcBnc;
 			framesubproc::FrameSubProcessorRoi gOtherSubProcRoi;
 			framesubproc::FrameSubProcessorGrid gOtherSubProcGrid;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;

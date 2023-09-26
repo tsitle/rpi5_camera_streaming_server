@@ -133,7 +133,9 @@ namespace frame {
 	}
 
 	void FrameProcessor::initSubProcs() {
-		// other FrameSubProcs for the master output
+		// other FrameSubProcs for the individual channels/cameras
+		///
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcBnc);
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcRoi);
 		if (gStaticOptionsStc.procEnabled.roi) {
@@ -145,13 +147,15 @@ namespace frame {
 		} else {
 			gRoiOutputSz = gStaticOptionsStc.resolutionInputStream;
 		}
+
+		// other FrameSubProcs for the master output
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcGrid);
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCams);
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCal);
 
-		// per camera FrameSubProcs
+		// per channel/camera FrameSubProcs
 		_initSubProcs_stc(gStaticOptionsStc.camL, fcapconstants::OutputCamsEn::CAM_L, gSubProcsL);
 		_initSubProcs_stc(gStaticOptionsStc.camR, fcapconstants::OutputCamsEn::CAM_R, gSubProcsR);
 	}
@@ -160,8 +164,6 @@ namespace frame {
 			fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, SubProcsStc &subProcsStc) {
 		subProcsStc.camId = camId;
 		subProcsStc.outputCams = outputCams;
-		//
-		_initSubProcs_fspObj(camId, outputCams, subProcsStc.bnc);
 		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.cal);
 		if (gStaticOptionsStc.procEnabled.cal) {
@@ -189,6 +191,14 @@ namespace frame {
 	}
 
 	void FrameProcessor::updateSubProcsSettings() {
+		if (gStaticOptionsStc.procEnabled.bnc && gPOptsRt->procBncChanged) {
+			gOtherSubProcBnc.setBrightness(gPOptsRt->procBncAdjBrightness);
+			gOtherSubProcBnc.setContrast(gPOptsRt->procBncAdjContrast);
+			//
+			fcapshared::Shared::setRtOpts_procBncChanged(false);
+			gPOptsRt->procBncChanged = false;
+		}
+		//
 		if (gStaticOptionsStc.procEnabled.roi && gPOptsRt->procRoiChanged) {
 			gOtherSubProcRoi.setData(gPOptsRt->procRoiSizePerc);
 			gRoiOutputSz = gOtherSubProcRoi.getOutputSz();
@@ -202,14 +212,6 @@ namespace frame {
 	}
 
 	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
-		if (gStaticOptionsStc.procEnabled.bnc && gPOptsRt->procBncChanged) {
-			subProcsStc.bnc.setBrightness(gPOptsRt->procBncAdjBrightness);
-			subProcsStc.bnc.setContrast(gPOptsRt->procBncAdjContrast);
-			//
-			fcapshared::Shared::setRtOpts_procBncChanged(false);
-			gPOptsRt->procBncChanged = false;
-		}
-		//
 		if (gStaticOptionsStc.procEnabled.cal && gPOptsRt->procCalChanged[subProcsStc.camId]) {
 			subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints[subProcsStc.camId]);
 			//
@@ -240,7 +242,7 @@ namespace frame {
 
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
-			subProcsStc.bnc.processFrame(frame);
+			gOtherSubProcBnc.processFrame(frame);
 		}
 
 		// calibrate camera
