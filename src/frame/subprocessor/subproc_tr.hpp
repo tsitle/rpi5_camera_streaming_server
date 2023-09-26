@@ -34,6 +34,7 @@ namespace framesubproc {
 			void setDelta(const int32_t valDx, const int32_t valDy);
 			void getDelta(int32_t &valDx, int32_t &valDy);
 			void resetData();
+			void loadData();
 			void processFrame(cv::Mat &frame);
 		
 		private:

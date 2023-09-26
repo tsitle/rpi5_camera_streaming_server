@@ -40,6 +40,10 @@ namespace framesubproc {
 		deleteTrDataFile();
 	}
 
+	void FrameSubProcessorTranslation::loadData() {
+		gLoadedFromFile = loadTrDataFromFile();
+	}
+
 	void FrameSubProcessorTranslation::processFrame(cv::Mat &frame) {
 		if (gWriteToFileFailed) {
 			return;

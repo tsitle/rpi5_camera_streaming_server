@@ -180,6 +180,9 @@ namespace frame {
 		}
 		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.tr);
+		if (gStaticOptionsStc.procEnabled.tr) {
+			subProcsStc.tr.loadData();
+		}
 	}
 
 	void FrameProcessor::_initSubProcs_fspObj(
