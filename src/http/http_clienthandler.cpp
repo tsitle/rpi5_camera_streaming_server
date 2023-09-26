@@ -494,8 +494,16 @@ namespace http {
 			jsonObj["resolutionOutput_w"] = gHndCltData.rtOptsNew.resolutionOutput.width;
 			jsonObj["resolutionOutput_h"] = gHndCltData.rtOptsNew.resolutionOutput.height;
 			//
-			jsonObj["procBncAdjBrightness"] = gHndCltData.rtOptsNew.procBncAdjBrightness;
-			jsonObj["procBncAdjContrast"] = gHndCltData.rtOptsNew.procBncAdjContrast;
+			jsonObj["procBncAdjBrightness"] = {
+					{"val", gHndCltData.rtOptsNew.procBncAdjBrightness},
+					{"min", fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS},
+					{"max", fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS}
+				};
+			jsonObj["procBncAdjContrast"] = {
+					{"val", gHndCltData.rtOptsNew.procBncAdjContrast},
+					{"min", fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST},
+					{"max", fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST}
+				};
 			//
 			jsonObj["procCalRunning"] = tmpProcCalRunning;
 			//
