@@ -101,7 +101,8 @@ namespace frame {
 		}
 
 		// add text overlays
-		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING) {
+		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING &&
+				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40)) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
 				procAddTextOverlayCams(*pFrameOut, *pCamDesc, gPOptsRt->outputCams);
