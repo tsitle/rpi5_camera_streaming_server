@@ -12,7 +12,6 @@ using json = nlohmann::json;
 
 namespace fcapcfgfile {
 
-	//
 	StaticOptionsStc CfgFile::gThrVarStaticOptions;
 	std::mutex CfgFile::gThrMtxStaticOptions;
 
