@@ -476,9 +476,23 @@ namespace frame {
 			//
 			cv::line(
 					*pFrameOut,
+					cv::Point(centerX - 1, 0),
+					cv::Point(centerX - 1, gPOptsRt->resolutionOutput.height - 1),
+					cv::Scalar(0, 0, 0),
+					1
+				);
+			cv::line(
+					*pFrameOut,
 					cv::Point(centerX, 0),
 					cv::Point(centerX, gPOptsRt->resolutionOutput.height - 1),
 					cv::Scalar(255, 255, 255),
+					1
+				);
+			cv::line(
+					*pFrameOut,
+					cv::Point(centerX + 1, 0),
+					cv::Point(centerX + 1, gPOptsRt->resolutionOutput.height - 1),
+					cv::Scalar(0, 0, 0),
 					1
 				);
 		} else {
