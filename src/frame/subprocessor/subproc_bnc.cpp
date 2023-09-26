@@ -1,15 +1,25 @@
 #include "../../settings.hpp"
+#include "../../shared.hpp"
 #include "subproc_bnc.hpp"
 
 namespace framesubproc {
 
 	FrameSubProcessorBrightnAndContrast::FrameSubProcessorBrightnAndContrast() :
-			FrameSubProcessor() {
+			FrameSubProcessor(),
+			gLoadedFromFile(false),
+			gLoadFromFileFailed(false),
+			gWriteToFileFailed(false) {
 	}
 
 	void FrameSubProcessorBrightnAndContrast::setBrightness(const int16_t val) {
 		if (val >= fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS && val <= fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS) {
 			gBncDataStc.brightness = val;
+		}
+		if (! gBncDataStc.equal(gLastBncDataStc)) {
+			if (! gWriteToFileFailed) {
+				saveBncDataToFile();
+			}
+			gLastBncDataStc = gBncDataStc;
 		}
 	}
 
@@ -17,6 +27,21 @@ namespace framesubproc {
 		if (val >= fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST && val <= fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST) {
 			gBncDataStc.contrast = val;
 		}
+		if (! gBncDataStc.equal(gLastBncDataStc)) {
+			if (! gWriteToFileFailed) {
+				saveBncDataToFile();
+			}
+			gLastBncDataStc = gBncDataStc;
+		}
+	}
+
+	void FrameSubProcessorBrightnAndContrast::getData(int16_t &brightn, int16_t &contr) {
+		brightn = gBncDataStc.brightness;
+		contr = gBncDataStc.contrast;
+	}
+
+	void FrameSubProcessorBrightnAndContrast::loadData() {
+		gLoadedFromFile = loadBncDataFromFile();
 	}
 
 	void FrameSubProcessorBrightnAndContrast::processFrame(cv::Mat &frame) {
@@ -65,6 +90,74 @@ namespace framesubproc {
 		}
 		//
 		frame = pFrameOut->clone();
+	}
+
+	// -----------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------
+
+	void FrameSubProcessorBrightnAndContrast::saveBncDataToFile() {
+		if (gWriteToFileFailed) {
+			return;
+		}
+
+		std::string outpFn = buildDataFilename("BNC", "", false);
+
+		log("BNC", "writing Brightness/Contrast data to file '" + outpFn + "'");
+		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
+
+		//
+		saveDataToFile_header(fs);
+
+		//
+		fs << "b" << gBncDataStc.brightness;
+		fs << "c" << gBncDataStc.contrast;
+
+		gWriteToFileFailed = (! fcapshared::Shared::fileExists(outpFn));
+	}
+
+	bool FrameSubProcessorBrightnAndContrast::loadBncDataFromFile() {
+		if (gLoadedFromFile || gLoadFromFileFailed) {
+			return false;
+		}
+
+		std::string inpFn = buildDataFilename("BNC", "", false);
+
+		if (! fcapshared::Shared::fileExists(inpFn)) {
+			gLoadFromFileFailed = true;
+			return false;
+		}
+
+		log("BNC", "loading Brightness/Contrast data from file '" + inpFn + "'");
+
+		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
+
+		//
+		gLoadFromFileFailed = (! loadDataFromFile_header("BNC", fs));
+		if (gLoadFromFileFailed) {
+			return false;
+		}
+
+		//
+		gBncDataStc.reset();
+		fs["b"] >> gBncDataStc.brightness;
+		fs["c"] >> gBncDataStc.contrast;
+		gLastBncDataStc = gBncDataStc;
+
+		//
+		setBrightness(gBncDataStc.brightness);
+		setContrast(gBncDataStc.contrast);
+
+		log("BNC", "__reading done");
+		return true;
+	}
+
+	void FrameSubProcessorBrightnAndContrast::deleteBncDataFile() {
+		std::string outpFn = buildDataFilename("BNC", "", false);
+
+		deleteDataFile("BNC", outpFn);
+		gLoadedFromFile = false;
+		gBncDataStc.reset();
+		gLastBncDataStc.reset();
 	}
 
 }  // namespace framesubproc
