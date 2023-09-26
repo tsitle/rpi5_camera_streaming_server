@@ -51,11 +51,21 @@ namespace frame {
 	}
 
 	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr) {
+		const std::string* pCamDesc = NULL;
+
+		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
+		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_R) {
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
+		} else {
+			pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
+		}
+
 		// check frame size
-		if (pFrameL != NULL && ! checkFrameSize(pFrameL, "CAM_L")) {
+		if (pFrameL != NULL && ! checkFrameSize(pFrameL, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_L)) {
 			return;
 		}
-		if (pFrameR != NULL && ! checkFrameSize(pFrameR, "CAM_R")) {
+		if (pFrameR != NULL && ! checkFrameSize(pFrameR, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_R)) {
 			return;
 		}
 
@@ -67,9 +77,12 @@ namespace frame {
 			if (pFrameR != NULL) {
 				procDefaults(gSubProcsR, *pFrameR);
 			}
+		}
+
+		//
+		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			// adjust color channels
-			if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH &&
-					pFrameR->channels() != pFrameL->channels()) {
+			if (pFrameR->channels() != pFrameL->channels()) {
 				int channL = pFrameL->channels();
 				int channR = pFrameR->channels();
 				if (channL > channR) {
@@ -78,18 +91,13 @@ namespace frame {
 					cv::cvtColor(*pFrameR, *pFrameR, cv::COLOR_BGR2GRAY);
 				}
 			}
+			// render split view (or blended view)
+			renderMasterOutput(pFrameL, pFrameR, pFrameOut, frameNr);
 		}
 
-		//
-		const std::string* pCamDesc = NULL;
-		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_L) {
-			pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
-		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_R) {
-			pCamDesc = &TEXT_CAM_TXT_SUFFIX_R;
-		} else if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
-			pCamDesc = &TEXT_CAM_TXT_SUFFIX_BOTH;
-
-			renderMasterOutput(pFrameL, pFrameR, pFrameOut, frameNr);
+		// add grid
+		if (gStaticOptionsStc.procEnabled.grid) {
+			gOtherSubProcGrid.processFrame(*pFrameOut);
 		}
 
 		// add text overlays
@@ -138,6 +146,8 @@ namespace frame {
 			gRoiOutputSz = gStaticOptionsStc.resolutionInputStream;
 		}
 		///
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcGrid);
+		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCams);
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCal);
 
@@ -160,8 +170,6 @@ namespace frame {
 		//
 		subProcsStc.flip.setData(gStaticOptionsStc.flip[camId].hor, gStaticOptionsStc.flip[camId].ver);
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.flip);
-		//
-		_initSubProcs_fspObj(camId, outputCams, subProcsStc.grid);
 		//
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.pt);
 		if (gStaticOptionsStc.procEnabled.pt) {
@@ -358,11 +366,6 @@ namespace frame {
 			gPOptsRt->resolutionOutput.height = frame.size().height;
 		}
 
-		// grid
-		if (gStaticOptionsStc.procEnabled.grid) {
-			subProcsStc.grid.processFrame(frame);
-		}
-
 		// set Camera-Ready flag
 		if (! gPOptsRt->cameraReady[subProcsStc.camId]) {
 			fcapshared::Shared::setRtOpts_cameraReady(subProcsStc.camId, true);
@@ -406,7 +409,7 @@ namespace frame {
 				pFrame->size().height == gStaticOptionsStc.resolutionInputStream.height) {
 			return true;
 		}
-		log("Error: input frame size " + camName + " doesn't match resolutionInputStream (is:" +
+		log("Error: [" + camName + "] input frame size doesn't match resolutionInputStream (is:" +
 				std::to_string(pFrame->size().width) + "x" +
 				std::to_string(pFrame->size().height) +
 				", exp:" +

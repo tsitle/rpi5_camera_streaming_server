@@ -23,7 +23,6 @@ namespace frame {
 		framesubproc::FrameSubProcessorBrightnAndContrast bnc;
 		framesubproc::FrameSubProcessorCalibrate cal;
 		framesubproc::FrameSubProcessorFlip flip;
-		framesubproc::FrameSubProcessorGrid grid;
 		framesubproc::FrameSubProcessorTranslation tr;
 		framesubproc::FrameSubProcessorPerspectiveTransf pt;
 	};
@@ -39,6 +38,7 @@ namespace frame {
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
 			framesubproc::FrameSubProcessorRoi gOtherSubProcRoi;
+			framesubproc::FrameSubProcessorGrid gOtherSubProcGrid;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
 			SubProcsStc gSubProcsL;
