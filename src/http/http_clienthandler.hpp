@@ -52,6 +52,7 @@ namespace http {
 			//
 			std::string buildResponse(const std::string *pHttpContentType, const std::string *pContent);
 			bool sendResponse(const std::string *pHttpContentType, const std::string *pContent);
+			void buildJsonResult_procTrDeltaX(void *pJsonObj, const std::string key, std::map<fcapconstants::CamIdEn, cv::Point> &val);
 			std::string buildJsonResult(const bool success);
 			//
 			void startStreaming();

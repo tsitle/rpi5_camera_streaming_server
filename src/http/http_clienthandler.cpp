@@ -417,6 +417,22 @@ namespace http {
 		return true;
 	}
 
+	void ClientHandler::buildJsonResult_procTrDeltaX(void *pJsonObj, const std::string key, std::map<fcapconstants::CamIdEn, cv::Point> &val) {
+		cv::Point tmpPntL = val[gHndCltData.staticOptionsStc.camL];
+		cv::Point tmpPntR = val[gHndCltData.staticOptionsStc.camR];
+
+		(*((json*)pJsonObj))["procTr"][key] = {
+				{"L", {
+						{"x", tmpPntL.x},
+						{"y", tmpPntL.y}
+					}},
+				{"R", {
+						{"x", tmpPntR.x},
+						{"y", tmpPntR.y}
+					}}
+			};
+	}
+
 	std::string ClientHandler::buildJsonResult(const bool success) {
 		json jsonObj;
 
@@ -491,56 +507,64 @@ namespace http {
 				};
 
 			//
-			jsonObj["resolutionOutput_w"] = gHndCltData.rtOptsNew.resolutionOutput.width;
-			jsonObj["resolutionOutput_h"] = gHndCltData.rtOptsNew.resolutionOutput.height;
-			//
-			jsonObj["procBncAdjBrightness"] = {
-					{"val", gHndCltData.rtOptsNew.procBncAdjBrightness},
-					{"min", fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS},
-					{"max", fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS}
-				};
-			jsonObj["procBncAdjContrast"] = {
-					{"val", gHndCltData.rtOptsNew.procBncAdjContrast},
-					{"min", fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST},
-					{"max", fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST}
+			jsonObj["resolutionOutput"] = {
+					{"w", gHndCltData.rtOptsNew.resolutionOutput.width},
+					{"h", gHndCltData.rtOptsNew.resolutionOutput.height}
 				};
 			//
-			jsonObj["procCalRunning"] = tmpProcCalRunning;
+			jsonObj["procBnc"] = {
+					{"brightness", {
+							{"val", gHndCltData.rtOptsNew.procBncAdjBrightness},
+							{"min", fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS},
+							{"max", fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS}
+						}},
+					{"contrast", {
+							{"val", gHndCltData.rtOptsNew.procBncAdjContrast},
+							{"min", fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST},
+							{"max", fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST}
+						}}
+				};
 			//
-			jsonObj["procCalDone"] = tmpProcCalDone;
+			jsonObj["procCal"] = {
+					{"running", tmpProcCalRunning},
+					{"done", tmpProcCalDone},
+					{"showCalibChessboardPoints", tmpProcCalShowChess}
+				};
 			//
-			jsonObj["procCalShowCalibChessboardPoints"] = tmpProcCalShowChess;
+			jsonObj["procGrid"] = {
+					{"show", gHndCltData.rtOptsNew.procGridShow}
+				};
 			//
-			jsonObj["procGridShow"] = gHndCltData.rtOptsNew.procGridShow;
-			//
-			jsonObj["procPtDone"] = tmpProcPtDone;
-			//
-			if (gHndCltData.curCamId() != NULL) {
+			///
+			jsonObj["procPt"] = {
+					{"done", tmpProcPtDone}
+				};
+			///
+			if (gHndCltData.curCamId() != NULL &&
+					! (gHndCltData.staticOptionsStc.procEnabled.cal || tmpProcPtDone)) {
+				jsonObj["procPt"]["rectCorners"] = {};
 				uint8_t tmpSz = gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()].size();
+				char tmpBuf[3] = {0, 0, 0};
 				for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
-					jsonObj["procPtRectCorners_" + std::to_string(x) + "x"] = (tmpSz >= x ?
+					tmpBuf[0] = 'a' + (x - 1);
+					tmpBuf[1] = 'x';
+					jsonObj["procPt"]["rectCorners"][tmpBuf] = (tmpSz >= x ?
 							std::to_string(gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()][x - 1].x) :
 							"-");
-					jsonObj["procPtRectCorners_" + std::to_string(x) + "y"] = (tmpSz >= x ?
+					tmpBuf[1] = 'y';
+					jsonObj["procPt"]["rectCorners"][tmpBuf] = (tmpSz >= x ?
 							std::to_string(gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()][x - 1].y) :
 							"-");
 				}
 			}
 			//
-			jsonObj["procRoiSizePerc"] = gHndCltData.rtOptsNew.procRoiSizePerc;
-			//
-			cv::Point tmpPntL = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camL];
-			cv::Point tmpPntR = gHndCltData.rtOptsNew.procTrDelta[gHndCltData.staticOptionsStc.camR];
-			jsonObj["procTrDelta"] = {
-					{"L", {
-							{"x", tmpPntL.x},
-							{"y", tmpPntL.y}
-						}},
-					{"R", {
-							{"x", tmpPntR.x},
-							{"y", tmpPntR.y}
-						}}
+			jsonObj["procRoi"] = {
+					{"sizePerc", gHndCltData.rtOptsNew.procRoiSizePerc}
 				};
+			//
+			jsonObj["procTr"] = {};
+			buildJsonResult_procTrDeltaX(&jsonObj, "fixDelta", gHndCltData.rtOptsNew.procTrFixDelta);
+			buildJsonResult_procTrDeltaX(&jsonObj, "dynDelta", gHndCltData.rtOptsNew.procTrDynDelta);
 		} else {
 			jsonObj["message"] = gHndCltData.respErrMsg;
 		}
