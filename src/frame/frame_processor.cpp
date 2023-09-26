@@ -136,6 +136,15 @@ namespace frame {
 		// other FrameSubProcs for the individual channels/cameras
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcBnc);
+		if (gStaticOptionsStc.procEnabled.bnc) {
+			gOtherSubProcBnc.loadData();
+			//
+			int16_t tmpB = 0;
+			int16_t tmpC = 0;
+			gOtherSubProcBnc.getData(tmpB, tmpC);
+			fcapshared::Shared::setRtOpts_procBncAdjBrightness(tmpB);
+			fcapshared::Shared::setRtOpts_procBncAdjContrast(tmpC);
+		}
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcRoi);
 		if (gStaticOptionsStc.procEnabled.roi) {
@@ -182,6 +191,10 @@ namespace frame {
 		_initSubProcs_fspObj(camId, outputCams, subProcsStc.tr);
 		if (gStaticOptionsStc.procEnabled.tr) {
 			subProcsStc.tr.loadData();
+			//
+			cv::Point tmpPnt;
+			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
+			fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
 		}
 	}
 
@@ -267,7 +280,8 @@ namespace frame {
 				gPOptsRt->procTrDoReset[subProcsStc.camId] = true;
 			}
 			//
-			if (gPOptsRt->procCalDoStart[subProcsStc.camId] || gPOptsRt->procCalDone[subProcsStc.camId]) {
+			bool tmpDoStart = gPOptsRt->procCalDoStart[subProcsStc.camId];
+			if (tmpDoStart || gPOptsRt->procCalDone[subProcsStc.camId]) {
 				subProcsStc.cal.processFrame(frame);
 			}
 			//
@@ -276,7 +290,7 @@ namespace frame {
 				fcapshared::Shared::setRtOpts_procCalDone(subProcsStc.camId, tmpBool);
 				gPOptsRt->procCalDone[subProcsStc.camId] = tmpBool;
 				//
-				if (tmpBool && gPOptsRt->procCalDoStart[subProcsStc.camId]) {
+				if (tmpBool && tmpDoStart) {
 					fcapshared::Shared::setRtOpts_procCalDoStart(subProcsStc.camId, false);
 					gPOptsRt->procCalDoStart[subProcsStc.camId] = false;
 				}
@@ -338,7 +352,8 @@ namespace frame {
 
 		// translation
 		if (gStaticOptionsStc.procEnabled.tr) {
-			if (gPOptsRt->procTrDoReset[subProcsStc.camId]) {
+			bool tmpDoReset = gPOptsRt->procTrDoReset[subProcsStc.camId];
+			if (tmpDoReset) {
 				fcapshared::Shared::setRtOpts_procTrDoReset(subProcsStc.camId, false);
 				gPOptsRt->procTrDoReset[subProcsStc.camId] = false;
 				//
@@ -349,12 +364,14 @@ namespace frame {
 				subProcsStc.tr.processFrame(frame);
 			}
 			//
-			cv::Point tmpPnt;
-			subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
-			if (tmpPnt.x != gPOptsRt->procTrDelta[subProcsStc.camId].x ||
-					tmpPnt.y != gPOptsRt->procTrDelta[subProcsStc.camId].y) {
-				fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
-				gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
+			if (tmpDoReset) {
+				cv::Point tmpPnt;
+				subProcsStc.tr.getDelta(tmpPnt.x, tmpPnt.y);
+				if (tmpPnt.x != gPOptsRt->procTrDelta[subProcsStc.camId].x ||
+						tmpPnt.y != gPOptsRt->procTrDelta[subProcsStc.camId].y) {
+					fcapshared::Shared::setRtOpts_procTrDelta(subProcsStc.camId, tmpPnt);
+					gPOptsRt->procTrDelta[subProcsStc.camId] = tmpPnt;
+				}
 			}
 		}
 
