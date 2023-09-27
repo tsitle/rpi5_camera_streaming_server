@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 #include <unistd.h>  // ::close()
-#include <fcntl.h>
+#include <sys/socket.h>  // ::shutdown(), ::accept(), ::setsockopt, SO_LINGER, struct linger
+#include <fcntl.h>  // ::fcntl(), F_GETFL, O_NONBLOCK
+#include <netdb.h>  // getprotobyname(), struct protoent
 
 #include "../shared.hpp"
 #include "http_tcp_server.hpp"
@@ -209,19 +211,44 @@ namespace http {
 		const uint8_t MAX_TRIES = 20;
 		uint8_t tries = MAX_TRIES;
 
-		gServerSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+		//
+		struct protoent *pPeTcp = ::getprotobyname("TCP");
+		if (pPeTcp == NULL) {
+			exitWithError("Cannot get proto name for TCP");
+			return false;
+		}
+
+		gServerSocket = ::socket(AF_INET, SOCK_STREAM, pPeTcp->p_proto);
 		if (gServerSocket < 0) {
 			exitWithError("Cannot create socket");
 			return false;
 		}
 
+		// set socket options
+		const int value1 = 1;
+		struct linger sl;
+		sl.l_onoff = 1;  // non-zero value enables linger option in kernel
+		sl.l_linger = 0;  // timeout interval in seconds
+		::setsockopt(gServerSocket, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+		::setsockopt(gServerSocket, SOL_SOCKET, SO_REUSEADDR, &value1, sizeof(int));
+		::setsockopt(gServerSocket, SOL_SOCKET, SO_REUSEPORT, &value1, sizeof(int));
+
+		// bind socket to address
 		while (tries-- != 0) {
 			if (::bind(gServerSocket, (sockaddr*)&gServerSocketAddress, gServerLenSocketAddr) >= 0) {
 				break;
 			}
 			if (tries != 0) {
+				/**
+				 * with the socket options SO_LINGER + SO_REUSEADDR + SO_REUSEPORT this should
+				 * actually not happen...
+				 */
 				log("address blocked (TCP port " + std::to_string(gServerPort) + "). waiting...");
 				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+			}
+			// check if we need to stop
+			if (fcapshared::Shared::getFlagNeedToStop()) {
+				break;
 			}
 		}
 		if (tries == 0) {
@@ -231,13 +258,22 @@ namespace http {
 
 		// make socket non-blocking
 		int32_t flags = ::fcntl(gServerSocket, F_GETFL);
-		::fcntl(gServerSocket, F_SETFL, flags| O_NONBLOCK);
+		::fcntl(gServerSocket, F_SETFL, flags | O_NONBLOCK);
 
 		return true;
 	}
 
 	void TcpServer::closeServer() {
+		const uint32_t BUFFER_SIZE = 16 * 1024;
+		char buffer[BUFFER_SIZE] = {0};
+		int32_t bytesReceived;
+
 		::shutdown(gServerSocket, SHUT_RDWR);
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		while ((bytesReceived = ::read(gServerSocket, buffer, BUFFER_SIZE)) > 0) {
+			// read until no more data arrives
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
 		::close(gServerSocket);
 	}
 
