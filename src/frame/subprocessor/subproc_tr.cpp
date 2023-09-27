@@ -58,7 +58,7 @@ namespace framesubproc {
 			gLoadedFromFile = loadTrDataFromFile();
 		}
 		//
-		if (gTrDataFixStc.equal(EMPTY_TR_DATA)) {
+		if (gTrDataFixStc.equal(EMPTY_TR_DATA) && gTrDataDynStc.equal(EMPTY_TR_DATA)) {
 			return;
 		}
 		cv::Mat frameIn = frame.clone();
@@ -70,10 +70,12 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 
 	void FrameSubProcessorTranslation::updateTranslMtx() {
+		// y-Axis
 		gTransMatrix.at<double>(0, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataFixStc.dy : gTrDataFixStc.dx);
-		gTransMatrix.at<double>(0, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? -gTrDataDynStc.dy : gTrDataDynStc.dx);
+		gTransMatrix.at<double>(0, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataDynStc.dy : gTrDataDynStc.dx);
+		// x-Axis
 		gTransMatrix.at<double>(1, 2) = (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataFixStc.dx : gTrDataFixStc.dy);
-		gTransMatrix.at<double>(1, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataDynStc.dx : gTrDataDynStc.dy);
+		gTransMatrix.at<double>(1, 2) += (double)(gStaticOptionsStc.procEnabled.roi ? gTrDataDynStc.dx : -gTrDataDynStc.dy);
 	}
 
 	void FrameSubProcessorTranslation::saveTrDataToFile() {
