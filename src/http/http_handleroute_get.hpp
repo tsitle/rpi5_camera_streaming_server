@@ -32,8 +32,7 @@ namespace http {
 					{"/proc/roi/size", &HandleRouteGet::_handleRoute_PROC_ROI_SIZE},
 					{"/proc/tr/fixdelta/L", &HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_L},
 					{"/proc/tr/fixdelta/R", &HandleRouteGet::_handleRoute_PROC_TR_FIXDELTA_R},
-					{"/proc/tr/dyndelta/L", &HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_L},
-					{"/proc/tr/dyndelta/R", &HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_R},
+					{"/proc/tr/dyndelta", &HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA},
 					{"/proc/tr/reset", &HandleRouteGet::_handleRoute_PROC_TR_RESET},
 					{"/status", &HandleRouteGet::_handleRoute_STATUS}
 				};
@@ -65,20 +64,23 @@ namespace http {
 			bool __handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId);
 			bool _handleRoute_PROC_TR_FIXDELTA_L();
 			bool _handleRoute_PROC_TR_FIXDELTA_R();
-			bool __handleRoute_PROC_TR_DYNDELTA_x(fcapconstants::CamIdEn camId);
-			bool _handleRoute_PROC_TR_DYNDELTA_L();
-			bool _handleRoute_PROC_TR_DYNDELTA_R();
+			bool _handleRoute_PROC_TR_DYNDELTA();
 			bool _handleRoute_PROC_TR_RESET();
 			bool _handleRoute_STATUS();
 			//
 			bool isCameraAvailabelL();
 			bool isCameraAvailabelR();
 			//
+			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
+			std::map<std::string, std::string> _getQueryParams();
+			bool _getCoordsFromQuery(const std::string &keyX, const std::string &keyY,
+					cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
 			bool getBoolFromQuery(bool &valOut);
 			bool getIntFromQuery(int16_t &valOut, const int16_t valMin, const int16_t valMax);
 			bool getOutputCamsFromQuery(fcapconstants::OutputCamsEn &valOut);
-			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
 			bool getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
+			bool getDualCoordsFromQuery(cv::Point &valOutL, cv::Point &valOutR,
+					const cv::Point &valMin, const cv::Point &valMax);
 			//
 			std::string buildWebsite();
 	};

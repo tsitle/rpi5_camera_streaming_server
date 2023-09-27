@@ -388,34 +388,40 @@ namespace http {
 		return __handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camR);
 	}
 
-	bool HandleRouteGet::__handleRoute_PROC_TR_DYNDELTA_x(fcapconstants::CamIdEn camId) {
+	bool HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA() {
 		bool resB = false;
 		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
-		cv::Point tmpPoint;
+		cv::Point tmpPointL;
+		cv::Point tmpPointR;
 
 		log("200 Path=" + gRequUriPath);
-		resB = getCoordsFromQuery(
-				tmpPoint,
+		resB = getDualCoordsFromQuery(
+				tmpPointL,
+				tmpPointR,
 				cv::Point(-10000, -10000),
 				cv::Point(10000, 10000)
 			);
-		if (resB && tmpPoint != gPHndCltData->rtOptsCur.procTrDynDelta[camId]) {
-			/**log("__set to x=" + std::to_string(tmpPoint.x) + ", y=" + std::to_string(tmpPoint.y));**/
-			pRtOptsOut->procTrDynDelta[camId] = tmpPoint;
+		if (resB &&
+				(tmpPointL != gPHndCltData->rtOptsCur.procTrDynDelta[gPHndCltData->staticOptionsStc.camL] ||
+					tmpPointR != gPHndCltData->rtOptsCur.procTrDynDelta[gPHndCltData->staticOptionsStc.camR])) {
+			fcapconstants::CamIdEn camId;
+			//
+			/**log("__set to Lx=" + std::to_string(tmpPointL.x) + ", Ly=" + std::to_string(tmpPointL.y));**/
+			camId = gPHndCltData->staticOptionsStc.camL;
+			pRtOptsOut->procTrDynDelta[camId] = tmpPointL;
 			pRtOptsOut->procTrChanged[camId] = true;
-			fcapshared::Shared::setRtOpts_procTrDynDelta(camId, tmpPoint);
+			fcapshared::Shared::setRtOpts_procTrDynDelta(camId, tmpPointL);
+			fcapshared::Shared::setRtOpts_procTrChanged(camId, true);
+			//
+			/**log("__set to Rx=" + std::to_string(tmpPointR.x) + ", Ry=" + std::to_string(tmpPointR.y));**/
+			camId = gPHndCltData->staticOptionsStc.camR;
+			pRtOptsOut->procTrDynDelta[camId] = tmpPointR;
+			pRtOptsOut->procTrChanged[camId] = true;
+			fcapshared::Shared::setRtOpts_procTrDynDelta(camId, tmpPointR);
 			fcapshared::Shared::setRtOpts_procTrChanged(camId, true);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;
-	}
-
-	bool HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_L() {
-		return __handleRoute_PROC_TR_DYNDELTA_x(gPHndCltData->staticOptionsStc.camL);
-	}
-
-	bool HandleRouteGet::_handleRoute_PROC_TR_DYNDELTA_R() {
-		return __handleRoute_PROC_TR_DYNDELTA_x(gPHndCltData->staticOptionsStc.camR);
 	}
 
 	bool HandleRouteGet::_handleRoute_PROC_TR_RESET() {
@@ -445,6 +451,81 @@ namespace http {
 	}
 
 	// -----------------------------------------------------------------------------
+
+	void HandleRouteGet::_stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2) {
+		if (valIn.empty()) {
+			throw std::exception();
+		}
+		size_t posIx = valIn.find(split);
+		if (posIx == std::string::npos) {
+			throw std::exception();
+		}
+		valOut1 = valIn.substr(0, posIx);
+		valOut2 = valIn.substr(posIx + 1);
+	}
+
+	std::map<std::string, std::string> HandleRouteGet::_getQueryParams() {
+		const char *pQP = gRequUriQuery.c_str();
+		std::map<std::string, std::string> resVec;
+		uint32_t posStart = 0;
+		uint32_t posCur = 0;
+
+		while (*pQP != 0) {
+			if (*pQP == '&' || *(pQP + 1) == 0) {
+				if (*(pQP + 1) == 0) {
+					++posCur;
+				}
+				std::string tmpKV = gRequUriQuery.substr(posStart, posCur - posStart);
+				std::string tmpK;
+				std::string tmpV;
+				_stringSplit(tmpKV, "=", tmpK, tmpV);
+				resVec[tmpK] = tmpV;
+				posStart = posCur + 1;
+			}
+			++pQP;
+			++posCur;
+		}
+		return resVec;
+	}
+
+	bool HandleRouteGet::_getCoordsFromQuery(
+			const std::string &keyX,
+			const std::string &keyY,
+			cv::Point &valOut,
+			const cv::Point &valMin,
+			const cv::Point &valMax) {
+		bool resB = true;
+
+		try {
+			std::map<std::string, std::string> qp = _getQueryParams();
+			std::map<std::string, std::string>::iterator it;
+
+			it = qp.find(keyX);
+			if (it != qp.end()) {
+				valOut.x = stoi(it->second);
+			} else {
+				throw std::exception();
+			}
+
+			it = qp.find(keyY);
+			if (it != qp.end()) {
+				valOut.y = stoi(it->second);
+			} else {
+				throw std::exception();
+			}
+
+			if (valOut.x < valMin.x || valOut.x > valMax.x) {
+				throw std::exception();
+			}
+			if (valOut.y < valMin.y || valOut.y > valMax.y) {
+				throw std::exception();
+			}
+		} catch (std::exception &err) {
+			gPHndCltData->respErrMsg = "invalid coordinates (example: 'x=1&y=2')";
+			resB = false;
+		}
+		return resB;
+	}
 
 	bool HandleRouteGet::getBoolFromQuery(bool &valOut) {
 		bool resB = true;
@@ -506,55 +587,20 @@ namespace http {
 		return resB;
 	}
 
-	void HandleRouteGet::_stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2) {
-		if (valIn.empty()) {
-			throw std::exception();
-		}
-		size_t posIx = valIn.find(split);
-		if (posIx == std::string::npos) {
-			throw std::exception();
-		}
-		valOut1 = valIn.substr(0, posIx);
-		valOut2 = valIn.substr(posIx + 1);
+	bool HandleRouteGet::getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax) {
+		return _getCoordsFromQuery("x", "y", valOut, valMin, valMax);
 	}
 
-	bool HandleRouteGet::getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax) {
-		bool resB = true;
+	bool HandleRouteGet::getDualCoordsFromQuery(
+			cv::Point &valOutL,
+			cv::Point &valOutR,
+			const cv::Point &valMin,
+			const cv::Point &valMax) {
+		bool resB;
 
-		try {
-			std::string strA1;
-			std::string strA1k;
-			std::string strA1v;
-			std::string strA2;
-			std::string strA2k;
-			std::string strA2v;
-
-			_stringSplit(gRequUriQuery, "&", strA1, strA2);
-			_stringSplit(strA1, "=", strA1k, strA1v);
-			_stringSplit(strA2, "=", strA2k, strA2v);
-			if (strA1k.compare("x") == 0) {
-				valOut.x = stoi(strA1v);
-			} else if (strA1k.compare("y") == 0) {
-				valOut.y = stoi(strA1v);
-			} else {
-				throw std::exception();
-			}
-			if (strA2k.compare("x") == 0) {
-				valOut.x = stoi(strA2v);
-			} else if (strA2k.compare("y") == 0) {
-				valOut.y = stoi(strA2v);
-			} else {
-				throw std::exception();
-			}
-			if (valOut.x < valMin.x || valOut.x > valMax.x) {
-				throw std::exception();
-			}
-			if (valOut.y < valMin.y || valOut.y > valMax.y) {
-				throw std::exception();
-			}
-		} catch (std::exception &err) {
-			gPHndCltData->respErrMsg = "invalid coordinates (example: 'x=1&y=2')";
-			resB = false;
+		resB = _getCoordsFromQuery("Lx", "Ly", valOutL, valMin, valMax);
+		if (resB) {
+			resB = _getCoordsFromQuery("Rx", "Ry", valOutR, valMin, valMax);
 		}
 		return resB;
 	}
