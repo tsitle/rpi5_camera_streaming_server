@@ -92,11 +92,13 @@ namespace frame {
 				}
 			}
 			// render split view (or blended view)
+			/**log("processFrame renderMasterOutput");**/
 			renderMasterOutput(pFrameL, pFrameR, pFrameOut, frameNr);
 		}
 
 		// add grid
 		if (gPOptsRt->procGridShow) {
+			/**log("processFrame GRID");**/
 			gOtherSubProcGrid.processFrame(*pFrameOut);
 		}
 
@@ -105,6 +107,7 @@ namespace frame {
 				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40)) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
+				/**log("processFrame OVERLCAMS");**/
 				procAddTextOverlayCams(*pFrameOut, *pCamDesc, gPOptsRt->outputCams);
 			}
 			// text overlay "CAL"
@@ -121,6 +124,7 @@ namespace frame {
 						tmpBool = (gPOptsRt->procCalDone[fcapconstants::CamIdEn::CAM_0] &&
 								gPOptsRt->procCalDone[fcapconstants::CamIdEn::CAM_1]);
 				}
+				/**log("processFrame OVERLCAL");**/
 				procAddTextOverlayCal(*pFrameOut, tmpBool);
 			}
 		}
@@ -260,6 +264,7 @@ namespace frame {
 
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
+			/**log("procDefaults BNC CAM" + std::to_string((int)subProcsStc.camId));**/
 			gOtherSubProcBnc.processFrame(frame);
 		}
 
@@ -284,6 +289,7 @@ namespace frame {
 			//
 			bool tmpDoStart = gPOptsRt->procCalDoStart[subProcsStc.camId];
 			if (tmpDoStart || gPOptsRt->procCalDone[subProcsStc.camId]) {
+				/**log("procDefaults CAL CAM" + std::to_string((int)subProcsStc.camId));**/
 				subProcsStc.cal.processFrame(frame);
 			}
 			//
@@ -339,6 +345,7 @@ namespace frame {
 			}
 			//
 			if (! skipPt) {
+				/**log("procDefaults PT CAM" + std::to_string((int)subProcsStc.camId));**/
 				subProcsStc.pt.processFrame(frame);
 			}
 			//
@@ -349,6 +356,7 @@ namespace frame {
 
 		// flip
 		if (gStaticOptionsStc.procEnabled.flip) {
+			/**log("procDefaults FLIP CAM" + std::to_string((int)subProcsStc.camId));**/
 			subProcsStc.flip.processFrame(frame);
 		}
 
@@ -363,6 +371,7 @@ namespace frame {
 			}
 			//
 			if (! skipTr) {
+				/**log("procDefaults TR CAM" + std::to_string((int)subProcsStc.camId));**/
 				subProcsStc.tr.processFrame(frame);
 			}
 			//
@@ -379,6 +388,7 @@ namespace frame {
 
 		// region of interest
 		if (gStaticOptionsStc.procEnabled.roi) {
+			/**log("procDefaults ROI CAM" + std::to_string((int)subProcsStc.camId));**/
 			gOtherSubProcRoi.processFrame(frame);
 		}
 
@@ -470,7 +480,7 @@ namespace frame {
 			//
 			cv::Mat insetImageForR = cv::Mat(
 					*pFrameOut,
-					cv::Rect(centerX, 0, centerX + 1, gPOptsRt->resolutionOutput.height)
+					cv::Rect(centerX, 0, gPOptsRt->resolutionOutput.width - centerX, gPOptsRt->resolutionOutput.height)
 				);
 			(*pFrameR)(rowRange, colRangeR).copyTo(insetImageForR);
 			//
