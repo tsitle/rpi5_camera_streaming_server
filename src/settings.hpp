@@ -64,7 +64,7 @@ namespace fcapsettings {
 	 * JPEG compression aka quality (higher value results in better image quality).
 	 * Range is 0..100
 	 */
-	const uint8_t PROC_JPEG_QUALITY = 90;
+	const uint8_t PROC_JPEG_QUALITY = 100;
 
 	/**
 	 * For debugging only: disable all image processing?
