@@ -104,7 +104,8 @@ namespace frame {
 
 		// add text overlays
 		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING &&
-				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40)) {
+				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40) &&
+				gPOptsRt->resolutionOutput.width >= 350) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
 				/**log("processFrame OVERLCAMS");**/
