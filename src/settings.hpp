@@ -8,43 +8,94 @@
 
 namespace fcapsettings {
 
-	const uint16_t DEFAULT_SERVER_PORT = 8090;
+	/**
+	 * Default framerate in frames per second
+	 */
+	const uint8_t STREAM_DEFAULT_FPS = 15;
+	/**
+	 * Enable adaptive framerate per default?
+	 */
+	const bool STREAM_DEFAULT_ENABLE_ADAPTIVE_FPS = true;
+	/**
+	 * Default camera stream capture size.
+	 * This defines the field of view
+	 */
+	const cv::Size STREAM_DEFAULT_CAPTURE_SZ = fcapconstants::PIPE_CAPTURE_SZ_1536X864;  // can also be a PIPE_OUTPUT_SZ_*
+	/**
+	 * Default camera stream input size.
+	 * This defines how the captured stream is scaled before being sent to the application
+	 */
+	const cv::Size STREAM_DEFAULT_INPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;  // can also be a PIPE_CAPTURE_SZ_*
 
-	const uint8_t JPEG_QUALITY = 90;  // 0..100
+	/**
+	 * For debugging only: open camera streams?
+	 */
+	const bool DBG_OPEN_CAM_STREAMS = true;
 
-	const uint8_t DEFAULT_FPS = 15;
-	const bool DEFAULT_ENABLE_ADAPTIVE_FPS = true;
+	// -------------------------------------------------------------------------
 
-	const cv::Size DEFAULT_CAPTURE_SZ = fcapconstants::PIPE_CAPTURE_SZ_1536X864;  // can also be a PIPE_OUTPUT_SZ_*
-	const cv::Size DEFAULT_INPUT_SZ = fcapconstants::PIPE_OUTPUT_SZ_1280X720;  // can also be a PIPE_CAPTURE_SZ_*
+	/**
+	 * Default TCP port for Webserver
+	 */
+	const uint16_t TCP_DEFAULT_SERVER_PORT = 8090;
+	/**
+	 * Maximum allowed amount of streaming clients for Webserver
+	 */
+	const uint32_t TCP_MAX_STREAMING_CLIENTS = 4;
 
-	const bool DBG_OPEN_CAM_STREAMS = true;  // for debugging only
+	// -------------------------------------------------------------------------
 
-	const bool DEFAULT_OUTPUT_PNGS = false;
+	/**
+	 * Size of the image frame queue.
+	 * Higher values result in higher latency, but can slightly increase the framerate
+	 */
+	const uint8_t IF_QUEUE_SIZE = 2;
 
-	//
-	const uint8_t SETT_PIPE_FMT1 = fcapconstants::PIPE_FMT_X_BGRX;
-	const uint8_t SETT_PIPE_FMT2 = fcapconstants::PIPE_FMT_X_BGR;
+	// -------------------------------------------------------------------------
 
-	const uint32_t SETT_MAX_STREAMING_CLIENTS = 4;
+	/**
+	 * Use split view instead of blended view per default when both cameras are enabled?
+	 */
+	const bool PROC_DEFAULT_SPLITVIEW_FOR_CAMBOTH = true;
 
-	const uint8_t QUEUE_SIZE = 5;  // higher values result in higher latency
+	// -------------------------------------------------------------------------
 
-	const bool SPLITVIEW_FOR_CAMBOTH = true;  // use split view instead of blended view when both cameras are enabled?
+	/**
+	 * JPEG compression aka quality (higher value results in better image quality).
+	 * Range is 0..100
+	 */
+	const uint8_t PROC_JPEG_QUALITY = 90;
 
-	//
+	/**
+	 * For debugging only: disable all image processing?
+	 */
+	const bool DBG_PROC_DISABLE_ALL_PROCESSING = false;
 
-	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_COL = 4;  // since the image is rotated 90 degress when calibrating, columns and rows need to be swapped here
-	const uint8_t CALIB_CHESS_SQUARES_INNERCORNERS_ROW = 6;
-	const float CALIB_CHESS_SQUARES_WIDTH_MM = 5.0;  // mm
-	const double CALIB_MAX_PROJECTION_ERROR = 0.6;
+	// -------------------------------------------------------------------------
 
-	const bool PROC_DISABLE_ALL_PROCESSING = false;
-
-	const int16_t PROC_BNC_DEFAULT_ADJ_BRIGHTNESS = 23;
-	const int16_t PROC_BNC_DEFAULT_ADJ_CONTRAST = 5;
-
-	const bool PROC_CAL_UNDISTORT = false;  // roughly doubles the CPU load if enabled
+	/**
+	 * Amount of inner corners on the x-Axis on the calibration chessboard image.
+	 * Since the image is rotated 90 degress when calibrating, columns and rows need to be swapped here
+	 */
+	const uint8_t PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL = 4;
+	/**
+	 * Amount of inner corners on the y-Axis on the calibration chessboard image.
+	 * Since the image is rotated 90 degress when calibrating, columns and rows need to be swapped here
+	 */
+	const uint8_t PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW = 6;
+	/**
+	 * Width of the squares on the calibration chessboard image in mm
+	 */
+	const float PROC_CAL_CHESS_SQUARES_WIDTH_MM = 5.0;  // mm
+	/**
+	 * Maximum allowed projection error for the calibration
+	 */
+	const double PROC_CAL_MAX_PROJECTION_ERROR = 0.6;
+	/**
+	 * Render undistorted image once calibration has been completed?
+	 * Roughly doubles the CPU load if enabled
+	 */
+	const bool PROC_CAL_UNDISTORT = false;
 
 }  // namespace fcapsettings
 

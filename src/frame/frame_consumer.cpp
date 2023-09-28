@@ -38,7 +38,7 @@ namespace frame {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
-		gCompressionParams.push_back(fcapsettings::JPEG_QUALITY);
+		gCompressionParams.push_back(fcapsettings::PROC_JPEG_QUALITY);
 	}
 
 	FrameConsumer::~FrameConsumer() {

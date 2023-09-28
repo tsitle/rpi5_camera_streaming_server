@@ -23,7 +23,7 @@ namespace frame {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 		//
 		for (int camIdInt = (int)fcapconstants::CamIdEn::CAM_0; camIdInt <= (int)fcapconstants::CamIdEn::CAM_1; camIdInt++) {
-			for (uint8_t x = 0; x < fcapsettings::QUEUE_SIZE; x++) {
+			for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
 				gEntriesRsvdSz[(fcapconstants::CamIdEn)camIdInt][x] = 64 * 1024;
 				gPEntries[(fcapconstants::CamIdEn)camIdInt][x] = (uint8_t*)::malloc(gEntriesRsvdSz[(fcapconstants::CamIdEn)camIdInt][x]);
 				gEntriesUsedSz[(fcapconstants::CamIdEn)camIdInt][x] = 0;
@@ -36,7 +36,7 @@ namespace frame {
 
 		thrLock.lock();
 		for (int camIdInt = (int)fcapconstants::CamIdEn::CAM_0; camIdInt <= (int)fcapconstants::CamIdEn::CAM_1; camIdInt++) {
-			for (uint8_t x = 0; x < fcapsettings::QUEUE_SIZE; x++) {
+			for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
 				if (gPEntries[(fcapconstants::CamIdEn)camIdInt][x] != NULL) {
 					::free(gPEntries[(fcapconstants::CamIdEn)camIdInt][x]);
 					gPEntries[(fcapconstants::CamIdEn)camIdInt][x] = NULL;
@@ -86,10 +86,10 @@ namespace frame {
 		//
 		thrLock.lock();
 		//
-		if (gCountInBuf == fcapsettings::QUEUE_SIZE) {
+		if (gCountInBuf == fcapsettings::IF_QUEUE_SIZE) {
 			++gDroppedFrames;
 			++gIxToOutput;
-			if (gIxToOutput == fcapsettings::QUEUE_SIZE) {
+			if (gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
 				gIxToOutput = 0;
 			}
 		}
@@ -101,11 +101,11 @@ namespace frame {
 			appendFrameToQueue(gStaticOptionsStc.camR, *pFrameRawR);
 		}
 		//
-		if (++gIxToStore == fcapsettings::QUEUE_SIZE) {
+		if (++gIxToStore == fcapsettings::IF_QUEUE_SIZE) {
 			gIxToStore = 0;
 		}
-		if (++gCountInBuf > fcapsettings::QUEUE_SIZE) {
-			gCountInBuf = fcapsettings::QUEUE_SIZE;
+		if (++gCountInBuf > fcapsettings::IF_QUEUE_SIZE) {
+			gCountInBuf = fcapsettings::IF_QUEUE_SIZE;
 		}
 		//
 		gThrVarHaveFrames = true;
@@ -141,7 +141,7 @@ namespace frame {
 						*pFrameRawR = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camR][gIxToOutput]);
 					}
 				}
-				if (++gIxToOutput == fcapsettings::QUEUE_SIZE) {
+				if (++gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
 					gIxToOutput = 0;
 				}
 				--gCountInBuf;

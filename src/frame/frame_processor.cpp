@@ -70,7 +70,7 @@ namespace frame {
 		}
 
 		// do the actual processing
-		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING) {
+		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING) {
 			if (pFrameL != NULL) {
 				procDefaults(gSubProcsL, *pFrameL);
 			}
@@ -103,7 +103,7 @@ namespace frame {
 		}
 
 		// add text overlays
-		if (! fcapsettings::PROC_DISABLE_ALL_PROCESSING &&
+		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING &&
 				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40)) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
@@ -461,7 +461,7 @@ namespace frame {
 			__attribute__((unused)) const uint32_t frameNr) {
 		/**auto timeStart = std::chrono::steady_clock::now();**/
 
-		if (fcapsettings::SPLITVIEW_FOR_CAMBOTH) {
+		if (fcapsettings::PROC_DEFAULT_SPLITVIEW_FOR_CAMBOTH) {
 			/**
 			 * split view rendering is faster than blended view rendering
 			 */

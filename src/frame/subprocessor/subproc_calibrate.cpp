@@ -77,8 +77,8 @@ namespace framesubproc {
 			return resVect;
 		}
 
-		const uint8_t rowCnt = fcapsettings::CALIB_CHESS_SQUARES_INNERCORNERS_ROW;
-		const uint8_t colCnt = fcapsettings::CALIB_CHESS_SQUARES_INNERCORNERS_COL;
+		const uint8_t rowCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW;
+		const uint8_t colCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL;
 		std::vector<cv::Point2f> lastPnts = gCalibrationDataStc.imagePoints.back();
 
 		if (lastPnts.size() < rowCnt * colCnt) {
@@ -341,9 +341,9 @@ namespace framesubproc {
 				outpNewObjPoints,
 				_DO_RELEASE_OBJECT
 			);
-		if (resB && outpTotalAvgErr >= fcapsettings::CALIB_MAX_PROJECTION_ERROR) {
+		if (resB && outpTotalAvgErr >= fcapsettings::PROC_CAL_MAX_PROJECTION_ERROR) {
 			log("CAL", "avg re projection error too high (is=" + std::to_string(outpTotalAvgErr) +
-					", max=" + std::to_string(fcapsettings::CALIB_MAX_PROJECTION_ERROR) + ")");
+					", max=" + std::to_string(fcapsettings::PROC_CAL_MAX_PROJECTION_ERROR) + ")");
 			resB = false;
 		}
 
@@ -402,7 +402,7 @@ namespace framesubproc {
 		/**log("CAL", "_ocvCalcBoardCornerPositions");**/
 		std::vector<std::vector<cv::Point3f>> objectPoints(1);
 		_ocvCalcBoardCornerPositions(
-				fcapsettings::CALIB_CHESS_SQUARES_WIDTH_MM,
+				fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM,
 				objectPoints[0],
 				s.patternEn
 			);

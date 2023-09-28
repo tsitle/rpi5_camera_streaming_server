@@ -43,7 +43,7 @@ namespace frame {
 			static bool getFlagRestartCamStreams();
 			//
 			void log(const std::string &message);
-			std::string pipe_format_x_to_str(const uint8_t formatX);
+			std::string pipe_format_en_to_str(const fcapconstants::GstreamerPipeFmtEn formatEn);
 			std::string build_gstreamer_pipeline(const std::string camSource, const uint8_t cameraFps);
 			bool openStreams();
 			void runX1(void);

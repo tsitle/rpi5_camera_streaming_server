@@ -98,7 +98,7 @@ namespace http {
 		thrLock.lock();
 		gThrVarRunningCltsStc.runningHandlersCount = 0;
 		gThrVarRunningCltsStc.runningStreamsCount = 0;
-		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
 			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
 			gThrVarRunningCltsStc.frameQueues[x].isActive = false;
 			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = NULL;
@@ -121,7 +121,7 @@ namespace http {
 
 		thrLock.lock();
 		++gThrVarRunningCltsStc.runningHandlersCount;
-		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
 			if (gThrVarRunningCltsStc.frameQueues[x].isActive) {
 				continue;
 			}
@@ -140,7 +140,7 @@ namespace http {
 		if (gThrVarRunningCltsStc.runningHandlersCount != 0) {
 			--gThrVarRunningCltsStc.runningHandlersCount;
 		}
-		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
 			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx) {
 				continue;
 			}
@@ -157,7 +157,7 @@ namespace http {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
-		resB = (gThrVarRunningCltsStc.runningStreamsCount < fcapsettings::SETT_MAX_STREAMING_CLIENTS);
+		resB = (gThrVarRunningCltsStc.runningStreamsCount < fcapsettings::TCP_MAX_STREAMING_CLIENTS);
 		if (resB) {
 			++gThrVarRunningCltsStc.runningStreamsCount;
 		}
@@ -179,7 +179,7 @@ namespace http {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
-		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
 			if (! gThrVarRunningCltsStc.frameQueues[x].isActive) {
 				continue;
 			}
@@ -193,7 +193,7 @@ namespace http {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
-		for (uint32_t x = 0; x < fcapsettings::SETT_MAX_STREAMING_CLIENTS; x++) {
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
 			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx) {
 				continue;
 			}

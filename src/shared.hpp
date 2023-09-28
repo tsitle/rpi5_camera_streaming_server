@@ -47,8 +47,8 @@ namespace fcapshared {
 			resolutionOutput = cv::Size(0, 0);
 			//
 			procBncChanged = false;
-			procBncAdjBrightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
-			procBncAdjContrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
+			procBncAdjBrightness = 0;
+			procBncAdjContrast = 0;
 			//
 			procGridChanged = false;
 			procGridShow = false;

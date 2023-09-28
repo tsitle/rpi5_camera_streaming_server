@@ -26,9 +26,9 @@ namespace frame {
 			static std::mutex gThrMtx;
 			static std::condition_variable gThrCond;
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
-			std::map<fcapconstants::CamIdEn, uint8_t*[fcapsettings::QUEUE_SIZE]> gPEntries;
-			std::map<fcapconstants::CamIdEn, uint32_t[fcapsettings::QUEUE_SIZE]> gEntriesRsvdSz;
-			std::map<fcapconstants::CamIdEn, uint32_t[fcapsettings::QUEUE_SIZE]> gEntriesUsedSz;
+			std::map<fcapconstants::CamIdEn, uint8_t*[fcapsettings::IF_QUEUE_SIZE]> gPEntries;
+			std::map<fcapconstants::CamIdEn, uint32_t[fcapsettings::IF_QUEUE_SIZE]> gEntriesRsvdSz;
+			std::map<fcapconstants::CamIdEn, uint32_t[fcapsettings::IF_QUEUE_SIZE]> gEntriesUsedSz;
 			uint8_t gCountInBuf;
 			uint8_t gIxToStore;
 			uint8_t gIxToOutput;

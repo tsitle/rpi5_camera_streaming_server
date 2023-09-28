@@ -14,8 +14,8 @@ namespace framesubproc {
 		}
 
 		void reset() {
-			brightness = fcapsettings::PROC_BNC_DEFAULT_ADJ_BRIGHTNESS;
-			contrast = fcapsettings::PROC_BNC_DEFAULT_ADJ_CONTRAST;
+			brightness = 0;
+			contrast = 0;
 		}
 
 		bool equal(const BncDataStc &o2) const {

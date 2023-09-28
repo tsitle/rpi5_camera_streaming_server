@@ -126,14 +126,14 @@ namespace frame {
 		std::cout << "FPROD: " << message << std::endl;
 	}
 
-	std::string FrameProducer::pipe_format_x_to_str(const uint8_t formatX) {
+	std::string FrameProducer::pipe_format_en_to_str(const fcapconstants::GstreamerPipeFmtEn formatEn) {
 		std::string formatStr;
-		switch (formatX) {
-			case fcapconstants::PIPE_FMT_X_BGR:
-				formatStr = fcapconstants::PIPE_FMT_S_BGR;
+		switch (formatEn) {
+			case fcapconstants::GstreamerPipeFmtEn::BGR:
+				formatStr = fcapconstants::GSTREAMER_PIPE_FMT_S_BGR;
 				break;
-			case fcapconstants::PIPE_FMT_X_BGRX:
-				formatStr = fcapconstants::PIPE_FMT_S_BGRX;
+			case fcapconstants::GstreamerPipeFmtEn::BGRX:
+				formatStr = fcapconstants::GSTREAMER_PIPE_FMT_S_BGRX;
 				break;
 			default:
 				formatStr = "n/a";
@@ -142,8 +142,8 @@ namespace frame {
 	}
 
 	std::string FrameProducer::build_gstreamer_pipeline(const std::string camSource, const uint8_t cameraFps) {
-		const std::string format1Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT1);
-		const std::string format2Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT2);
+		const std::string format1Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT1);
+		const std::string format2Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT2);
 
 		std::string pipeline = "libcamerasrc auto-focus-mode=AfModeContinuous camera-name=";
 		pipeline += camSource;
@@ -432,8 +432,8 @@ namespace frame {
 
 			//
 			/**auto timeEnd = std::chrono::steady_clock::now();
-			const std::string pipeFormat1Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT1);
-			const std::string pipeFormat2Str = pipe_format_x_to_str(fcapsettings::SETT_PIPE_FMT2);
+			const std::string pipeFormat1Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT1);
+			const std::string pipeFormat2Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT2);
 			log("PFMT(" + pipeFormat1Str + "/" + pipeFormat2Str + "): Elapsed time: " +
 					std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count()) +
 					" ms");**/

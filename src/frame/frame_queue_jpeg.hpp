@@ -21,9 +21,9 @@ namespace frame {
 			bool gIsForJpegs;
 
 		protected:
-			uint8_t* gPEntries[fcapsettings::QUEUE_SIZE];
-			uint32_t gEntriesRsvdSz[fcapsettings::QUEUE_SIZE];
-			uint32_t gEntriesUsedSz[fcapsettings::QUEUE_SIZE];
+			uint8_t* gPEntries[fcapsettings::IF_QUEUE_SIZE];
+			uint32_t gEntriesRsvdSz[fcapsettings::IF_QUEUE_SIZE];
+			uint32_t gEntriesUsedSz[fcapsettings::IF_QUEUE_SIZE];
 			uint8_t gCountInBuf;
 			uint8_t gIxToStore;
 			uint8_t gIxToOutput;

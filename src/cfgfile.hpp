@@ -71,20 +71,20 @@ namespace fcapcfgfile {
 		}
 
 		void reset() {
-			serverPort = fcapsettings::DEFAULT_SERVER_PORT;
-			gstreamerResolutionCapture = fcapsettings::DEFAULT_CAPTURE_SZ;
-			resolutionInputStream = fcapsettings::DEFAULT_INPUT_SZ;
-			cameraFps = fcapsettings::DEFAULT_FPS;
+			serverPort = fcapsettings::TCP_DEFAULT_SERVER_PORT;
+			gstreamerResolutionCapture = fcapsettings::STREAM_DEFAULT_CAPTURE_SZ;
+			resolutionInputStream = fcapsettings::STREAM_DEFAULT_INPUT_SZ;
+			cameraFps = fcapsettings::STREAM_DEFAULT_FPS;
 			camL = fcapconstants::CamIdEn::CAM_0;
 			camR = fcapconstants::CamIdEn::CAM_1;
 			camSourceType = fcapconstants::CamSourceEn::UNSPECIFIED;
 			camSource0 = "";
 			camSource1 = "";
 			pngOutputPath = ".";
-			outputPngs = fcapsettings::DEFAULT_OUTPUT_PNGS;
+			outputPngs = false;
 			calibOutputPath = ".";
 			procEnabled.reset();
-			enableAdaptFps = fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS;
+			enableAdaptFps = fcapsettings::STREAM_DEFAULT_ENABLE_ADAPTIVE_FPS;
 			flip[fcapconstants::CamIdEn::CAM_0] = FlipStc();
 			flip[fcapconstants::CamIdEn::CAM_1] = FlipStc();
 		}

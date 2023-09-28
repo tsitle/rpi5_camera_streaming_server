@@ -24,11 +24,22 @@ namespace fcapconstants {
 	const cv::Size PIPE_OUTPUT_SZ_1920X1080 = cv::Size(1920, 1080);
 	//const cv::Size PIPE_OUTPUT_SZ_2560x1440 = cv::Size(2560, 1440);  // too big for Compute Modul 4, two cameras and 1GB of RAM (ERROR V4L2 v4l2_videodevice.cpp:1248 /dev/video14[19:cap]: Not enough buffers provided by V4L2VideoDevice)
 
-	const std::string PIPE_FMT_S_BGR("BGR");
-	const std::string PIPE_FMT_S_BGRX("BGRx");
+	const std::string GSTREAMER_PIPE_FMT_S_BGR("BGR");
+	const std::string GSTREAMER_PIPE_FMT_S_BGRX("BGRx");
 
-	const uint8_t PIPE_FMT_X_BGR = 0;
-	const uint8_t PIPE_FMT_X_BGRX = 1;
+	enum class GstreamerPipeFmtEn {
+		BGR = 0,
+		BGRX = 1
+	};
+
+	/**
+	 * GStreamer Pipe Format for input (from camera to GStreamer)
+	 */
+	const GstreamerPipeFmtEn GSTREAMER_PIPE_FMT1 = GstreamerPipeFmtEn::BGRX;
+	/**
+	 * GStreamer Pipe Format for output (from GStreamer to application)
+	 */
+	const GstreamerPipeFmtEn GSTREAMER_PIPE_FMT2 = GstreamerPipeFmtEn::BGR;
 
 	const std::string HTTP_CONTENT_TYPE_HTML = "text/html";
 	const std::string HTTP_CONTENT_TYPE_JPEG = "image/jpeg";

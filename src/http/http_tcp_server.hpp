@@ -21,7 +21,7 @@ namespace http {
 	struct RunningCltsStc {
 		uint32_t runningHandlersCount;
 		uint32_t runningStreamsCount;
-		FrameQueueStc frameQueues[fcapsettings::SETT_MAX_STREAMING_CLIENTS];
+		FrameQueueStc frameQueues[fcapsettings::TCP_MAX_STREAMING_CLIENTS];
 	};
 
 	typedef uint32_t (*CbGetRunningHandlersCount)();

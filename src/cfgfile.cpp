@@ -160,8 +160,11 @@ namespace fcapcfgfile {
 
 	void CfgFile::getDefaultStaticConfig(void **ppJsonObj) {
 		*((json**)ppJsonObj) = new json {
-				{"server_port", fcapsettings::DEFAULT_SERVER_PORT},
-				{"resolution_input_stream", std::to_string(fcapsettings::DEFAULT_INPUT_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_INPUT_SZ.height)},
+				{"server_port", fcapsettings::TCP_DEFAULT_SERVER_PORT},
+				{"resolution_input_stream",
+						std::to_string(fcapsettings::STREAM_DEFAULT_INPUT_SZ.width) +
+						"x" + std::to_string(fcapsettings::STREAM_DEFAULT_INPUT_SZ.height)
+					},
 				{"camera_assignment", {
 						{"left", fcapconstants::CONFFILE_CAMID_0},
 						{"right", fcapconstants::CONFFILE_CAMID_1}
@@ -170,25 +173,28 @@ namespace fcapcfgfile {
 						{"type", fcapconstants::CONFFILE_CAMSRC_UNSPEC},
 						{"cam0", ""},
 						{"cam1", ""},
-						{"fps", fcapsettings::DEFAULT_FPS},
+						{"fps", fcapsettings::STREAM_DEFAULT_FPS},
 						{"gstreamer", {
-								{"resolution_capture", std::to_string(fcapsettings::DEFAULT_CAPTURE_SZ.width) + "x" + std::to_string(fcapsettings::DEFAULT_CAPTURE_SZ.height)}
+								{"resolution_capture",
+										std::to_string(fcapsettings::STREAM_DEFAULT_CAPTURE_SZ.width) +
+										"x" + std::to_string(fcapsettings::STREAM_DEFAULT_CAPTURE_SZ.height)
+									}
 							}}
 					}},
 				{"png_output_path", "."},
-				{"output_pngs", fcapsettings::DEFAULT_OUTPUT_PNGS},
+				{"output_pngs", false},
 				{"calib_output_path", "."},
 				{"processing_enabled", {
-						{"bnc", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"flip", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"pt", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"roi", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"tr", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"overlay_cam", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING},
-						{"overlay_cal", ! fcapsettings::PROC_DISABLE_ALL_PROCESSING}
+						{"bnc", true},
+						{"cal", true},
+						{"flip", true},
+						{"pt", true},
+						{"roi", true},
+						{"tr", true},
+						{"overlay_cam", true},
+						{"overlay_cal", true}
 					}},
-				{"enable_adaptive_fps", fcapsettings::DEFAULT_ENABLE_ADAPTIVE_FPS},
+				{"enable_adaptive_fps", fcapsettings::STREAM_DEFAULT_ENABLE_ADAPTIVE_FPS},
 				{"flip", {
 						{"cam0", {
 								{"horizontal", false},
