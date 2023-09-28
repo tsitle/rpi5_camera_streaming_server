@@ -508,6 +508,22 @@ namespace http {
 				};
 
 			//
+			const std::string *pTmpIsst;
+			switch (gHndCltData.staticOptionsStc.camSourceType) {
+				case fcapconstants::CamSourceEn::GSTREAMER:
+					pTmpIsst = &fcapconstants::CONFFILE_CAMSRC_GSTR;
+					break;
+				case fcapconstants::CamSourceEn::MJPEG:
+					pTmpIsst = &fcapconstants::CONFFILE_CAMSRC_MJPEG;
+					break;
+				default:
+					pTmpIsst = &fcapconstants::CONFFILE_CAMSRC_UNSPEC;
+			}
+			jsonObj["inputStreamSourceType"] = *pTmpIsst;
+			jsonObj["resolutionInputStream"] = {
+					{"w", gHndCltData.staticOptionsStc.resolutionInputStream.width},
+					{"h", gHndCltData.staticOptionsStc.resolutionInputStream.height}
+				};
 			jsonObj["resolutionOutput"] = {
 					{"w", gHndCltData.rtOptsNew.resolutionOutput.width},
 					{"h", gHndCltData.rtOptsNew.resolutionOutput.height}
