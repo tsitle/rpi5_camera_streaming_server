@@ -8,6 +8,15 @@ LVAR_PATH="ProgCpp/opencv_mjpeg_streaming_server"
 
 #rm build/*.png 2>/dev/null
 
+if [ -z "$LVAR_REMOTE_HOST" ]; then
+	echo "Missing LVAR_REMOTE_HOST"
+	exit 1
+fi
+if [ -z "$LVAR_PATH" ]; then
+	echo "Missing LVAR_PATH"
+	exit 1
+fi
+
 rsync -va --delete \
 	comp.sh run.sh src \
 	$LVAR_REMOTE_HOST:$LVAR_PATH/ || exit 1
