@@ -121,7 +121,7 @@ namespace frame {
 						optsLastOutputCams = optsRt.outputCams;
 					}
 					//
-					toOpts = 10;
+					toOpts = (optsRt.cameraFps > 1 ? optsRt.cameraFps / 2 : 1);
 				}
 
 				// read frames from queues
