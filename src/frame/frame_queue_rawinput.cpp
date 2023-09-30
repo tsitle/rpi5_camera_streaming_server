@@ -32,7 +32,7 @@ namespace frame {
 	}
 
 	FrameQueueRawInput::~FrameQueueRawInput() {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		for (int camIdInt = (int)fcapconstants::CamIdEn::CAM_0; camIdInt <= (int)fcapconstants::CamIdEn::CAM_1; camIdInt++) {
@@ -51,7 +51,7 @@ namespace frame {
 
 	bool FrameQueueRawInput::isQueueEmpty() {
 		bool resB;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		resB = (gCountInBuf == 0);
@@ -61,7 +61,7 @@ namespace frame {
 
 	uint32_t FrameQueueRawInput::getDroppedFramesCount() {
 		uint32_t resI;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		resI = gDroppedFrames;
@@ -70,7 +70,7 @@ namespace frame {
 	}
 
 	void FrameQueueRawInput::resetDroppedFramesCount() {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		gDroppedFrames = 0;
@@ -78,7 +78,7 @@ namespace frame {
 	}
 
 	void FrameQueueRawInput::appendFramesToQueue(const cv::Mat *pFrameRawL, const cv::Mat *pFrameRawR) {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		if (pFrameRawL == nullptr && pFrameRawR == nullptr) {
 			return;
@@ -117,40 +117,35 @@ namespace frame {
 	bool FrameQueueRawInput::getFramesFromQueue(cv::Mat *pFrameRawL, cv::Mat *pFrameRawR) {
 		bool resB = false;
 		bool haveMoreFrames = false;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		if (pFrameRawL == nullptr && pFrameRawR == nullptr) {
 			return false;
 		}
 		//
 		thrLock.lock();
-		if (gThrCond.wait_for(thrLock, 1ms, []{ return gThrVarHaveFrames; })) {
-			if (gCountInBuf != 0) {
-				resB = true;
-				if (pFrameRawL != nullptr) {
-					if (gEntriesUsedSz[gStaticOptionsStc.camL][gIxToOutput] == 0) {
-						resB = false;
-					} else {
-						*pFrameRawL = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camL][gIxToOutput]);
-					}
+		if (gThrCond.wait_for(thrLock, 5ms, []{ return gThrVarHaveFrames; })) {
+			resB = true;
+			if (pFrameRawL != nullptr) {
+				if (gEntriesUsedSz[gStaticOptionsStc.camL][gIxToOutput] == 0) {
+					resB = false;
+				} else {
+					*pFrameRawL = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camL][gIxToOutput]);
 				}
-				if (resB && pFrameRawR != nullptr) {
-					if (gEntriesUsedSz[gStaticOptionsStc.camR][gIxToOutput] == 0) {
-						resB = false;
-					} else {
-						*pFrameRawR = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camR][gIxToOutput]);
-					}
-				}
-				if (++gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
-					gIxToOutput = 0;
-				}
-				--gCountInBuf;
-				gThrVarHaveFrames = (gCountInBuf != 0);
-				haveMoreFrames = gThrVarHaveFrames;
-			} else {
-				/*log("count 0");*/
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
+			if (resB && pFrameRawR != nullptr) {
+				if (gEntriesUsedSz[gStaticOptionsStc.camR][gIxToOutput] == 0) {
+					resB = false;
+				} else {
+					*pFrameRawR = cv::Mat(gFrameSz, CV_8UC3, gPEntries[gStaticOptionsStc.camR][gIxToOutput]);
+				}
+			}
+			if (++gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
+				gIxToOutput = 0;
+			}
+			--gCountInBuf;
+			gThrVarHaveFrames = (gCountInBuf != 0);
+			haveMoreFrames = gThrVarHaveFrames;
 		}
 		thrLock.unlock();
 		//
@@ -161,7 +156,7 @@ namespace frame {
 	}
 
 	void FrameQueueRawInput::flushQueue() {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		gCountInBuf = 0;

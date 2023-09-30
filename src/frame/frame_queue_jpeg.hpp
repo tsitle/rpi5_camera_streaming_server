@@ -11,7 +11,7 @@ namespace frame {
 
 	class FrameQueue {
 		public:
-			FrameQueue(bool isForJpegs);
+			FrameQueue(const uint32_t streamingClientIx, bool isForJpegs);
 			~FrameQueue();
 			bool isQueueEmpty();
 			uint32_t getDroppedFramesCount();
@@ -28,8 +28,8 @@ namespace frame {
 			uint8_t gIxToStore;
 			uint8_t gIxToOutput;
 			uint32_t gDroppedFrames;
+			uint32_t gStreamingClientIx;
 			std::mutex gThrMtx;
-			std::condition_variable gThrCond;
 
 			//
 
@@ -39,7 +39,7 @@ namespace frame {
 
 	class FrameQueueJpeg : public FrameQueue {
 		public:
-			FrameQueueJpeg();
+			FrameQueueJpeg(const uint32_t streamingClientIx);
 			~FrameQueueJpeg();
 			void appendFrameToQueue(std::vector<unsigned char> &frameJpeg);
 			bool getFrameFromQueue(uint8_t** ppData, uint32_t &dataRsvdSz, uint32_t &dataSzOut);

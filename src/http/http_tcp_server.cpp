@@ -127,7 +127,7 @@ namespace http {
 			}
 			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = thrIx;
 			gThrVarRunningCltsStc.frameQueues[x].isActive = true;
-			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg();
+			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg(x);
 			break;
 		}
 		thrLock.unlock();

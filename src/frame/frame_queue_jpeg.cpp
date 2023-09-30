@@ -7,12 +7,13 @@ using namespace std::chrono_literals;
 
 namespace frame {
 
-	FrameQueue::FrameQueue(bool isForJpegs) :
+	FrameQueue::FrameQueue(const uint32_t streamingClientIx, bool isForJpegs) :
 			gIsForJpegs(isForJpegs),
 			gCountInBuf(0),
 			gIxToStore(0),
 			gIxToOutput(0),
-			gDroppedFrames(0) {
+			gDroppedFrames(0),
+			gStreamingClientIx(streamingClientIx) {
 		#define _UNUSED(x) (void)(x)
 		_UNUSED(gIsForJpegs);
 		#undef _UNUSED
@@ -25,7 +26,7 @@ namespace frame {
 	}
 
 	FrameQueue::~FrameQueue() {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
@@ -42,7 +43,7 @@ namespace frame {
 
 	bool FrameQueue::isQueueEmpty() {
 		bool resB;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		resB = (gCountInBuf == 0);
@@ -52,7 +53,7 @@ namespace frame {
 
 	uint32_t FrameQueue::getDroppedFramesCount() {
 		uint32_t resI;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		resI = gDroppedFrames;
@@ -61,7 +62,7 @@ namespace frame {
 	}
 
 	void FrameQueue::resetDroppedFramesCount() {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		gDroppedFrames = 0;
@@ -76,7 +77,7 @@ namespace frame {
 	}
 
 	void FrameQueue::appendFrameToQueueBytes(void *pData, const uint32_t dataSz) {
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
 		if (gCountInBuf == fcapsettings::IF_QUEUE_SIZE) {
@@ -112,16 +113,16 @@ namespace frame {
 		if (++gCountInBuf > fcapsettings::IF_QUEUE_SIZE) {
 			gCountInBuf = fcapsettings::IF_QUEUE_SIZE;
 		}
+		//
 		/**if (gIsForJpegs) { log("app end"); }**/
 		thrLock.unlock();
-		gThrCond.notify_all();
 	}
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	FrameQueueJpeg::FrameQueueJpeg() :
-			FrameQueue(true) {
+	FrameQueueJpeg::FrameQueueJpeg(const uint32_t streamingClientIx) :
+			FrameQueue(streamingClientIx, true) {
 	}
 
 	FrameQueueJpeg::~FrameQueueJpeg() {
@@ -133,49 +134,50 @@ namespace frame {
 
 	bool FrameQueueJpeg::getFrameFromQueue(uint8_t** ppData, uint32_t &dataRsvdSz, uint32_t &dataSzOut) {
 		bool resB = false;
-		std::unique_lock<std::mutex> thrLock{gThrMtx, std::defer_lock};
+		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
 		thrLock.lock();
-		if (gThrCond.wait_for(thrLock, 1ms, []{ return true; })) {
-			if (gCountInBuf != 0) {
-				/**log("get beg ix=" + std::to_string(gIxToOutput));**/
-				uint32_t entrySz = gEntriesUsedSz[gIxToOutput];
-				//
-				if (dataRsvdSz == 0) {
-					dataRsvdSz = entrySz + 1024;
-					/**log("get _ma " + std::to_string(dataRsvdSz));**/
-					*ppData = (uint8_t*)::malloc(dataRsvdSz);
-				} else if (entrySz > dataRsvdSz) {
-					dataRsvdSz = entrySz;
-					/**log("get _ra " + std::to_string(dataRsvdSz));**/
-					*ppData = (uint8_t*)::realloc(*ppData, dataRsvdSz);
-				}
-				if (*ppData != NULL) {
-					/**char strBuf1[128];
-					snprintf(strBuf1, sizeof(strBuf1), "__b 0x%02X%02X 0x%02X%02X", gPEntries[gIxToOutput][0], gPEntries[gIxToOutput][1], gPEntries[gIxToOutput][entrySz - 2], gPEntries[gIxToOutput][entrySz - 1]);
-					log("get _src " + strBuf1);**/
-					//
-					/**log("get _cp " + std::to_string(entrySz));**/
-					::memcpy(*ppData, gPEntries[gIxToOutput], entrySz);
-					dataSzOut = entrySz;
-					//
-					/**char strBuf2[128];
-					snprintf(strBuf2, sizeof(strBuf2), "__b 0x%02X%02X 0x%02X%02X", (*ppData)[0], (*ppData)[1], (*ppData)[entrySz - 2], (*ppData)[entrySz - 1]);
-					log("get _dst " + strBuf2);**/
-					//
-					resB = true;
-				} else {
-					dataSzOut = 0;
-				}
-				if (++gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
-					gIxToOutput = 0;
-				}
-				--gCountInBuf;
-				/**log("get end");**/
-			} else {
-				/*log("count 0");*/
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		/**
+		 * We don't do wait_for() here because it would pause the TCP Server's thread
+		 * per Streaming Client instead of only pausing the ClientHandler Thread.
+		 * Instead we call sleep_for() in ClientHandler::startStreaming()
+		 */
+		if (gCountInBuf != 0) {
+			/**log("getFrameFromQueue() scix=" + std::to_string(localStreamingClientIx));**/
+			/**log("get beg ix=" + std::to_string(gIxToOutput));**/
+			uint32_t entrySz = gEntriesUsedSz[gIxToOutput];
+			//
+			if (dataRsvdSz == 0) {
+				dataRsvdSz = entrySz + 1024;
+				/**log("get _ma " + std::to_string(dataRsvdSz));**/
+				*ppData = (uint8_t*)::malloc(dataRsvdSz);
+			} else if (entrySz > dataRsvdSz) {
+				dataRsvdSz = entrySz;
+				/**log("get _ra " + std::to_string(dataRsvdSz));**/
+				*ppData = (uint8_t*)::realloc(*ppData, dataRsvdSz);
 			}
+			if (*ppData != NULL) {
+				/**char strBuf1[128];
+				snprintf(strBuf1, sizeof(strBuf1), "__b 0x%02X%02X 0x%02X%02X", gPEntries[gIxToOutput][0], gPEntries[gIxToOutput][1], gPEntries[gIxToOutput][entrySz - 2], gPEntries[gIxToOutput][entrySz - 1]);
+				log("get _src " + strBuf1);**/
+				//
+				/**log("get _cp " + std::to_string(entrySz));**/
+				::memcpy(*ppData, gPEntries[gIxToOutput], entrySz);
+				dataSzOut = entrySz;
+				//
+				/**char strBuf2[128];
+				snprintf(strBuf2, sizeof(strBuf2), "__b 0x%02X%02X 0x%02X%02X", (*ppData)[0], (*ppData)[1], (*ppData)[entrySz - 2], (*ppData)[entrySz - 1]);
+				log("get _dst " + strBuf2);**/
+				//
+				resB = true;
+			} else {
+				dataSzOut = 0;
+			}
+			if (++gIxToOutput == fcapsettings::IF_QUEUE_SIZE) {
+				gIxToOutput = 0;
+			}
+			--gCountInBuf;
+			/**log("get end");**/
 		}
 		thrLock.unlock();
 		return resB;

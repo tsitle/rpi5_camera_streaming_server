@@ -323,47 +323,45 @@ namespace http {
 				timeStart = std::chrono::steady_clock::now();
 			}
 			haveFrame = gCbGetFrameFromQueue(gHndCltData.thrIx, &pData, rsvdBufSz, bufSz);
+			if (! haveFrame) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				continue;
+			}
 			if (_MEASURE_TIME_COPY) {
 				timeEnd = std::chrono::steady_clock::now();
-				if (haveFrame) {
-					log(gHndCltData.thrIx, "__copy frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-				}
+				log(gHndCltData.thrIx, "__copy frame took " +
+						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 			}
 
 			// send frame to client
-			if (haveFrame) {
-				/**log(gHndCltData.thrIx, "__send frame");**/
-				//
-				++timeFpsFrames;
-				if (! timeFpsRun) {
-					timeFpsStart = std::chrono::steady_clock::now();
-					timeFpsRun = true;
-				} else {
-					timeFpsCur = std::chrono::steady_clock::now();
-					timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
-					if (timeFpsDiffMs >= 10000) {
-						log(gHndCltData.thrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
-						//
-						timeFpsStart = std::chrono::steady_clock::now();
-						timeFpsFrames = 0;
-					}
-				}
-				//
-				if (_MEASURE_TIME_SEND) {
-					timeStart = std::chrono::steady_clock::now();
-				}
-				resB = sendFrame(pData, bufSz);
-				if (! resB) {
-					break;
-				}
-				if (_MEASURE_TIME_SEND) {
-					timeEnd = std::chrono::steady_clock::now();
-					log(gHndCltData.thrIx, "__send frame took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-				}
-				//
-				haveFrame = false;
+			///
+			/**log(gHndCltData.thrIx, "__send frame");**/
+			++timeFpsFrames;
+			if (! timeFpsRun) {
+				timeFpsStart = std::chrono::steady_clock::now();
+				timeFpsRun = true;
 			} else {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				timeFpsCur = std::chrono::steady_clock::now();
+				timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
+				if (timeFpsDiffMs >= 10000) {
+					log(gHndCltData.thrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
+					//
+					timeFpsStart = std::chrono::steady_clock::now();
+					timeFpsFrames = 0;
+				}
+			}
+			///
+			if (_MEASURE_TIME_SEND) {
+				timeStart = std::chrono::steady_clock::now();
+			}
+			resB = sendFrame(pData, bufSz);
+			if (! resB) {
+				break;
+			}
+			if (_MEASURE_TIME_SEND) {
+				timeEnd = std::chrono::steady_clock::now();
+				log(gHndCltData.thrIx, "__send frame took " +
+						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 			}
 		}
 		if (pData != NULL) {

@@ -135,7 +135,6 @@ namespace frame {
 					/**log("get BOTH");**/
 					haveFrameR = gFrameQueueInp.getFramesFromQueue(&frameL, &frameR);
 					if (! haveFrameR || frameR.empty()) {
-						std::this_thread::sleep_for(std::chrono::milliseconds(5));
 						continue;
 					}
 					haveFrameL = (! frameL.empty());
@@ -193,8 +192,6 @@ namespace frame {
 					}
 					///
 					outputFrameToQueue(*pFrameOut);
-				} else {
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				}
 
 				// check if we need to adjust the framerate
