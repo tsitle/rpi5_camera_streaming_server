@@ -11,7 +11,7 @@ namespace framesubproc {
 
 	class FrameSubProcessor {
 		public:
-			FrameSubProcessor();
+			FrameSubProcessor(const std::string spName);
 			~FrameSubProcessor();
 			void setCamIdAndOutputCams(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams);
 			virtual void setInputFrameSize(const cv::Size &frameSz);
@@ -23,14 +23,15 @@ namespace framesubproc {
 			cv::Size gInpFrameSz;
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			uint32_t gFrameNr;
+			std::string gSpName;
 
 			//
 
-			void log(const std::string &spName, const std::string &message);
-			std::string buildDataFilename(const std::string &spName, const std::string &extraQualifiers, const bool addCamName = true);
+			void log(const std::string &message);
+			std::string buildDataFilename(const std::string &extraQualifiers, const bool addCamName = true);
 			void saveDataToFile_header(cv::FileStorage &fs);
-			bool loadDataFromFile_header(const std::string &spName, cv::FileStorage &fs);
-			void deleteDataFile(const std::string &spName, const std::string &dataFn);
+			bool loadDataFromFile_header(cv::FileStorage &fs);
+			void deleteDataFile(const std::string &dataFn);
 			void saveDataToFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
 			void loadDataFromFile_point2f(cv::FileStorage &fs, const char *key, uint8_t ix, cv::Point2f &point);
 	};

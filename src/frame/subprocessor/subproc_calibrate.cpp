@@ -5,7 +5,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorCalibrate::FrameSubProcessorCalibrate() :
-			FrameSubProcessor(),
+			FrameSubProcessor("CAL"),
 			gCalibrated(false),
 			gWriteToFileFailed(false),
 			gLoadedFromFile(false),
@@ -69,11 +69,11 @@ namespace framesubproc {
 		std::vector<cv::Point> resVect;
 
 		if (! gCalibrated) {
-			log("CAL", "not calibrated");
+			log("not calibrated");
 			return resVect;
 		}
 		if (gCalibrationDataStc.imagePoints.empty()) {
-			log("CAL", "missing imagePoints");
+			log("missing imagePoints");
 			return resVect;
 		}
 
@@ -82,7 +82,7 @@ namespace framesubproc {
 		std::vector<cv::Point2f> lastPnts = gCalibrationDataStc.imagePoints.back();
 
 		if (lastPnts.size() < rowCnt * colCnt) {
-			log("CAL", "invalid vector size (is:" +
+			log("invalid vector size (is:" +
 					std::to_string(lastPnts.size()) +
 					", exp=" +
 					std::to_string(rowCnt * colCnt) + ")");
@@ -153,7 +153,7 @@ namespace framesubproc {
 				if (gCalibrationDataStc.imagePoints.size() >= 10) {
 					gCalibrated = calibrate(frame);
 					if (! gCalibrated && gCalibrationDataStc.imagePoints.size() >= 30 && ! gWriteToFileFailed) {
-						log("CAL", "giving up trying to calibrate camera");
+						log("giving up trying to calibrate camera");
 						gTries = MAX_TRIES;
 					}
 				}
@@ -188,7 +188,7 @@ namespace framesubproc {
 				cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK
 			);
 		if (foundCorners) {
-			/**log("CAL", "found chessboard pattern");**/
+			/**log("found chessboard pattern");**/
 			cv::cornerSubPix(
 					frame,
 					corners,
@@ -199,7 +199,7 @@ namespace framesubproc {
 		}
 		//
 		if (! foundCorners && ++gTries == MAX_TRIES) {
-			log("CAL", "giving up trying to find chessboard pattern");
+			log("giving up trying to find chessboard pattern");
 		}
 	}
 
@@ -207,7 +207,7 @@ namespace framesubproc {
 		bool resB;
 		cv::Mat outpCameraMatrix, outpDistCoeffs;
 
-		/**log("CAL", "_calibrateAndSaveToFile");**/
+		/**log("_calibrateAndSaveToFile");**/
 		resB = _calibrateAndSaveToFile(
 				gOcvSettingsStc,
 				frame.size(),
@@ -216,7 +216,7 @@ namespace framesubproc {
 				gCalibrationDataStc.imagePoints
 			);
 		if (! resB) {
-			log("CAL", "calibration failed");
+			log("calibration failed");
 			return resB;
 		}
 		return resB;
@@ -226,7 +226,7 @@ namespace framesubproc {
 		cv::Mat frameOrg = frame.clone();
 		frame = cv::Mat();
 		if (gOcvSettingsStc.useFisheye) {
-			/**log("CAL", "render undistorted fisheye");**/
+			/**log("render undistorted fisheye");**/
 			cv::fisheye::undistortImage(
 					frameOrg,
 					frame,
@@ -235,7 +235,7 @@ namespace framesubproc {
 					gCalibrationDataStc.fisheyeNewCamMat
 				);
 		} else {
-			/**log("CAL", "render undistorted default");**/
+			/**log("render undistorted default");**/
 			cv::undistort(
 					frameOrg,
 					frame,
@@ -250,20 +250,20 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string inpFn = buildDataFilename("CAL", "");
+		std::string inpFn = buildDataFilename("");
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
 			return false;
 		}
 
-		log("CAL", "loading Calibration data from file '" + inpFn + "'");
+		log("loading Calibration data from file '" + inpFn + "'");
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 		int cfileInt;
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("CAL", fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header(fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -306,14 +306,14 @@ namespace framesubproc {
 		}
 		fs["calib_imagePoints"] >> gCalibrationDataStc.imagePoints;
 
-		log("CAL", "__reading done");
+		log("__reading done");
 		return true;
 	}
 
 	void FrameSubProcessorCalibrate::deleteCalibrationDataFile() {
-		std::string outpFn = buildDataFilename("CAL", "");
+		std::string outpFn = buildDataFilename("");
 
-		deleteDataFile("CAL", outpFn);
+		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
 		gCalibrationDataStc.reset();
 	}
@@ -344,7 +344,7 @@ namespace framesubproc {
 				_DO_RELEASE_OBJECT
 			);
 		if (resB && outpTotalAvgErr >= fcapsettings::PROC_CAL_MAX_PROJECTION_ERROR) {
-			log("CAL", "avg re projection error too high (is=" + std::to_string(outpTotalAvgErr) +
+			log("avg re projection error too high (is=" + std::to_string(outpTotalAvgErr) +
 					", max=" + std::to_string(fcapsettings::PROC_CAL_MAX_PROJECTION_ERROR) + ")");
 			resB = false;
 		}
@@ -365,7 +365,7 @@ namespace framesubproc {
 					);
 			}
 			//
-			log("CAL", "Calibration succeeded, avg re projection error=" + std::to_string(outpTotalAvgErr));
+			log("Calibration succeeded, avg re projection error=" + std::to_string(outpTotalAvgErr));
 		}
 
 		/**if (resB) {
@@ -401,7 +401,7 @@ namespace framesubproc {
 			outpDistCoeffs = cv::Mat::zeros(8, 1, CV_64F);
 		}
 
-		/**log("CAL", "_ocvCalcBoardCornerPositions");**/
+		/**log("_ocvCalcBoardCornerPositions");**/
 		std::vector<std::vector<cv::Point3f>> objectPoints(1);
 		_ocvCalcBoardCornerPositions(
 				fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM,
@@ -421,7 +421,7 @@ namespace framesubproc {
 		/**double rms;**/
 
 		if (s.useFisheye) {
-			/**log("CAL", "cv::fisheye::calibrate");**/
+			/**log("cv::fisheye::calibrate");**/
 			cv::Mat _rvecs, _tvecs;
 			/**rms =**/ cv::fisheye::calibrate(
 					objectPoints,
@@ -441,7 +441,7 @@ namespace framesubproc {
 				outpTvecs.push_back(_tvecs.row(i));
 			}
 		} else {
-			/**log("CAL", "cv::calibrateCameraRO");**/
+			/**log("cv::calibrateCameraRO");**/
 			int iFixedPoint = -1;
 			if (doReleaseObject) {
 				iFixedPoint = gOcvSettingsStc.boardSize.width - 1;
@@ -460,11 +460,11 @@ namespace framesubproc {
 				);
 		}
 
-		/**log("CAL", "Re-projection error reported by calibrateCamera: " + std::to_string(rms));**/
+		/**log("Re-projection error reported by calibrateCamera: " + std::to_string(rms));**/
 
 		bool ok = (cv::checkRange(outpCameraMatrix) && cv::checkRange(outpDistCoeffs));
 
-		/**log("CAL", "_ocvComputeReprojectionErrors");**/
+		/**log("_ocvComputeReprojectionErrors");**/
 		objectPoints.clear();
 		objectPoints.resize(imagePoints.size(), outpNewObjPoints);
 		outpTotalAvgErr = _ocvComputeReprojectionErrors(
@@ -555,9 +555,9 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string outpFn = buildDataFilename("CAL", "");
+		std::string outpFn = buildDataFilename("");
 
-		log("CAL", "writing Calibration data to file '" + outpFn + "'");
+		log("writing Calibration data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
 		//

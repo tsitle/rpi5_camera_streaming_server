@@ -5,7 +5,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorRoi::FrameSubProcessorRoi() :
-			FrameSubProcessor(),
+			FrameSubProcessor("ROI"),
 			gLoadedFromFile(false),
 			gLoadFromFileFailed(false),
 			gWriteToFileFailed(false) {
@@ -25,7 +25,7 @@ namespace framesubproc {
 		if (lastPerc != gRoiDataStc.percent) {
 			saveRoiDataToFile();
 		}
-		/**log("ROI", "set roiSizePercent to " + std::to_string(roiSizePercent) + ", osz=" +
+		/**log("set roiSizePercent to " + std::to_string(roiSizePercent) + ", osz=" +
 				std::to_string(gRoiDataStc.sizeW) + "x" + std::to_string(gRoiDataStc.sizeH));**/
 	}
 
@@ -126,9 +126,9 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("ROI", extraQual, false);
+		std::string outpFn = buildDataFilename(extraQual, false);
 
-		log("ROI", "writing RegionOfIntereset data to file '" + outpFn + "'");
+		log("writing RegionOfIntereset data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
 		//
@@ -146,19 +146,19 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string inpFn = buildDataFilename("ROI", extraQual, false);
+		std::string inpFn = buildDataFilename(extraQual, false);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
 			return false;
 		}
 
-		log("ROI", "loading RegionOfIntereset data from file '" + inpFn + "'");
+		log("loading RegionOfIntereset data from file '" + inpFn + "'");
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("ROI", fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header(fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -175,15 +175,15 @@ namespace framesubproc {
 		setData(gRoiDataStc.percent);
 
 		//
-		log("ROI", "__reading done");
+		log("__reading done");
 		return true;
 	}
 
 	void FrameSubProcessorRoi::deleteRoiDataFile() {
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("ROI", extraQual, false);
+		std::string outpFn = buildDataFilename(extraQual, false);
 
-		deleteDataFile("ROI", outpFn);
+		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
 		gRoiDataStc.reset();
 	}

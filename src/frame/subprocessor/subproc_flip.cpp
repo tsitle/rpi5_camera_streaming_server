@@ -5,7 +5,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorFlip::FrameSubProcessorFlip() :
-			FrameSubProcessor() {
+			FrameSubProcessor("FLIP") {
 	}
 
 	void FrameSubProcessorFlip::setData(const bool flipHor, const bool flipVer) {

@@ -5,7 +5,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorTranslation::FrameSubProcessorTranslation() :
-			FrameSubProcessor(),
+			FrameSubProcessor("TR"),
 			gLoadedFromFile(false),
 			gLoadFromFileFailed(false),
 			gWriteToFileFailed(false) {
@@ -86,9 +86,9 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("TR", extraQual);
+		std::string outpFn = buildDataFilename(extraQual);
 
-		log("TR", "writing Translation data to file '" + outpFn + "'");
+		log("writing Translation data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
 		//
@@ -107,19 +107,19 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string inpFn = buildDataFilename("TR", extraQual);
+		std::string inpFn = buildDataFilename(extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
 			return false;
 		}
 
-		log("TR", "loading Translation data from file '" + inpFn + "'");
+		log("loading Translation data from file '" + inpFn + "'");
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("TR", fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header(fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -133,15 +133,15 @@ namespace framesubproc {
 		//
 		setFixDelta(gTrDataFixStc.dx, gTrDataFixStc.dy);
 
-		log("TR", "__reading done");
+		log("__reading done");
 		return true;
 	}
 
 	void FrameSubProcessorTranslation::deleteTrDataFile() {
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("TR", extraQual);
+		std::string outpFn = buildDataFilename(extraQual);
 
-		deleteDataFile("TR", outpFn);
+		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
 		gTrDataFixStc.reset();
 		gLastTrDataFixStc.reset();

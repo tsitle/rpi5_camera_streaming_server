@@ -4,7 +4,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorText::FrameSubProcessorText() :
-			FrameSubProcessor() {
+			FrameSubProcessor("TEXT") {
 		// init coordinates etc.
 		setText(gText, gCoord, gTextColor);
 	}

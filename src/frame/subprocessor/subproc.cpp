@@ -6,10 +6,11 @@
 
 namespace framesubproc {
 
-	FrameSubProcessor::FrameSubProcessor() :
+	FrameSubProcessor::FrameSubProcessor(const std::string spName) :
 			gCamId(fcapconstants::CamIdEn::CAM_0),
 			gOutputCams(fcapconstants::OutputCamsEn::CAM_BOTH),
-			gFrameNr(0) {
+			gFrameNr(0),
+			gSpName(spName) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 	}
 
@@ -28,7 +29,7 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameSubProcessor::log(const std::string &spName, const std::string &message) {
+	void FrameSubProcessor::log(const std::string &message) {
 		std::string ciStr;
 		std::string ocStr;
 
@@ -46,12 +47,12 @@ namespace framesubproc {
 				ocStr = "BOTH";
 		}
 		
-		std::cout << "FSUBPROC[CAM" << ciStr << ocStr << "_" + spName + "] " << message << std::endl;
+		std::cout << "FSUBPROC[CAM" << ciStr << ocStr << "_" + gSpName + "] " << message << std::endl;
 	}
 
 	// -----------------------------------------------------------------------------
 
-	std::string FrameSubProcessor::buildDataFilename(const std::string &spName, const std::string &extraQualifiers, const bool addCamName) {
+	std::string FrameSubProcessor::buildDataFilename(const std::string &extraQualifiers, const bool addCamName) {
 		std::string camSrcStr;
 		switch (gStaticOptionsStc.camSourceType) {
 			case fcapconstants::CamSourceEn::GSTREAMER:
@@ -63,7 +64,7 @@ namespace framesubproc {
 			default:
 				camSrcStr = "unspec";
 		}
-		return gStaticOptionsStc.calibOutputPath + "/" + spName +
+		return gStaticOptionsStc.calibOutputPath + "/" + gSpName +
 				(addCamName ? "-cam" + std::to_string((int)gCamId) : std::string("")) + "-" +
 				camSrcStr + "-" +
 				(gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER ?
@@ -93,7 +94,7 @@ namespace framesubproc {
 		fs << "resolution_input_stream" << gStaticOptionsStc.resolutionInputStream;
 	}
 
-	bool FrameSubProcessor::loadDataFromFile_header(const std::string &spName, cv::FileStorage &fs) {
+	bool FrameSubProcessor::loadDataFromFile_header(cv::FileStorage &fs) {
 		int cfileInt;
 		cv::Size cfileSz;
 
@@ -104,14 +105,14 @@ namespace framesubproc {
 		///
 		fs["camID"] >> cfileInt;
 		if (cfileInt != (int)gCamId) {
-			log(spName, "camID from PersTransf data file does not match current camID (is=" + std::to_string(cfileInt) +
+			log("camID from PersTransf data file does not match current camID (is=" + std::to_string(cfileInt) +
 					", exp=" + std::to_string((int)gCamId) + ")");
 			return false;
 		}
 		///
 		fs["camSource"] >> cfileInt;
 		if (cfileInt != (int)gStaticOptionsStc.camSourceType) {
-			log(spName, "camSource from PersTransf data file does not match current camSource (is=" + std::to_string(cfileInt) +
+			log("camSource from PersTransf data file does not match current camSource (is=" + std::to_string(cfileInt) +
 					", exp=" + std::to_string((int)gStaticOptionsStc.camSourceType) + ")");
 			return false;
 		}
@@ -119,7 +120,7 @@ namespace framesubproc {
 		if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER) {
 			fs["gstreamer_resolution_capture"] >> cfileSz;
 			if (cfileSz != gStaticOptionsStc.gstreamerResolutionCapture) {
-				log(spName, "gstreamer_resolution_capture from PersTransf data file "
+				log("gstreamer_resolution_capture from PersTransf data file "
 						"does not match current gstreamer_resolution_capture (is=" +
 						std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
 						", exp=" +
@@ -132,7 +133,7 @@ namespace framesubproc {
 		///
 		fs["resolution_input_stream"] >> cfileSz;
 		if (cfileSz != gStaticOptionsStc.resolutionInputStream) {
-			log(spName, "resolution_input_stream from PersTransf data file "
+			log("resolution_input_stream from PersTransf data file "
 					"does not match current resolution_input_stream (is=" +
 					std::to_string(cfileSz.width) + "x" + std::to_string(cfileSz.height) +
 					", exp=" +
@@ -145,12 +146,12 @@ namespace framesubproc {
 		return true;
 	}
 
-	void FrameSubProcessor::deleteDataFile(const std::string &spName, const std::string &dataFn) {
+	void FrameSubProcessor::deleteDataFile(const std::string &dataFn) {
 		if (! fcapshared::Shared::fileExists(dataFn)) {
 			return;
 		}
 
-		log(spName, "deleting data file '" + dataFn + "'");
+		log("deleting data file '" + dataFn + "'");
 		::remove(dataFn.c_str());
 	}
 

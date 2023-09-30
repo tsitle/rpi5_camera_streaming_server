@@ -7,7 +7,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorPerspectiveTransf::FrameSubProcessorPerspectiveTransf() :
-			FrameSubProcessor(),
+			FrameSubProcessor("PT"),
 			gHaveAllCorners(false),
 			gHaveSomeCorners(false),
 			gLoadedFromFile(false),
@@ -166,7 +166,7 @@ namespace framesubproc {
 				cv::Point tmpPoint = translatePoint(gOptRectCorners[x - 1]);
 				cv::Scalar tmpColor = (x <= fcapconstants::PROC_PT_RECTCORNERS_MAX ? cv::Scalar(255, 0, 0) : cv::Scalar(255, 255, 0));
 				cv::circle(frame, tmpPoint, 5, tmpColor, -1);
-				/**log("PT", "cirle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
+				/**log("cirle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
 			}
 			return;
 		}
@@ -224,7 +224,7 @@ namespace framesubproc {
 
 		/**std::cout << std::endl << "__translatePoint " << pnt << " --> " << resPnt << " delta " << (resPnt - pnt) << std::endl;**/
 		if (imgW == 0 || imgH == 0) {
-			log("PT", "invalid gRoiOutputSz");
+			log("invalid gRoiOutputSz");
 			return resPnt;
 		}
 		if (resPnt.x < 0) {
@@ -366,9 +366,9 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("PT", extraQual);
+		std::string outpFn = buildDataFilename(extraQual);
 
-		log("PT", "writing PersTransf data to file '" + outpFn + "'");
+		log("writing PersTransf data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
 		//
@@ -391,19 +391,19 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string inpFn = buildDataFilename("PT", extraQual);
+		std::string inpFn = buildDataFilename(extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
 			return false;
 		}
 
-		log("PT", "loading PersTransf data from file '" + inpFn + "'");
+		log("loading PersTransf data from file '" + inpFn + "'");
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("PT", fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header(fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -419,15 +419,15 @@ namespace framesubproc {
 			loadDataFromFile_point2f(fs, "pt_points_dst", x, gPtDataStc.ptsDst[x]);
 		}
 
-		log("PT", "__reading done");
+		log("__reading done");
 		return true;
 	}
 
 	void FrameSubProcessorPerspectiveTransf::deletePtDataFile() {
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("PT", extraQual);
+		std::string outpFn = buildDataFilename(extraQual);
 
-		deleteDataFile("PT", outpFn);
+		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
 		gPtDataStc.reset();
 	}

@@ -5,7 +5,7 @@
 namespace framesubproc {
 
 	FrameSubProcessorGrid::FrameSubProcessorGrid() :
-			FrameSubProcessor() {
+			FrameSubProcessor("GRID") {
 	}
 
 	void FrameSubProcessorGrid::setData(const bool fullgrid) {

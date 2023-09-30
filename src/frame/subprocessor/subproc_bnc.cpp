@@ -21,7 +21,7 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 
 	FrameSubProcessorBrightnAndContrast::FrameSubProcessorBrightnAndContrast() :
-			FrameSubProcessor(),
+			FrameSubProcessor("BNC"),
 			gDblBrightn(0.0),
 			gInitdBrightn(false),
 			gDblContr(0.0),
@@ -34,6 +34,16 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorBrightnAndContrast::setBrightness(const int16_t val) {
+		if (val >= -100 && val <= 100) {
+			gBncDataStc.brightness = val;
+		}
+		if (gInitdBrightn && gBncDataStc.equal(gLastBncDataStc)) {
+			return;
+		}
+		if (! gBncDataStc.equal(gLastBncDataStc) && ! gWriteToFileFailed) {
+			saveBncDataToFile();
+		}
+		//
 		double halfBr;
 		double minBr;
 		
@@ -45,21 +55,22 @@ namespace framesubproc {
 			minBr = AT2_MIN_BRIGHTNESS;
 		}
 
-		if (val >= -100 && val <= 100) {
-			gBncDataStc.brightness = val;
-		}
-		if (gInitdBrightn && gBncDataStc.equal(gLastBncDataStc)) {
-			return;
-		}
-		if (! gBncDataStc.equal(gLastBncDataStc) && ! gWriteToFileFailed) {
-			saveBncDataToFile();
-		}
 		gLastBncDataStc = gBncDataStc;
 		gDblBrightn = (minBr + halfBr) + (halfBr * ((double)gBncDataStc.brightness / 100.0));
 		gInitdBrightn = true;
 	}
 
 	void FrameSubProcessorBrightnAndContrast::setContrast(const int16_t val) {
+		if (val >= -100 && val <= 100) {
+			gBncDataStc.contrast = val;
+		}
+		if (gInitdContr && gBncDataStc.equal(gLastBncDataStc)) {
+			return;
+		}
+		if (! gBncDataStc.equal(gLastBncDataStc) && ! gWriteToFileFailed) {
+			saveBncDataToFile();
+		}
+		//
 		double halfCo;
 		double minCo;
 
@@ -71,15 +82,6 @@ namespace framesubproc {
 			minCo = AT2_MIN_CONTRAST;
 		}
 
-		if (val >= -100 && val <= 100) {
-			gBncDataStc.contrast = val;
-		}
-		if (gInitdContr && gBncDataStc.equal(gLastBncDataStc)) {
-			return;
-		}
-		if (! gBncDataStc.equal(gLastBncDataStc) && ! gWriteToFileFailed) {
-			saveBncDataToFile();
-		}
 		gLastBncDataStc = gBncDataStc;
 		gDblContr = (minCo + halfCo) + (halfCo * ((double)gBncDataStc.contrast / 100.0));
 		gInitdContr = true;
@@ -99,20 +101,19 @@ namespace framesubproc {
 		if (! gBncDataStc.equal(gLastBncDataStc) && ! gWriteToFileFailed) {
 			saveBncDataToFile();
 		}
-		gLastBncDataStc = gBncDataStc;
 		//
 		double dblGamma;
-		if (val < 0) {
-			dblGamma = AT1_CENTER_GAMMA + ((AT1_CENTER_GAMMA - AT1_MIN_GAMMA) * ((double)val / 100.0));
+		if (gBncDataStc.gamma < 0) {
+			dblGamma = AT1_CENTER_GAMMA + ((AT1_CENTER_GAMMA - AT1_MIN_GAMMA) * ((double)gBncDataStc.gamma / 100.0));
 		} else {
-			dblGamma = AT1_CENTER_GAMMA + ((AT1_MAX_GAMMA - AT1_CENTER_GAMMA) * ((double)val / 100.0));
+			dblGamma = AT1_CENTER_GAMMA + ((AT1_MAX_GAMMA - AT1_CENTER_GAMMA) * ((double)gBncDataStc.gamma / 100.0));
 		}
 
 		uchar* p = gGammaLookUpTable.ptr();
 		for (int16_t i = 0; i < 256; ++i) {
 			p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, dblGamma) * 255.0);
 		}
-		gBncDataStc.gamma = val;
+		gLastBncDataStc = gBncDataStc;
 		gInitdGamma = true;
 	}
 
@@ -161,9 +162,9 @@ namespace framesubproc {
 		cv::LUT(frameOut, gGammaLookUpTable, frame);
 
 		/**if (gFrameNr % 10 == 0) {
-			log("BNC", "b " + std::to_string(gDblBrightn) + " c " + std::to_string(gDblContr));
+			log("b " + std::to_string(gDblBrightn) + " c " + std::to_string(gDblContr));
 			auto timeEnd = std::chrono::steady_clock::now();
-			log("BNC", "Algo1 (" + std::to_string(gBncDataStc.brightness) + "/" + std::to_string(gBncDataStc.contrast) + "/" + std::to_string(gBncDataStc.gamma) + ") Elapsed time: " +
+			log("Algo1 (" + std::to_string(gBncDataStc.brightness) + "/" + std::to_string(gBncDataStc.contrast) + "/" + std::to_string(gBncDataStc.gamma) + ") Elapsed time: " +
 					std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) +
 					" us");
 		}**/
@@ -224,7 +225,7 @@ namespace framesubproc {
 
 		/**if (gFrameNr % 10 == 0) {
 			auto timeEnd = std::chrono::steady_clock::now();
-			log("BNC", "Algo2 Elapsed time: " +
+			log("Algo2 Elapsed time: " +
 					std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) +
 					" us");
 		}**/
@@ -236,9 +237,9 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("BNC", extraQual, false);
+		std::string outpFn = buildDataFilename(extraQual, false);
 
-		log("BNC", "writing Brightness/Contrast data to file '" + outpFn + "'");
+		log("writing Brightness/Contrast data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
 		//
@@ -258,19 +259,19 @@ namespace framesubproc {
 		}
 
 		std::string extraQual = buildFnExtraQual();
-		std::string inpFn = buildDataFilename("BNC", extraQual, false);
+		std::string inpFn = buildDataFilename(extraQual, false);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
 			return false;
 		}
 
-		log("BNC", "loading Brightness/Contrast data from file '" + inpFn + "'");
+		log("loading Brightness/Contrast data from file '" + inpFn + "'");
 
 		cv::FileStorage fs(inpFn, cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
 		//
-		gLoadFromFileFailed = (! loadDataFromFile_header("BNC", fs));
+		gLoadFromFileFailed = (! loadDataFromFile_header(fs));
 		if (gLoadFromFileFailed) {
 			return false;
 		}
@@ -287,15 +288,15 @@ namespace framesubproc {
 		setContrast(gBncDataStc.contrast);
 		setGamma(gBncDataStc.gamma);
 
-		log("BNC", "__reading done");
+		log("__reading done");
 		return true;
 	}
 
 	void FrameSubProcessorBrightnAndContrast::deleteBncDataFile() {
 		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename("BNC", extraQual, false);
+		std::string outpFn = buildDataFilename(extraQual, false);
 
-		deleteDataFile("BNC", outpFn);
+		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
 		gBncDataStc.reset();
 		gLastBncDataStc.reset();
