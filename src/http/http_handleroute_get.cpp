@@ -176,8 +176,8 @@ namespace http {
 		log("200 Path=" + gRequUriPath);
 		resB = getIntFromQuery(
 				pRtOptsOut->procBncAdjBrightness,
-				fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS,
-				fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS
+				-100,
+				100
 			);
 		if (resB && pRtOptsOut->procBncAdjBrightness != gPHndCltData->rtOptsCur.procBncAdjBrightness) {
 			fcapshared::Shared::setRtOpts_procBncChanged(true);
@@ -194,12 +194,30 @@ namespace http {
 		log("200 Path=" + gRequUriPath);
 		resB = getIntFromQuery(
 				pRtOptsOut->procBncAdjContrast,
-				fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST,
-				fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST
+				-100,
+				100
 			);
 		if (resB && pRtOptsOut->procBncAdjContrast != gPHndCltData->rtOptsCur.procBncAdjContrast) {
 			fcapshared::Shared::setRtOpts_procBncChanged(true);
 			fcapshared::Shared::setRtOpts_procBncAdjContrast(pRtOptsOut->procBncAdjContrast);
+		}
+		gPHndCltData->respReturnJson = true;
+		return resB;
+	}
+
+	bool HandleRouteGet::_handleRoute_PROC_BNC_GAMMA() {
+		bool resB;
+		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
+
+		log("200 Path=" + gRequUriPath);
+		resB = getIntFromQuery(
+				pRtOptsOut->procBncAdjGamma,
+				-100,
+				100
+			);
+		if (resB && pRtOptsOut->procBncAdjGamma != gPHndCltData->rtOptsCur.procBncAdjGamma) {
+			fcapshared::Shared::setRtOpts_procBncChanged(true);
+			fcapshared::Shared::setRtOpts_procBncAdjGamma(pRtOptsOut->procBncAdjGamma);
 		}
 		gPHndCltData->respReturnJson = true;
 		return resB;

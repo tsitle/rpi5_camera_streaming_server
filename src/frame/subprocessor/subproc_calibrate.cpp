@@ -132,10 +132,12 @@ namespace framesubproc {
 		}
 	}
 
-	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (gTries == MAX_TRIES || gWriteToFileFailed) {
 			return;
 		}
+		//
+		gFrameNr = frameNr;
 		//
 		if (! gCalibrated) {
 			std::vector<cv::Point2f> corners;

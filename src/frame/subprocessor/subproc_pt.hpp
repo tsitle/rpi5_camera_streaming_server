@@ -33,7 +33,7 @@ namespace framesubproc {
 			void setRoiOutputSz(const cv::Size &val);
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			std::vector<cv::Point> gOptRectCorners;

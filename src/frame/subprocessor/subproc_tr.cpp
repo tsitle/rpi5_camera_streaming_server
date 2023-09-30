@@ -49,10 +49,12 @@ namespace framesubproc {
 		gLoadedFromFile = loadTrDataFromFile();
 	}
 
-	void FrameSubProcessorTranslation::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorTranslation::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (gWriteToFileFailed) {
 			return;
 		}
+		//
+		gFrameNr = frameNr;
 		//
 		if (! (gLoadedFromFile || gLoadFromFileFailed)) {
 			gLoadedFromFile = loadTrDataFromFile();

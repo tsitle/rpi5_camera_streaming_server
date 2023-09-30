@@ -8,7 +8,8 @@ namespace framesubproc {
 
 	FrameSubProcessor::FrameSubProcessor() :
 			gCamId(fcapconstants::CamIdEn::CAM_0),
-			gOutputCams(fcapconstants::OutputCamsEn::CAM_BOTH) {
+			gOutputCams(fcapconstants::OutputCamsEn::CAM_BOTH),
+			gFrameNr(0) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 	}
 

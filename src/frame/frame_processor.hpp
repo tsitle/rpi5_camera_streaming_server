@@ -53,15 +53,29 @@ namespace frame {
 
 			void log(const std::string &message);
 			void initSubProcs();
-			void _initSubProcs_stc(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, SubProcsStc &subProcsStc);
-			void _initSubProcs_fspObj(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams, framesubproc::FrameSubProcessor &fsp);
+			void _initSubProcs_stc(
+					fcapconstants::CamIdEn camId,
+					fcapconstants::OutputCamsEn outputCams,
+					SubProcsStc &subProcsStc);
+			void _initSubProcs_fspObj(
+					fcapconstants::CamIdEn camId,
+					fcapconstants::OutputCamsEn outputCams,
+					framesubproc::FrameSubProcessor &fsp);
 			void updateSubProcsSettings();
 			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
-			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame);
-			void procAddTextOverlayCams(cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams);
-			void procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated);
+			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame, const uint32_t frameNr);
+			void procAddTextOverlayCams(
+					cv::Mat &frameOut,
+					const uint32_t frameNr,
+					const std::string &camDesc,
+					const fcapconstants::OutputCamsEn outputCams);
+			void procAddTextOverlayCal(cv::Mat &frameOut, const uint32_t frameNr, const bool isCalibrated);
 			bool checkFrameSize(const cv::Mat *pFrame, const std::string camName);
-			void renderMasterOutput(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, __attribute__((unused)) const uint32_t frameNr);
+			void renderMasterOutput(
+					cv::Mat *pFrameL,
+					cv::Mat *pFrameR,
+					cv::Mat *pFrameOut,
+					__attribute__((unused)) const uint32_t frameNr);
 	};
 
 }  // namespace frame

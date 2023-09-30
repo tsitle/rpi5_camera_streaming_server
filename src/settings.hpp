@@ -74,6 +74,13 @@ namespace fcapsettings {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Algorithm to use for Brightness/Contrast
+	 */
+	const fcapconstants::ProcBncAlgoEn PROC_BNC_USE_ALGO = fcapconstants::ProcBncAlgoEn::TYPE1;
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Amount of inner corners on the x-Axis on the calibration chessboard image.
 	 * Since the image is rotated 90 degress when calibrating, columns and rows need to be swapped here
 	 */

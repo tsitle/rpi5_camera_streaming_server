@@ -45,7 +45,7 @@ namespace framesubproc {
 		gLoadedFromFile = loadRoiDataFromFile();
 	}
 
-	void FrameSubProcessorRoi::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorRoi::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (gWriteToFileFailed) {
 			return;
 		}
@@ -53,6 +53,8 @@ namespace framesubproc {
 		if (gRoiDataStc.sizeW == 0 || gRoiDataStc.sizeH == 0) {
 			return;
 		}
+		//
+		gFrameNr = frameNr;
 		//
 		int32_t imgW = frame.cols;
 		int32_t imgH = frame.rows;

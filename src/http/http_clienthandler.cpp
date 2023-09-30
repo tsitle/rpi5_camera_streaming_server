@@ -532,13 +532,21 @@ namespace http {
 			jsonObj["procBnc"] = {
 					{"brightness", {
 							{"val", gHndCltData.rtOptsNew.procBncAdjBrightness},
-							{"min", fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS},
-							{"max", fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS}
+							{"min", -100},
+							{"max", 100},
+							{"supported", true}
 						}},
 					{"contrast", {
 							{"val", gHndCltData.rtOptsNew.procBncAdjContrast},
-							{"min", fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST},
-							{"max", fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST}
+							{"min", -100},
+							{"max", 100},
+							{"supported", true}
+						}},
+					{"gamma", {
+							{"val", gHndCltData.rtOptsNew.procBncAdjGamma},
+							{"min", -100},
+							{"max", 100},
+							{"supported", fcapsettings::PROC_BNC_USE_ALGO == fcapconstants::ProcBncAlgoEn::TYPE1}
 						}}
 				};
 			//

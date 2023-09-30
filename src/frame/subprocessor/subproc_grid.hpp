@@ -21,7 +21,7 @@ namespace framesubproc {
 		public:
 			FrameSubProcessorGrid();
 			void setData(const bool fullgrid);
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			GridDataStc gGridDataStc;

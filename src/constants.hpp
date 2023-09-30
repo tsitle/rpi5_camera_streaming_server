@@ -72,10 +72,13 @@ namespace fcapconstants {
 	const std::string CONFFILE_CAMSRC_MJPEG = "mjpeg";
 	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
-	const int16_t PROC_BNC_MAX_ADJ_BRIGHTNESS = 127;
-	const int16_t PROC_BNC_MIN_ADJ_BRIGHTNESS = -254;
-	const int16_t PROC_BNC_MAX_ADJ_CONTRAST = 63;
-	const int16_t PROC_BNC_MIN_ADJ_CONTRAST = -127;
+	/**
+	 * Algorithms for Brightness/Contrast
+	 */
+	enum class ProcBncAlgoEn {
+		TYPE1 = 0,  // Brightness/Contrast + Gamma using convertTo() and a LUT
+		TYPE2 = 1  // just Brightness/Contrast using image blending
+	};
 
 	const uint8_t PROC_PT_RECTCORNERS_MAX = 4;
 

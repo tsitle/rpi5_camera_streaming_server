@@ -55,7 +55,7 @@ namespace framesubproc {
 			std::vector<cv::Point> getRectCorners();
 			void loadData();
 			void resetData();
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			const uint8_t MAX_TRIES = 50;

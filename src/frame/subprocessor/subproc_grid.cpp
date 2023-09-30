@@ -12,12 +12,15 @@ namespace framesubproc {
 		gGridDataStc.fullgrid = fullgrid;
 	}
 
-	void FrameSubProcessorGrid::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorGrid::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		uint32_t imgW = frame.size().width;
 		uint32_t imgH = frame.size().height;
 		const int32_t centerX = (int32_t)((imgW - 1) / 2);
 		const int32_t centerY = (int32_t)((imgH - 1) / 2);
 
+		//
+		gFrameNr = frameNr;
+		//
 		cv::line(
 				frame,
 				cv::Point(centerX, 0),

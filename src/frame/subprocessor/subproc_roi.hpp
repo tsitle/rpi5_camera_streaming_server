@@ -30,7 +30,7 @@ namespace framesubproc {
 			uint8_t getSizePercent();
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			RoiDataStc gRoiDataStc;

@@ -25,7 +25,7 @@ namespace framesubproc {
 		public:
 			FrameSubProcessorFlip();
 			void setData(const bool flipHor, const bool flipVer);
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			FlipDataStc gFlipDataStc;

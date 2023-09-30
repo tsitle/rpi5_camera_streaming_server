@@ -36,7 +36,7 @@ namespace framesubproc {
 			void setDynDelta(const int32_t valDx, const int32_t valDy);
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 		
 		private:
 			const TrDataStc EMPTY_TR_DATA = TrDataStc(0, 0);

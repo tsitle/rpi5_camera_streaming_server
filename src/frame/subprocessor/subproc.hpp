@@ -15,13 +15,14 @@ namespace framesubproc {
 			~FrameSubProcessor();
 			void setCamIdAndOutputCams(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams);
 			virtual void setInputFrameSize(const cv::Size &frameSz);
-			virtual void processFrame(cv::Mat &frame) = 0;
+			virtual void processFrame(cv::Mat &frame, const uint32_t frameNr) = 0;
 
 		protected:
 			fcapconstants::CamIdEn gCamId;
 			fcapconstants::OutputCamsEn gOutputCams;
 			cv::Size gInpFrameSz;
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
+			uint32_t gFrameNr;
 
 			//
 

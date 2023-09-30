@@ -72,10 +72,10 @@ namespace frame {
 		// do the actual processing
 		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING) {
 			if (pFrameL != NULL) {
-				procDefaults(gSubProcsL, *pFrameL);
+				procDefaults(gSubProcsL, *pFrameL, frameNr);
 			}
 			if (pFrameR != NULL) {
-				procDefaults(gSubProcsR, *pFrameR);
+				procDefaults(gSubProcsR, *pFrameR, frameNr);
 			}
 		}
 
@@ -99,17 +99,17 @@ namespace frame {
 		// add grid
 		if (gPOptsRt->procGridShow) {
 			/**log("processFrame GRID");**/
-			gOtherSubProcGrid.processFrame(*pFrameOut);
+			gOtherSubProcGrid.processFrame(*pFrameOut, frameNr);
 		}
 
 		// add text overlays
 		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING &&
 				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40) &&
-				gPOptsRt->resolutionOutput.width >= 350) {
+				gPOptsRt->resolutionOutput.width >= 440) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
 				/**log("processFrame OVERLCAMS");**/
-				procAddTextOverlayCams(*pFrameOut, *pCamDesc, gPOptsRt->outputCams);
+				procAddTextOverlayCams(*pFrameOut, frameNr, *pCamDesc, gPOptsRt->outputCams);
 			}
 			// text overlay "CAL"
 			if (gStaticOptionsStc.procEnabled.overlCal) {
@@ -126,7 +126,7 @@ namespace frame {
 								gPOptsRt->procCalDone[fcapconstants::CamIdEn::CAM_1]);
 				}
 				/**log("processFrame OVERLCAL");**/
-				procAddTextOverlayCal(*pFrameOut, tmpBool);
+				procAddTextOverlayCal(*pFrameOut, frameNr, tmpBool);
 			}
 		}
 	}
@@ -147,9 +147,11 @@ namespace frame {
 			//
 			int16_t tmpB = 0;
 			int16_t tmpC = 0;
-			gOtherSubProcBnc.getData(tmpB, tmpC);
+			int16_t tmpG = 0;
+			gOtherSubProcBnc.getData(tmpB, tmpC, tmpG);
 			fcapshared::Shared::setRtOpts_procBncAdjBrightness(tmpB);
 			fcapshared::Shared::setRtOpts_procBncAdjContrast(tmpC);
+			fcapshared::Shared::setRtOpts_procBncAdjGamma(tmpG);
 		}
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcRoi);
@@ -216,6 +218,7 @@ namespace frame {
 		if (gStaticOptionsStc.procEnabled.bnc && gPOptsRt->procBncChanged) {
 			gOtherSubProcBnc.setBrightness(gPOptsRt->procBncAdjBrightness);
 			gOtherSubProcBnc.setContrast(gPOptsRt->procBncAdjContrast);
+			gOtherSubProcBnc.setGamma(gPOptsRt->procBncAdjGamma);
 			//
 			fcapshared::Shared::setRtOpts_procBncChanged(false);
 			gPOptsRt->procBncChanged = false;
@@ -258,7 +261,7 @@ namespace frame {
 		}
 	}
 
-	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame) {
+	void FrameProcessor::procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame, const uint32_t frameNr) {
 		bool tmpBool;
 		bool skipPt = false;
 		bool skipTr = false;
@@ -266,7 +269,7 @@ namespace frame {
 		// adjust brightness and contrast
 		if (gStaticOptionsStc.procEnabled.bnc) {
 			/**log("procDefaults BNC CAM" + std::to_string((int)subProcsStc.camId));**/
-			gOtherSubProcBnc.processFrame(frame);
+			gOtherSubProcBnc.processFrame(frame, frameNr);
 		}
 
 		// calibrate camera
@@ -291,7 +294,7 @@ namespace frame {
 			bool tmpDoStart = gPOptsRt->procCalDoStart[subProcsStc.camId];
 			if (tmpDoStart || gPOptsRt->procCalDone[subProcsStc.camId]) {
 				/**log("procDefaults CAL CAM" + std::to_string((int)subProcsStc.camId));**/
-				subProcsStc.cal.processFrame(frame);
+				subProcsStc.cal.processFrame(frame, frameNr);
 			}
 			//
 			tmpBool = subProcsStc.cal.getIsCalibrated();
@@ -347,7 +350,7 @@ namespace frame {
 			//
 			if (! skipPt) {
 				/**log("procDefaults PT CAM" + std::to_string((int)subProcsStc.camId));**/
-				subProcsStc.pt.processFrame(frame);
+				subProcsStc.pt.processFrame(frame, frameNr);
 			}
 			//
 			if (subProcsStc.pt.getNeedRectCorners()) {
@@ -358,7 +361,7 @@ namespace frame {
 		// flip
 		if (gStaticOptionsStc.procEnabled.flip) {
 			/**log("procDefaults FLIP CAM" + std::to_string((int)subProcsStc.camId));**/
-			subProcsStc.flip.processFrame(frame);
+			subProcsStc.flip.processFrame(frame, frameNr);
 		}
 
 		// translation
@@ -373,7 +376,7 @@ namespace frame {
 			//
 			if (! skipTr) {
 				/**log("procDefaults TR CAM" + std::to_string((int)subProcsStc.camId));**/
-				subProcsStc.tr.processFrame(frame);
+				subProcsStc.tr.processFrame(frame, frameNr);
 			}
 			//
 			if (tmpDoReset) {
@@ -390,7 +393,7 @@ namespace frame {
 		// region of interest
 		if (gStaticOptionsStc.procEnabled.roi) {
 			/**log("procDefaults ROI CAM" + std::to_string((int)subProcsStc.camId));**/
-			gOtherSubProcRoi.processFrame(frame);
+			gOtherSubProcRoi.processFrame(frame, frameNr);
 		}
 
 		// update output frame size
@@ -409,7 +412,10 @@ namespace frame {
 	}
 
 	void FrameProcessor::procAddTextOverlayCams(
-			cv::Mat &frameOut, const std::string &camDesc, const fcapconstants::OutputCamsEn outputCams) {
+			cv::Mat &frameOut,
+			const uint32_t frameNr,
+			const std::string &camDesc,
+			const fcapconstants::OutputCamsEn outputCams) {
 		if (gLastOverlCamsOutputCamsInt == -1 || gLastOverlCamsOutputCamsInt != (int8_t)outputCams ||
 				gLastOverlCamsResolutionOutpW != gPOptsRt->resolutionOutput.width) {
 			double scale = (double)gPOptsRt->resolutionOutput.width / 1280.0;
@@ -417,10 +423,10 @@ namespace frame {
 			gLastOverlCamsOutputCamsInt = (int)outputCams;
 			gLastOverlCamsResolutionOutpW = gPOptsRt->resolutionOutput.width;
 		}
-		gOtherSubProcTextCams.processFrame(frameOut);
+		gOtherSubProcTextCams.processFrame(frameOut, frameNr);
 	}
 
-	void FrameProcessor::procAddTextOverlayCal(cv::Mat &frameOut, const bool isCalibrated) {
+	void FrameProcessor::procAddTextOverlayCal(cv::Mat &frameOut, const uint32_t frameNr, const bool isCalibrated) {
 		if (gLastOverlCamsOutputCamsInt == -1) {
 			return;
 		}
@@ -436,7 +442,7 @@ namespace frame {
 			gLastOverlCalIsCalibratedInt = (int8_t)isCalibrated;
 			gLastOverlCalResolutionOutpW = gPOptsRt->resolutionOutput.width;
 		}
-		gOtherSubProcTextCal.processFrame(frameOut);
+		gOtherSubProcTextCal.processFrame(frameOut, frameNr);
 	}
 
 	bool FrameProcessor::checkFrameSize(const cv::Mat *pFrame, const std::string camName) {

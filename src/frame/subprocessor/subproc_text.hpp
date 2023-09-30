@@ -32,7 +32,7 @@ namespace framesubproc {
 			FrameSubProcessorText();
 			void setText(const std::string valText, const cv::Point coord, cv::Scalar textColor, double scale = 1.0);
 			int32_t getTextBottomY();
-			void processFrame(cv::Mat &frame);
+			void processFrame(cv::Mat &frame, const uint32_t frameNr);
 
 		private:
 			TextOverlayPropsStc gTextOverlayPropsStc;

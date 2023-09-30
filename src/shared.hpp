@@ -19,6 +19,7 @@ namespace fcapshared {
 		bool procBncChanged;
 		int16_t procBncAdjBrightness;
 		int16_t procBncAdjContrast;
+		int16_t procBncAdjGamma;
 		std::map<fcapconstants::CamIdEn, bool> procCalDone;
 		std::map<fcapconstants::CamIdEn, bool> procCalDoStart;
 		std::map<fcapconstants::CamIdEn, bool> procCalDoReset;
@@ -49,6 +50,7 @@ namespace fcapshared {
 			procBncChanged = false;
 			procBncAdjBrightness = 0;
 			procBncAdjContrast = 0;
+			procBncAdjGamma = 0;
 			//
 			procGridChanged = false;
 			procGridShow = false;
@@ -97,6 +99,7 @@ namespace fcapshared {
 			static void setRtOpts_procBncChanged(const bool val);
 			static void setRtOpts_procBncAdjBrightness(const int16_t val);
 			static void setRtOpts_procBncAdjContrast(const int16_t val);
+			static void setRtOpts_procBncAdjGamma(const int16_t val);
 			///
 			static void setRtOpts_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
 			static void setRtOpts_procCalDoStart(const fcapconstants::CamIdEn camId, const bool val);

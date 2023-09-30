@@ -39,7 +39,9 @@ namespace framesubproc {
 		return gTextOverlayPropsStc.textBottomYinOutput;
 	}
 
-	void FrameSubProcessorText::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorText::processFrame(cv::Mat &frame, const uint32_t frameNr) {
+		gFrameNr = frameNr;
+		//
 		cv::Mat textFrame = cv::Mat(
 				gTextOverlayPropsStc.rectEndPoint.y - gCoord.y,
 				gTextOverlayPropsStc.rectEndPoint.x - gCoord.x,

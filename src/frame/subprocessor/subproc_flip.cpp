@@ -21,10 +21,13 @@ namespace framesubproc {
 		}
 	}
 
-	void FrameSubProcessorFlip::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorFlip::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (! (gFlipDataStc.hor || gFlipDataStc.ver)) {
 			return;
 		}
+		//
+		gFrameNr = frameNr;
+		//
 		cv::Mat frameIn = frame.clone();
 		frame = cv::Mat();
 		cv::flip(frameIn, frame, gFlipDataStc.flag);

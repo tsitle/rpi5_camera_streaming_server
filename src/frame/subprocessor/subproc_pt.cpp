@@ -149,10 +149,12 @@ namespace framesubproc {
 		}
 	}
 
-	void FrameSubProcessorPerspectiveTransf::processFrame(cv::Mat &frame) {
+	void FrameSubProcessorPerspectiveTransf::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (gWriteToFileFailed) {
 			return;
 		}
+		//
+		gFrameNr = frameNr;
 		//
 		if (! gHaveAllCorners) {
 			if (! gHaveSomeCorners) {

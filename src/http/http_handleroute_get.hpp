@@ -23,6 +23,7 @@ namespace http {
 					{URL_PATH_OUTPUT_CAMS_SWAP, &HandleRouteGet::_handleRoute_OUTPUT_CAMS_SWAP},
 					{"/proc/bnc/brightness", &HandleRouteGet::_handleRoute_PROC_BNC_BRIGHTN},
 					{"/proc/bnc/contrast", &HandleRouteGet::_handleRoute_PROC_BNC_CONTRAST},
+					{"/proc/bnc/gamma", &HandleRouteGet::_handleRoute_PROC_BNC_GAMMA},
 					{"/proc/cal/showchesscorners", &HandleRouteGet::_handleRoute_PROC_CAL_SHOWCHESSCORNERS},
 					{"/proc/cal/start", &HandleRouteGet::_handleRoute_PROC_CAL_START},
 					{"/proc/cal/reset", &HandleRouteGet::_handleRoute_PROC_CAL_RESET},
@@ -53,6 +54,7 @@ namespace http {
 			bool _handleRoute_OUTPUT_CAMS_SWAP();
 			bool _handleRoute_PROC_BNC_BRIGHTN();
 			bool _handleRoute_PROC_BNC_CONTRAST();
+			bool _handleRoute_PROC_BNC_GAMMA();
 			void __handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn camId, bool newVal);
 			bool _handleRoute_PROC_CAL_SHOWCHESSCORNERS();
 			bool _handleRoute_PROC_CAL_START();

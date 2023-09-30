@@ -94,7 +94,7 @@ namespace fcapshared {
 	}
 
 	void Shared::setRtOpts_procBncAdjBrightness(const int16_t val) {
-		if (val < fcapconstants::PROC_BNC_MIN_ADJ_BRIGHTNESS || val > fcapconstants::PROC_BNC_MAX_ADJ_BRIGHTNESS) {
+		if (val < -100 || val > 100) {
 			return;
 		}
 
@@ -106,7 +106,7 @@ namespace fcapshared {
 	}
 
 	void Shared::setRtOpts_procBncAdjContrast(const int16_t val) {
-		if (val < fcapconstants::PROC_BNC_MIN_ADJ_CONTRAST || val > fcapconstants::PROC_BNC_MAX_ADJ_CONTRAST) {
+		if (val < -100 || val > 100) {
 			return;
 		}
 
@@ -114,6 +114,18 @@ namespace fcapshared {
 
 		thrLock.lock();
 		gThrVarRuntimeOptions.procBncAdjContrast = val;
+		thrLock.unlock();
+	}
+
+	void Shared::setRtOpts_procBncAdjGamma(const int16_t val) {
+		if (val < -100 || val > 100) {
+			return;
+		}
+
+		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
+
+		thrLock.lock();
+		gThrVarRuntimeOptions.procBncAdjGamma = val;
 		thrLock.unlock();
 	}
 
