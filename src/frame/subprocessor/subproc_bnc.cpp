@@ -8,9 +8,9 @@ namespace framesubproc {
 	const double AT1_MAX_BRIGHTNESS = 100;
 	const double AT1_MIN_CONTRAST = 1.0;
 	const double AT1_MAX_CONTRAST = 3.0;
+	const double AT1_MIN_GAMMA = 0.5;
 	const double AT1_CENTER_GAMMA = 1.0;
-	const double AT1_MIN_GAMMA = 0.3;
-	const double AT1_MAX_GAMMA = 2.0;
+	const double AT1_MAX_GAMMA = 1.5;
 	//
 	const int16_t AT2_MAX_BRIGHTNESS = 127;
 	const int16_t AT2_MIN_BRIGHTNESS = -254;
