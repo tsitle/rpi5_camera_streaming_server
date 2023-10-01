@@ -21,6 +21,8 @@ namespace http {
 
 	const std::string URL_PSEUDO_HOST = "http://pseudohost";
 
+	cputemp::CpuTemp ClientHandler::gCpuTemp;
+
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
@@ -492,6 +494,9 @@ namespace http {
 					{"L", gHndCltData.rtOptsNew.cameraReady[gHndCltData.staticOptionsStc.camL]},
 					{"R", gHndCltData.rtOptsNew.cameraReady[gHndCltData.staticOptionsStc.camR]}
 				};
+
+			//
+			jsonObj["cpuTemperature"] = gCpuTemp.getTemperature();
 
 			//
 			jsonObj["enabledProc"] = {

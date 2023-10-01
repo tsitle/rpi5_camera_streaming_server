@@ -3,6 +3,7 @@
 
 #include "http_handleclient_data.hpp"
 #include "http_handleroute_get.hpp"
+#include "../cputemp/cputemp.hpp"
 
 namespace http {
 
@@ -35,6 +36,7 @@ namespace http {
 			std::string gRequUriPath;
 			std::string gRequUriQuery;
 			HandleRouteGet *gPHandleRouteGet;
+			static cputemp::CpuTemp gCpuTemp;
 
 			//
 
