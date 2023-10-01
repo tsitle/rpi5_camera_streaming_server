@@ -11,7 +11,10 @@ build/
 config.json
 config-*.json
 !config-example-*.json
-calib-*.yaml
+
+*.yaml
+
+run-remote.sh
 
 
 # =========================
