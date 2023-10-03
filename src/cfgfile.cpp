@@ -68,7 +68,10 @@ namespace fcapcfgfile {
 					if (tmpAkVal.empty()) {
 						throw std::invalid_argument("ApiKey may not be empty");
 					}
-					std::string tmpMd5 = md5::md5(tmpAkVal);
+					std::string tmpMd5 = fcapconstants::CONFFILE_APIKEY_MD5PRE + tmpAkVal + fcapconstants::CONFFILE_APIKEY_MD5POST;
+					for (uint32_t tmpRound = 0; tmpRound < fcapconstants::CONFFILE_APIKEY_MD5ROUNDS; tmpRound++) {
+						tmpMd5 = md5::md5(tmpMd5);
+					}
 					gThrVarStaticOptions.apiKeys.push_back(tmpMd5);
 				}
 				//

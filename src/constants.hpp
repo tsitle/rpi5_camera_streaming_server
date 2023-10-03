@@ -74,6 +74,10 @@ namespace fcapconstants {
 	const std::string CONFFILE_CAMSRC_MJPEG = "mjpeg";
 	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
+	const uint32_t CONFFILE_APIKEY_MD5ROUNDS = 10;
+	const std::string CONFFILE_APIKEY_MD5PRE = "pre00";
+	const std::string CONFFILE_APIKEY_MD5POST = "11post";
+
 	/**
 	 * Algorithms for Brightness/Contrast
 	 */
