@@ -50,6 +50,7 @@ namespace fcapcfgfile {
 	};
 
 	struct StaticOptionsStc {
+		std::vector<std::string> apiKeys;
 		uint16_t serverPort;
 		cv::Size gstreamerResolutionCapture;
 		cv::Size resolutionInputStream;
@@ -71,6 +72,7 @@ namespace fcapcfgfile {
 		}
 
 		void reset() {
+			apiKeys.clear();
 			serverPort = fcapsettings::TCP_DEFAULT_SERVER_PORT;
 			gstreamerResolutionCapture = fcapsettings::STREAM_DEFAULT_CAPTURE_SZ;
 			resolutionInputStream = fcapsettings::STREAM_DEFAULT_INPUT_SZ;
@@ -109,6 +111,6 @@ namespace fcapcfgfile {
 			static fcapconstants::CamIdEn getCamIdFromString(const std::string &x, const std::string &nameArg);
 	};
 
-}  // namespace fcapcfgfile
+};  // namespace fcapcfgfile
 
 #endif  // CFGFILE_HPP_

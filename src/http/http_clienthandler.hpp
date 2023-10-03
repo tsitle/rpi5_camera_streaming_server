@@ -58,6 +58,8 @@ namespace http {
 			//
 			void handleRequest(const char *buffer, const uint32_t bufSz);
 			//
+			bool checkApiKey(void *pHeaders);
+			//
 			std::string buildResponse(const std::string *pHttpContentType, const std::string *pContent);
 			bool sendResponse(const std::string *pHttpContentType, const std::string *pContent);
 			void buildJsonResult_procTrDeltaX(void *pJsonObj, const std::string key, std::map<fcapconstants::CamIdEn, cv::Point> &val);
@@ -65,15 +67,6 @@ namespace http {
 			//
 			void startStreaming();
 			bool sendFrame(uint8_t *pData, const uint32_t bufferSz);
-			//
-			bool isCameraAvailabelL();
-			bool isCameraAvailabelR();
-			//
-			bool getBoolFromQuery(bool &valOut);
-			bool getIntFromQuery(int16_t &valOut, const int16_t valMin, const int16_t valMax);
-			bool getOutputCamsFromQuery(fcapconstants::OutputCamsEn &valOut);
-			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
-			bool getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
 	};
 
 }  // namespace http

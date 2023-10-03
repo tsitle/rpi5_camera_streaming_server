@@ -1,4 +1,7 @@
 {
+	"api_keys": {
+		"default": "xylophon"
+	},
 	"server_port": 8090,
 	"resolution_input_stream": "1280x720",
 	"camera_assignment": {

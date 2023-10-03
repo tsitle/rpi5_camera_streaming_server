@@ -277,4 +277,28 @@ namespace fcapshared {
 		return (stat(fname.c_str(), &buffer) == 0);
 	}
 
+	std::string Shared::toLower(const std::string &inp) {
+		std::string resS = inp;
+
+		std::transform(
+				inp.begin(),
+				inp.end(),
+				resS.begin(),
+				[](unsigned char c){ return std::tolower(c); }
+			);
+		return resS;
+	}
+
+	std::string Shared::toUpper(const std::string &inp) {
+		std::string resS = inp;
+
+		std::transform(
+				inp.begin(),
+				inp.end(),
+				resS.begin(),
+				[](unsigned char c){ return std::toupper(c); }
+			);
+		return resS;
+	}
+
 }  // namespace fcapshared

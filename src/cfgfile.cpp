@@ -3,6 +3,7 @@
 #include <string>  // for stoi()
 #include <stdexcept>
 
+#include "md5/md5.hpp"
 #include "cfgfile.hpp"
 #include "shared.hpp"
 #include "json/json.hpp"
@@ -55,6 +56,21 @@ namespace fcapcfgfile {
 				pDefConfJson->merge_patch(confFileJson);
 				//
 				/**std::cout << std::setw(4) << (*pDefConfJson) << std::endl << std::endl;**/
+				//
+				std::map<std::string, std::string> tmpApiKeyMap = (*pDefConfJson)["api_keys"];
+				std::map<std::string, std::string>::iterator tmpIt;
+				for (tmpIt = tmpApiKeyMap.begin(); tmpIt != tmpApiKeyMap.end(); tmpIt++) {
+					std::string tmpAkKey = fcapshared::Shared::toUpper(tmpIt->first);
+					if (tmpAkKey.compare("SOMEID") == 0 || tmpAkKey.compare("OTHERID") == 0) {
+						continue;
+					}
+					std::string tmpAkVal = fcapshared::Shared::toLower(tmpIt->second);
+					if (tmpAkVal.empty()) {
+						throw std::invalid_argument("ApiKey may not be empty");
+					}
+					std::string tmpMd5 = md5::md5(tmpAkVal);
+					gThrVarStaticOptions.apiKeys.push_back(tmpMd5);
+				}
 				//
 				///
 				gThrVarStaticOptions.serverPort = (uint16_t)(*pDefConfJson)["server_port"];
@@ -118,7 +134,7 @@ namespace fcapcfgfile {
 				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].hor = (bool)(*pDefConfJson)["flip"]["cam1"]["horizontal"];
 				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].ver = (bool)(*pDefConfJson)["flip"]["cam1"]["vertical"];
 			} catch (json::type_error &ex) {
-				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "'");
+				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "': " + ex.what());
 				thrLock.unlock();
 				delete pDefConfJson;
 				return false;
@@ -160,6 +176,10 @@ namespace fcapcfgfile {
 
 	void CfgFile::getDefaultStaticConfig(void **ppJsonObj) {
 		*((json**)ppJsonObj) = new json {
+				{"api_keys", {
+						{"someId", "someValue"},
+						{"otherId", "otherValue"}
+					}},
 				{"server_port", fcapsettings::TCP_DEFAULT_SERVER_PORT},
 				{"resolution_input_stream",
 						std::to_string(fcapsettings::STREAM_DEFAULT_INPUT_SZ.width) +

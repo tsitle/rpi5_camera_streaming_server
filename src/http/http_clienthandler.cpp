@@ -163,11 +163,11 @@ namespace http {
 	// -----------------------------------------------------------------------------
 
 	void ClientHandler::handleRequest(const char *buffer, const uint32_t bufSz) {
+		bool apiKeyOk = false;
 		bool methOk;
 		bool methIsGet;
 		bool methIsPost;
 		bool methIsOptions;
-		bool requUriOk = false;
 		bool success = false;
 		std::string requFullUri;
 		httpparser::Request request;
@@ -199,8 +199,18 @@ namespace http {
 			gHndCltData.respHttpStat = 404;
 		} else if (methOk) {
 			gRequUriPath = urlparser.path();
-			requUriOk = (! gRequUriPath.empty());
-			if (requUriOk) {
+			if (gRequUriPath.empty()) {
+				gRequUriPath = "/";
+			}
+			//
+			apiKeyOk = (
+						(methIsGet && gRequUriPath.compare(fcapconstants::HTTP_URL_PATH_STREAM) == 0) ||
+							methIsOptions || checkApiKey((void*)&request.headers)
+					);
+			if (! apiKeyOk) {
+				log(gHndCltData.thrIx, "401 Unauthorized");
+				gHndCltData.respHttpStat = 401;
+			} else {
 				if (methIsGet) {
 					gRequUriQuery = urlparser.query();
 				} else if (methIsPost) {
@@ -212,7 +222,7 @@ namespace http {
 			}
 		}
 
-		if ((methIsGet || methIsPost) && requUriOk) {
+		if ((methIsGet || methIsPost) && apiKeyOk) {
 			HandleRoute *pHndRoute;
 
 			if (methIsGet) {
@@ -222,7 +232,7 @@ namespace http {
 			}
 
 			success = pHndRoute->handleRequest(gRequUriPath, gRequUriQuery);
-		} else if (methIsOptions && requUriOk) {
+		} else if (methIsOptions) {
 			// the browser is doing a "preflight" check of this API endpoint
 			/**log(gHndCltData.thrIx, "200 OPTIONS");**/
 			success = true;
@@ -257,11 +267,41 @@ namespace http {
 
 	// -----------------------------------------------------------------------------
 
+	bool ClientHandler::checkApiKey(void *pHeaders) {
+		bool resB = false;
+		std::vector<httpparser::Request::HeaderItem> *pHeadersVec = static_cast<std::vector<httpparser::Request::HeaderItem>*>(pHeaders);
+
+		for (uint32_t x = 0; x < pHeadersVec->size(); x++) {
+			httpparser::Request::HeaderItem hi = (*pHeadersVec)[x];
+			std::string hiKey = fcapshared::Shared::toUpper(hi.name);
+			/**log(gHndCltData.thrIx, "hi " + hiKey + "=" + hi.value);**/
+			if (hiKey.compare("APIKEY") != 0) {
+				continue;
+			}
+			std::string hiVal = fcapshared::Shared::toLower(hi.value);
+			for (uint32_t akIx = 0; akIx < gHndCltData.staticOptionsStc.apiKeys.size(); akIx++) {
+				std::string sosAk = gHndCltData.staticOptionsStc.apiKeys[akIx];
+				/**log(gHndCltData.thrIx, "sosAk[" + std::to_string(akIx) + "]='" + sosAk + "'");**/
+				if (hiVal.compare(sosAk) == 0) {
+					resB = true;
+					break;
+				}
+			}
+			break;
+		}
+		return resB;
+	}
+
+	// -----------------------------------------------------------------------------
+
 	std::string ClientHandler::buildResponse(const std::string *pHttpContentType, const std::string *pContent) {
 		std::string httpStatus = "HTTP/1.1 ";
 		switch (gHndCltData.respHttpStat) {
 			case 200:
 				httpStatus += "200 OK";
+				break;
+			case 401:
+				httpStatus += "401 Unauthorized";
 				break;
 			case 404:
 				httpStatus += "404 Not Found";
@@ -287,7 +327,7 @@ namespace http {
 		ss << "Pragma: no-cache" << "\r\n";
 		ss << "Access-Control-Allow-Origin: *" << "\r\n";
 		ss << "Access-Control-Allow-Methods: GET,POST" << "\r\n";
-		ss << "Access-Control-Allow-Headers: API-Key,Content-Type,If-Modified-Since,Cache-Control" << "\r\n";
+		ss << "Access-Control-Allow-Headers: Apikey,Content-Type,If-Modified-Since,Cache-Control" << "\r\n";
 		ss << "Access-Control-Max-Age: 0" << "\r\n";
 		ss << "Content-Type: " << *pHttpContentType;
 		if (pHttpContentType->compare(fcapconstants::HTTP_CONTENT_TYPE_MULTIPART) == 0) {
@@ -313,149 +353,6 @@ namespace http {
 			log(gHndCltData.thrIx, "__Error sending response to client");
 			return false;
 		}
-		return true;
-	}
-
-	void ClientHandler::startStreaming() {
-		const bool _MEASURE_TIME_COPY = false;
-		const bool _MEASURE_TIME_SEND = false;
-		bool haveFrame = false;
-		bool resB;
-		bool needToStop = false;
-		uint32_t bufSz = 0;
-		uint32_t rsvdBufSz = 64 * 1024;
-		uint8_t* pData = (uint8_t*)::malloc(rsvdBufSz);
-		uint32_t toNeedToStop = 100;
-		auto timeFpsStart = std::chrono::steady_clock::now();
-		auto timeFpsCur = std::chrono::steady_clock::now();
-		bool timeFpsRun = false;
-		uint32_t timeFpsDiffMs;
-		uint32_t timeFpsFrames = 0;
-		auto timeStart = std::chrono::steady_clock::now();
-		auto timeEnd = std::chrono::steady_clock::now();
-		float framerate = 0.0;
-		char framerateBuf[32];
-
-		if (pData == NULL) {
-			gCbDecStreamingClientCount(gHndCltData.thrIx);
-			return;
-		}
-		//
-		resB = sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, NULL);
-		if (! resB) {
-			gCbDecStreamingClientCount(gHndCltData.thrIx);
-			return;
-		}
-		while (true) {
-			// check if we need to stop
-			if (--toNeedToStop == 0) {
-				needToStop = fcapshared::Shared::getFlagNeedToStop();
-				if (needToStop) {
-					break;
-				}
-				toNeedToStop = 100;
-			}
-
-			// copy frame from queue
-			if (_MEASURE_TIME_COPY) {
-				timeStart = std::chrono::steady_clock::now();
-			}
-			haveFrame = gCbGetFrameFromQueue(gHndCltData.thrIx, &pData, rsvdBufSz, bufSz);
-			if (! haveFrame) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
-				continue;
-			}
-			if (_MEASURE_TIME_COPY) {
-				timeEnd = std::chrono::steady_clock::now();
-				log(gHndCltData.thrIx, "__copy frame took " +
-						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-			}
-
-			// send frame to client
-			///
-			/**log(gHndCltData.thrIx, "__send frame");**/
-			++timeFpsFrames;
-			if (! timeFpsRun) {
-				timeFpsStart = std::chrono::steady_clock::now();
-				timeFpsRun = true;
-			} else {
-				timeFpsCur = std::chrono::steady_clock::now();
-				timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
-				if (timeFpsDiffMs >= 10000) {
-					framerate = ((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0;
-					if (gHndCltData.streamingClientId != 0) {
-						gCbSetFramerateInfo(gHndCltData.streamingClientId, (uint32_t)std::round(framerate));
-					}
-					snprintf(framerateBuf, sizeof(framerateBuf), "%5.2f", framerate);
-					log(gHndCltData.thrIx, std::string("__FPS=") + std::string(framerateBuf));
-					//
-					timeFpsStart = std::chrono::steady_clock::now();
-					timeFpsFrames = 0;
-				}
-			}
-			///
-			if (_MEASURE_TIME_SEND) {
-				timeStart = std::chrono::steady_clock::now();
-			}
-			resB = sendFrame(pData, bufSz);
-			if (! resB) {
-				break;
-			}
-			if (_MEASURE_TIME_SEND) {
-				timeEnd = std::chrono::steady_clock::now();
-				log(gHndCltData.thrIx, "__send frame took " +
-						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
-			}
-		}
-		if (pData != NULL) {
-			::free(pData);
-		}
-		//
-		gCbDecStreamingClientCount(gHndCltData.thrIx);
-	}
-
-	bool ClientHandler::sendFrame(uint8_t *pData, const uint32_t bufferSz) {
-		long bytesSent;
-
-		std::string respMsg = gRespMultipartPrefix + std::to_string(bufferSz) + "\r\n\r\n";
-		/**log(gHndCltData.thrIx, ">> " + respMsg);**/
-		bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
-		if (bytesSent != (long)respMsg.size()) {
-			if (bytesSent == -1) {
-				log(gHndCltData.thrIx, "__Client connection closed");
-			} else {
-				log(gHndCltData.thrIx, "__Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
-			}
-			return false;
-		}
-		//
-		uint32_t sentTot = 0;
-		uint32_t remBufSz = bufferSz;
-		uint32_t curBufSz = BUFFER_SIZE;
-		uint8_t* pStartBuf = pData;
-		/**char strBuf[1024];
-		snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
-		log(gHndCltData.thrIx, strBuf);**/
-		while (remBufSz != 0) {
-			if (curBufSz > remBufSz) {
-				curBufSz = remBufSz;
-			}
-			bytesSent = ::write(gClientSocket, pStartBuf, curBufSz);
-			if (bytesSent != (long)curBufSz) {
-				if (bytesSent == -1) {
-					log(gHndCltData.thrIx, "__Client connection closed");
-				} else {
-					log(gHndCltData.thrIx, "__Error sending response to client #DA (sent=" +
-							std::to_string(bytesSent) + ", exp=" + std::to_string(curBufSz) + ", ts=" + std::to_string(sentTot) +
-							")");
-				}
-				return false;
-			}
-			sentTot += curBufSz;
-			remBufSz -= curBufSz;
-			pStartBuf += curBufSz;
-		}
-		/**log(gHndCltData.thrIx, "__sent " + std::to_string(sentTot) + " total");**/
 		return true;
 	}
 
@@ -641,6 +538,157 @@ namespace http {
 			jsonObj["message"] = gHndCltData.respErrMsg;
 		}
 		return jsonObj.dump();
+	}
+
+	// -----------------------------------------------------------------------------
+
+	void ClientHandler::startStreaming() {
+		const bool _MEASURE_TIME_COPY = false;
+		const bool _MEASURE_TIME_SEND = false;
+		bool haveFrame = false;
+		bool resB;
+		bool needToStop = false;
+		uint32_t bufSz = 0;
+		uint32_t rsvdBufSz = 64 * 1024;
+		uint8_t* pData = (uint8_t*)::malloc(rsvdBufSz);
+		uint32_t toNeedToStop = 100;
+		auto timeFpsStart = std::chrono::steady_clock::now();
+		auto timeFpsCur = std::chrono::steady_clock::now();
+		bool timeFpsRun = false;
+		uint32_t timeFpsDiffMs;
+		uint32_t timeFpsFrames = 0;
+		auto timeStart = std::chrono::steady_clock::now();
+		auto timeEnd = std::chrono::steady_clock::now();
+		float framerate = 0.0;
+		char framerateBuf[32];
+		uint32_t noFrameCnt = 0;
+
+		if (pData == NULL) {
+			gCbDecStreamingClientCount(gHndCltData.thrIx);
+			return;
+		}
+		//
+		resB = sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, NULL);
+		if (! resB) {
+			gCbDecStreamingClientCount(gHndCltData.thrIx);
+			return;
+		}
+		while (true) {
+			// check if we need to stop
+			if (--toNeedToStop == 0) {
+				needToStop = fcapshared::Shared::getFlagNeedToStop();
+				if (needToStop) {
+					break;
+				}
+				toNeedToStop = 100;
+			}
+
+			// copy frame from queue
+			if (_MEASURE_TIME_COPY) {
+				timeStart = std::chrono::steady_clock::now();
+			}
+			haveFrame = gCbGetFrameFromQueue(gHndCltData.thrIx, &pData, rsvdBufSz, bufSz);
+			if (! haveFrame) {
+				if (++noFrameCnt > 10000 / 5) {
+					log(gHndCltData.thrIx, "__no frames for client - closing connection");
+					break;
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				continue;
+			}
+			if (_MEASURE_TIME_COPY) {
+				timeEnd = std::chrono::steady_clock::now();
+				log(gHndCltData.thrIx, "__copy frame took " +
+						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+			}
+			noFrameCnt = 0;
+
+			// send frame to client
+			///
+			/**log(gHndCltData.thrIx, "__send frame");**/
+			++timeFpsFrames;
+			if (! timeFpsRun) {
+				timeFpsStart = std::chrono::steady_clock::now();
+				timeFpsRun = true;
+			} else {
+				timeFpsCur = std::chrono::steady_clock::now();
+				timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
+				if (timeFpsDiffMs >= 10000) {
+					framerate = ((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0;
+					if (gHndCltData.streamingClientId != 0) {
+						gCbSetFramerateInfo(gHndCltData.streamingClientId, (uint32_t)std::round(framerate));
+					}
+					snprintf(framerateBuf, sizeof(framerateBuf), "%5.2f", framerate);
+					log(gHndCltData.thrIx, std::string("__FPS=") + std::string(framerateBuf));
+					//
+					timeFpsStart = std::chrono::steady_clock::now();
+					timeFpsFrames = 0;
+				}
+			}
+			///
+			if (_MEASURE_TIME_SEND) {
+				timeStart = std::chrono::steady_clock::now();
+			}
+			resB = sendFrame(pData, bufSz);
+			if (! resB) {
+				break;
+			}
+			if (_MEASURE_TIME_SEND) {
+				timeEnd = std::chrono::steady_clock::now();
+				log(gHndCltData.thrIx, "__send frame took " +
+						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
+			}
+		}
+		if (pData != NULL) {
+			::free(pData);
+		}
+		//
+		gCbDecStreamingClientCount(gHndCltData.thrIx);
+	}
+
+	bool ClientHandler::sendFrame(uint8_t *pData, const uint32_t bufferSz) {
+		long bytesSent;
+
+		std::string respMsg = gRespMultipartPrefix + std::to_string(bufferSz) + "\r\n\r\n";
+		/**log(gHndCltData.thrIx, ">> " + respMsg);**/
+		bytesSent = ::write(gClientSocket, respMsg.c_str(), respMsg.size());
+		if (bytesSent != (long)respMsg.size()) {
+			if (bytesSent == -1) {
+				log(gHndCltData.thrIx, "__Client connection closed");
+			} else {
+				log(gHndCltData.thrIx, "__Error sending response to client #HE (sent=" + std::to_string(bytesSent) + ")");
+			}
+			return false;
+		}
+		//
+		uint32_t sentTot = 0;
+		uint32_t remBufSz = bufferSz;
+		uint32_t curBufSz = BUFFER_SIZE;
+		uint8_t* pStartBuf = pData;
+		/**char strBuf[1024];
+		snprintf(strBuf, sizeof(strBuf), "__b 0x%02X%02X 0x%02X%02X", pData[0], pData[1], pData[bufferSz - 2], pData[bufferSz - 1]);
+		log(gHndCltData.thrIx, strBuf);**/
+		while (remBufSz != 0) {
+			if (curBufSz > remBufSz) {
+				curBufSz = remBufSz;
+			}
+			bytesSent = ::write(gClientSocket, pStartBuf, curBufSz);
+			if (bytesSent != (long)curBufSz) {
+				if (bytesSent == -1) {
+					log(gHndCltData.thrIx, "__Client connection closed");
+				} else {
+					log(gHndCltData.thrIx, "__Error sending response to client #DA (sent=" +
+							std::to_string(bytesSent) + ", exp=" + std::to_string(curBufSz) + ", ts=" + std::to_string(sentTot) +
+							")");
+				}
+				return false;
+			}
+			sentTot += curBufSz;
+			remBufSz -= curBufSz;
+			pStartBuf += curBufSz;
+		}
+		/**log(gHndCltData.thrIx, "__sent " + std::to_string(sentTot) + " total");**/
+		return true;
 	}
 
 }  // namespace http

@@ -124,6 +124,8 @@ namespace fcapshared {
 			static void setRtOpts_procTrDynDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
 			//
 			static bool fileExists(const std::string &fname);
+			static std::string toLower(const std::string &inp);
+			static std::string toUpper(const std::string &inp);
 
 		private:
 			static bool gThrVarNeedToStop;
