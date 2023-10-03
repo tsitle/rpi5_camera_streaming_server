@@ -52,12 +52,15 @@ namespace http {
 
 	// -----------------------------------------------------------------------------
 
-	void HandleRoute::_checkIntString(const std::string &intStr) {
+	void HandleRoute::_checkIntString(const std::string &intStr, const bool signAllowed) {
 		if (intStr.empty()) {
 			throw std::exception();
 		}
 		const char *pIntStr = intStr.c_str();
 
+		if (signAllowed && *pIntStr == '-') {
+			++pIntStr;
+		}
 		while (*pIntStr != 0) {
 			if (*pIntStr < '0' || *pIntStr > '9') {
 				throw std::exception();
@@ -121,7 +124,7 @@ namespace http {
 			it = qp.find(keyX);
 			if (it != qp.end()) {
 				try {
-					_checkIntString(it->second);
+					_checkIntString(it->second, true);
 					valOut.x = stoi(it->second);
 				} catch (std::exception &err) {
 					throw QueryParamException("key '" + keyX + "': cannot convert integer value");
@@ -133,7 +136,7 @@ namespace http {
 			it = qp.find(keyY);
 			if (it != qp.end()) {
 				try {
-					_checkIntString(it->second);
+					_checkIntString(it->second, true);
 					valOut.y = stoi(it->second);
 				} catch (std::exception &err) {
 					throw QueryParamException("key '" + keyY + "': cannot convert integer value");
@@ -203,7 +206,7 @@ namespace http {
 			if (it != qp.end()) {
 				int16_t tmpInt = 0;
 				try {
-					_checkIntString(it->second);
+					_checkIntString(it->second, true);
 					tmpInt = stoi(it->second);
 				} catch (std::exception &err) {
 					throw QueryParamException("key 'v': cannot convert integer value");
@@ -292,7 +295,7 @@ namespace http {
 			if (it != qp.end()) {
 				unsigned long tmpInt = 0;
 				try {
-					_checkIntString(it->second);
+					_checkIntString(it->second, false);
 					// max 4294967295
 					tmpInt = std::strtoul(it->second.c_str(), nullptr, 10);
 				} catch (std::exception &err) {

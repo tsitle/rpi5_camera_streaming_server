@@ -21,7 +21,7 @@ namespace http {
 
 			void log(const std::string &message);
 			//
-			void _checkIntString(const std::string &intStr);
+			void _checkIntString(const std::string &intStr, const bool signAllowed);
 			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
 			std::map<std::string, std::string> _getQueryParams();
 			bool _getCoordsFromQuery(const std::string &keyX, const std::string &keyY,
