@@ -7,12 +7,12 @@ namespace http {
 
 	class HandleRoute {
 		public:
-			HandleRoute(HandleClientDataStc *pHndCltData, const std::string &httpMethod);
+			HandleRoute(httppriv::HandleClientDataStc *pHndCltData, const std::string &httpMethod);
 			~HandleRoute();
 			virtual bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery);
 
 		protected:
-			HandleClientDataStc *gPHndCltData;
+			httppriv::HandleClientDataStc *gPHndCltData;
 			std::string gHttpMethod;
 			std::string gRequUriPath;
 			std::string gRequUriQuery;
@@ -21,6 +21,7 @@ namespace http {
 
 			void log(const std::string &message);
 			//
+			void _checkIntString(const std::string &intStr);
 			void _stringSplit(const std::string &valIn, const std::string &split, std::string &valOut1, std::string &valOut2);
 			std::map<std::string, std::string> _getQueryParams();
 			bool _getCoordsFromQuery(const std::string &keyX, const std::string &keyY,
@@ -31,6 +32,7 @@ namespace http {
 			bool getCoordsFromQuery(cv::Point &valOut, const cv::Point &valMin, const cv::Point &valMax);
 			bool getDualCoordsFromQuery(cv::Point &valOutL, cv::Point &valOutR,
 					const cv::Point &valMin, const cv::Point &valMax);
+			bool getOptionalCidFromQuery(uint32_t &valOut);
 	};
 
 }  // namespace http

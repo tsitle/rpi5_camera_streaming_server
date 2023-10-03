@@ -39,7 +39,12 @@ namespace fcapsettings {
 	 */
 	const uint16_t TCP_DEFAULT_SERVER_PORT = 8090;
 	/**
-	 * Maximum allowed amount of streaming clients for Webserver
+	 * Maximum allowed amount of concurrent clients for Webserver
+	 */
+	const uint32_t TCP_MAX_CLIENTS = 12;
+	/**
+	 * Maximum allowed amount of concurrent streaming clients for Webserver.
+	 * Needs to be <= TCP_MAX_CLIENTS
 	 */
 	const uint32_t TCP_MAX_STREAMING_CLIENTS = 4;
 

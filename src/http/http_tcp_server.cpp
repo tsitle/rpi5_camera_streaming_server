@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 namespace http {
 
-	RunningCltsStc TcpServer::gThrVarRunningCltsStc;
+	httppriv::RunningCltsStc TcpServer::gThrVarRunningCltsStc;
 	std::mutex TcpServer::gThrMtxRunningCltHnds;
 
 	// -----------------------------------------------------------------------------
@@ -28,8 +28,6 @@ namespace http {
 			gServerLenSocketAddr(sizeof(gServerSocketAddress)),
 			gThreadCount(0),
 			gCanListen(false) {
-		initRunningHandlersStc();
-		//
 		gServerSocketAddress.sin_family = AF_INET;
 		gServerSocketAddress.sin_port = htons(gServerPort);
 		gServerSocketAddress.sin_addr.s_addr = ::inet_addr(gServerIpAddr.c_str());
@@ -87,23 +85,11 @@ namespace http {
 					removeRunningHandler,
 					incStreamingClientCount,
 					decStreamingClientCount,
-					getFrameFromQueueForClient
+					getFrameFromQueueForClient,
+					setFramerateInfo,
+					getFramerateInfo
 				);
 		}
-	}
-
-	void TcpServer::initRunningHandlersStc() {
-		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
-
-		thrLock.lock();
-		gThrVarRunningCltsStc.runningHandlersCount = 0;
-		gThrVarRunningCltsStc.runningStreamsCount = 0;
-		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
-			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
-			gThrVarRunningCltsStc.frameQueues[x].isActive = false;
-			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = NULL;
-		}
-		thrLock.unlock();
 	}
 
 	uint32_t TcpServer::getRunningHandlersCount() {
@@ -116,21 +102,19 @@ namespace http {
 		return resI;
 	}
 
-	void TcpServer::addRunningHandler(const uint32_t thrIx) {
+	bool TcpServer::addRunningHandler(const uint32_t thrIx) {
+		bool resB;
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
-		++gThrVarRunningCltsStc.runningHandlersCount;
-		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
-			if (gThrVarRunningCltsStc.frameQueues[x].isActive) {
-				continue;
-			}
-			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = thrIx;
-			gThrVarRunningCltsStc.frameQueues[x].isActive = true;
-			gThrVarRunningCltsStc.frameQueues[x].pFrameQueue = new frame::FrameQueueJpeg(x);
-			break;
+		resB = (gThrVarRunningCltsStc.runningHandlersCount < fcapsettings::TCP_MAX_CLIENTS);
+		if (resB) {
+			gThrVarRunningCltsStc.httpClients[gThrVarRunningCltsStc.runningStreamsCount].cltThrIx = thrIx;
+			gThrVarRunningCltsStc.httpClients[gThrVarRunningCltsStc.runningStreamsCount].isActive = true;
+			++gThrVarRunningCltsStc.runningHandlersCount;
 		}
 		thrLock.unlock();
+		return resB;
 	}
 
 	void TcpServer::removeRunningHandler(const uint32_t thrIx) {
@@ -138,38 +122,52 @@ namespace http {
 
 		thrLock.lock();
 		if (gThrVarRunningCltsStc.runningHandlersCount != 0) {
-			--gThrVarRunningCltsStc.runningHandlersCount;
-		}
-		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
-			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx) {
-				continue;
+			for (uint32_t x = 0; x < fcapsettings::TCP_MAX_CLIENTS; x++) {
+				if (gThrVarRunningCltsStc.httpClients[x].cltThrIx != thrIx ||
+						! gThrVarRunningCltsStc.httpClients[x].isActive) {
+					continue;
+				}
+				gThrVarRunningCltsStc.httpClients[x].cltThrIx = 0;
+				gThrVarRunningCltsStc.httpClients[x].isActive = false;
+				break;
 			}
-			gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
-			gThrVarRunningCltsStc.frameQueues[x].isActive = false;
-			delete gThrVarRunningCltsStc.frameQueues[x].pFrameQueue;
-			break;
+			--gThrVarRunningCltsStc.runningHandlersCount;
 		}
 		thrLock.unlock();
 	}
 
-	bool TcpServer::incStreamingClientCount() {
+	bool TcpServer::incStreamingClientCount(const uint32_t thrIx, const uint32_t cid) {
 		bool resB;
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
 		resB = (gThrVarRunningCltsStc.runningStreamsCount < fcapsettings::TCP_MAX_STREAMING_CLIENTS);
 		if (resB) {
+			gThrVarRunningCltsStc.frameQueues[gThrVarRunningCltsStc.runningStreamsCount].clientId = cid;
+			gThrVarRunningCltsStc.frameQueues[gThrVarRunningCltsStc.runningStreamsCount].cltThrIx = thrIx;
+			gThrVarRunningCltsStc.frameQueues[gThrVarRunningCltsStc.runningStreamsCount].isActive = true;
+			gThrVarRunningCltsStc.frameQueues[gThrVarRunningCltsStc.runningStreamsCount].pFrameQueue = new frame::FrameQueueJpeg(thrIx);
 			++gThrVarRunningCltsStc.runningStreamsCount;
 		}
 		thrLock.unlock();
 		return resB;
 	}
 
-	void TcpServer::decStreamingClientCount() {
+	void TcpServer::decStreamingClientCount(const uint32_t thrIx) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
 
 		thrLock.lock();
 		if (gThrVarRunningCltsStc.runningStreamsCount != 0) {
+			for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
+				if (gThrVarRunningCltsStc.frameQueues[x].cltThrIx != thrIx ||
+						! gThrVarRunningCltsStc.frameQueues[x].isActive) {
+					continue;
+				}
+				gThrVarRunningCltsStc.frameQueues[x].cltThrIx = 0;
+				gThrVarRunningCltsStc.frameQueues[x].isActive = false;
+				delete gThrVarRunningCltsStc.frameQueues[x].pFrameQueue;
+				break;
+			}
 			--gThrVarRunningCltsStc.runningStreamsCount;
 		}
 		thrLock.unlock();
@@ -202,6 +200,36 @@ namespace http {
 		}
 		thrLock.unlock();
 		return resB;
+	}
+
+	void TcpServer::setFramerateInfo(const uint32_t cid, const uint32_t fps) {
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
+			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].clientId != cid) {
+				continue;
+			}
+			gThrVarRunningCltsStc.frameQueues[x].fps = fps;
+			break;
+		}
+		thrLock.unlock();
+	}
+
+	uint32_t TcpServer::getFramerateInfo(const uint32_t cid) {
+		uint32_t resI = 0;
+		std::unique_lock<std::mutex> thrLock{gThrMtxRunningCltHnds, std::defer_lock};
+
+		thrLock.lock();
+		for (uint32_t x = 0; x < fcapsettings::TCP_MAX_STREAMING_CLIENTS; x++) {
+			if (! gThrVarRunningCltsStc.frameQueues[x].isActive || gThrVarRunningCltsStc.frameQueues[x].clientId != cid) {
+				continue;
+			}
+			resI = gThrVarRunningCltsStc.frameQueues[x].fps;
+			break;
+		}
+		thrLock.unlock();
+		return resI;
 	}
 
 	// -----------------------------------------------------------------------------

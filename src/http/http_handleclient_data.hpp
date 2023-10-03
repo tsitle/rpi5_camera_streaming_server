@@ -8,11 +8,12 @@
 #include "../shared.hpp"
 #include "http_tcp_server.hpp"
 
-namespace http {
+namespace httppriv {
 
 	struct HandleClientDataStc {
 		uint32_t thrIx;
-		CbIncStreamingClientCount cbIncStreamingClientCount;
+		uint32_t streamingClientId;
+		http::CbIncStreamingClientCount cbIncStreamingClientCount;
 		fcapcfgfile::StaticOptionsStc staticOptionsStc;
 		uint32_t respHttpStat;
 		std::string respHttpMsgString;
@@ -24,6 +25,7 @@ namespace http {
 
 		HandleClientDataStc() {
 			thrIx = 0;
+			streamingClientId = 0;
 			cbIncStreamingClientCount = NULL;
 			respHttpStat = 500;
 			respReturnJson = false;
@@ -55,6 +57,6 @@ namespace http {
 		}
 	};
 
-}  // namespace http
+};  // namespace httppriv
 
 #endif  // HTTP_HANDLECLIENT_DATA_HPP_

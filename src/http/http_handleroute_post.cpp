@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 
 namespace http {
 
-	HandleRoutePost::HandleRoutePost(HandleClientDataStc *pHndCltData) :
+	HandleRoutePost::HandleRoutePost(httppriv::HandleClientDataStc *pHndCltData) :
 				HandleRoute(pHndCltData, "POST") {
 	}
 

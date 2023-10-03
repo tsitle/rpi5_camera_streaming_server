@@ -8,7 +8,7 @@ namespace http {
 
 	class HandleRoutePost : public HandleRoute {
 		public:
-			HandleRoutePost(HandleClientDataStc *pHndCltData);
+			HandleRoutePost(httppriv::HandleClientDataStc *pHndCltData);
 			~HandleRoutePost();
 			bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery);
 

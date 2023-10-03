@@ -35,10 +35,14 @@ namespace http {
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,
 			CbDecStreamingClientCount cbDecStreamingClientCount,
-			CbGetFrameFromQueue cbGetFrameFromQueue) :
+			CbGetFrameFromQueue cbGetFrameFromQueue,
+			CbSetFramerateInfo cbSetFramerateInfo,
+			CbGetFramerateInfo cbGetFramerateInfo) :
 				gClientSocket(socket),
 				gCbDecStreamingClientCount(cbDecStreamingClientCount),
-				gCbGetFrameFromQueue(cbGetFrameFromQueue) {
+				gCbGetFrameFromQueue(cbGetFrameFromQueue),
+				gCbSetFramerateInfo(cbSetFramerateInfo),
+				gCbGetFramerateInfo(cbGetFramerateInfo) {
 		//
 		gHndCltData.thrIx = thrIx;
 		gHndCltData.cbIncStreamingClientCount = cbIncStreamingClientCount;
@@ -51,29 +55,31 @@ namespace http {
 		struct timeval tv;
 
 		//
-		cbAddRunningHandler(thrIx);
+		bool clientAccepted = cbAddRunningHandler(thrIx);
 
 		//
-		std::ostringstream ss;
-		ss << "\r\n";
-		ss << fcapconstants::HTTP_BOUNDARY_SEPARATOR << "\r\n";
-		ss << "Content-Type: " << fcapconstants::HTTP_CONTENT_TYPE_JPEG << "\r\n";
-		ss << "Content-Length: ";
-		gRespMultipartPrefix = ss.str();
+		if (clientAccepted) {
+			std::ostringstream ss;
+			ss << "\r\n";
+			ss << fcapconstants::HTTP_BOUNDARY_SEPARATOR << "\r\n";
+			ss << "Content-Type: " << fcapconstants::HTTP_CONTENT_TYPE_JPEG << "\r\n";
+			ss << "Content-Length: ";
+			gRespMultipartPrefix = ss.str();
 
-		// set timeouts for send/receive
-		tv.tv_sec = 10;
-		tv.tv_usec = 0;
-		//
-		/**log(gHndCltData.thrIx, "read");**/
-		::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
-		::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
-		int32_t bytesReceived = ::read(socket, buffer, BUFFER_SIZE);
-		if (bytesReceived < 0) {
-			log(gHndCltData.thrIx, "Failed to read bytes from client socket connection");
-		} else {
-			/**log(gHndCltData.thrIx, "------ Received Request from client ------");**/
-			handleRequest(buffer, (uint32_t)bytesReceived);
+			// set timeouts for send/receive
+			tv.tv_sec = 10;
+			tv.tv_usec = 0;
+			//
+			/**log(gHndCltData.thrIx, "read");**/
+			::setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+			::setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
+			int32_t bytesReceived = ::read(socket, buffer, BUFFER_SIZE);
+			if (bytesReceived < 0) {
+				log(gHndCltData.thrIx, "Failed to read bytes from client socket connection");
+			} else {
+				/**log(gHndCltData.thrIx, "------ Received Request from client ------");**/
+				handleRequest(buffer, (uint32_t)bytesReceived);
+			}
 		}
 
 		//
@@ -100,7 +106,9 @@ namespace http {
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,
 			CbDecStreamingClientCount cbDecStreamingClientCount,
-			CbGetFrameFromQueue cbGetFrameFromQueue) {
+			CbGetFrameFromQueue cbGetFrameFromQueue,
+			CbSetFramerateInfo cbSetFramerateInfo,
+			CbGetFramerateInfo cbGetFramerateInfo) {
 		std::thread threadClientObj(
 				_startThread_internal,
 				thrIx,
@@ -109,7 +117,9 @@ namespace http {
 				cbRemoveRunningHandler,
 				cbIncStreamingClientCount,
 				cbDecStreamingClientCount,
-				cbGetFrameFromQueue
+				cbGetFrameFromQueue,
+				cbSetFramerateInfo,
+				cbGetFramerateInfo
 			);
 		threadClientObj.detach();
 		return threadClientObj;
@@ -125,7 +135,9 @@ namespace http {
 			CbRemoveRunningHandler cbRemoveRunningHandler,
 			CbIncStreamingClientCount cbIncStreamingClientCount,
 			CbDecStreamingClientCount cbDecStreamingClientCount,
-			CbGetFrameFromQueue cbGetFrameFromQueue) {
+			CbGetFrameFromQueue cbGetFrameFromQueue,
+			CbSetFramerateInfo cbSetFramerateInfo,
+			CbGetFramerateInfo cbGetFramerateInfo) {
 		ClientHandler chnd = ClientHandler(
 				thrIx,
 				socket,
@@ -133,7 +145,9 @@ namespace http {
 				cbRemoveRunningHandler,
 				cbIncStreamingClientCount,
 				cbDecStreamingClientCount,
-				cbGetFrameFromQueue);
+				cbGetFrameFromQueue,
+				cbSetFramerateInfo,
+				cbGetFramerateInfo);
 		/**
 		// Debugging shutdown procedure:
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000 * (thrIx + 1)));
@@ -234,6 +248,9 @@ namespace http {
 			}
 			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_JSON, &gHndCltData.respHttpMsgString);
 		} else {
+			if (! success) {
+				gHndCltData.respHttpMsgString = gHndCltData.respErrMsg;
+			}
 			sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_HTML, &gHndCltData.respHttpMsgString);
 		}
 	}
@@ -316,15 +333,17 @@ namespace http {
 		uint32_t timeFpsFrames = 0;
 		auto timeStart = std::chrono::steady_clock::now();
 		auto timeEnd = std::chrono::steady_clock::now();
+		float framerate = 0.0;
+		char framerateBuf[32];
 
 		if (pData == NULL) {
-			gCbDecStreamingClientCount();
+			gCbDecStreamingClientCount(gHndCltData.thrIx);
 			return;
 		}
 		//
 		resB = sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, NULL);
 		if (! resB) {
-			gCbDecStreamingClientCount();
+			gCbDecStreamingClientCount(gHndCltData.thrIx);
 			return;
 		}
 		while (true) {
@@ -363,7 +382,12 @@ namespace http {
 				timeFpsCur = std::chrono::steady_clock::now();
 				timeFpsDiffMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeFpsCur - timeFpsStart).count();
 				if (timeFpsDiffMs >= 10000) {
-					log(gHndCltData.thrIx, "__FPS=" + std::to_string(((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0));
+					framerate = ((float)timeFpsFrames / (float)timeFpsDiffMs) * 1000.0;
+					if (gHndCltData.streamingClientId != 0) {
+						gCbSetFramerateInfo(gHndCltData.streamingClientId, (uint32_t)std::round(framerate));
+					}
+					snprintf(framerateBuf, sizeof(framerateBuf), "%5.2f", framerate);
+					log(gHndCltData.thrIx, std::string("__FPS=") + std::string(framerateBuf));
 					//
 					timeFpsStart = std::chrono::steady_clock::now();
 					timeFpsFrames = 0;
@@ -387,7 +411,7 @@ namespace http {
 			::free(pData);
 		}
 		//
-		gCbDecStreamingClientCount();
+		gCbDecStreamingClientCount(gHndCltData.thrIx);
 	}
 
 	bool ClientHandler::sendFrame(uint8_t *pData, const uint32_t bufferSz) {
@@ -514,6 +538,9 @@ namespace http {
 
 			//
 			jsonObj["cpuTemperature"] = gCpuTemp.getTemperature();
+
+			//
+			jsonObj["framerate"] = (gHndCltData.streamingClientId > 0 ? gCbGetFramerateInfo(gHndCltData.streamingClientId) : 0);
 
 			//
 			jsonObj["enabledProc"] = {

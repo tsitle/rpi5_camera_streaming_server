@@ -15,7 +15,9 @@ namespace http {
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
 					CbDecStreamingClientCount cbDecStreamingClientCount,
-					CbGetFrameFromQueue cbGetFrameFromQueue);
+					CbGetFrameFromQueue cbGetFrameFromQueue,
+					CbSetFramerateInfo cbSetFramerateInfo,
+					CbGetFramerateInfo cbGetFramerateInfo);
 			~ClientHandler();
 			static std::thread startThread(
 					const uint32_t thrIx,
@@ -24,14 +26,18 @@ namespace http {
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
 					CbDecStreamingClientCount cbDecStreamingClientCount,
-					CbGetFrameFromQueue cbGetFrameFromQueue);
+					CbGetFrameFromQueue cbGetFrameFromQueue,
+					CbSetFramerateInfo cbSetFramerateInfo,
+					CbGetFramerateInfo cbGetFramerateInfo);
 
 		private:
-			HandleClientDataStc gHndCltData;
+			httppriv::HandleClientDataStc gHndCltData;
 			int32_t gClientSocket;
 			std::string gRespMultipartPrefix;
 			CbDecStreamingClientCount gCbDecStreamingClientCount;
 			CbGetFrameFromQueue gCbGetFrameFromQueue;
+			CbSetFramerateInfo gCbSetFramerateInfo;
+			CbGetFramerateInfo gCbGetFramerateInfo;
 			std::string gRequUriPath;
 			std::string gRequUriQuery;
 			static cputemp::CpuTemp gCpuTemp;
@@ -45,7 +51,9 @@ namespace http {
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
 					CbDecStreamingClientCount cbDecStreamingClientCount,
-					CbGetFrameFromQueue cbGetFrameFromQueue);
+					CbGetFrameFromQueue cbGetFrameFromQueue,
+					CbSetFramerateInfo cbSetFramerateInfo,
+					CbGetFramerateInfo cbGetFramerateInfo);
 			static void log(const uint32_t thrIx, const std::string &message);
 			//
 			void handleRequest(const char *buffer, const uint32_t bufSz);

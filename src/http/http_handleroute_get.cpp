@@ -10,7 +10,7 @@ using namespace std::chrono_literals;
 
 namespace http {
 
-	HandleRouteGet::HandleRouteGet(HandleClientDataStc *pHndCltData) :
+	HandleRouteGet::HandleRouteGet(httppriv::HandleClientDataStc *pHndCltData) :
 				HandleRoute(pHndCltData, "GET") {
 	}
 
@@ -46,17 +46,26 @@ namespace http {
 	}
 
 	bool HandleRouteGet::_handleRoute_STREAM() {
-		bool resB = false;
+		bool resB;
 
-		gPHndCltData->isNewStreamingClientAccepted = gPHndCltData->cbIncStreamingClientCount();
-		if (! gPHndCltData->isNewStreamingClientAccepted) {
-			log("500 Path=" + gRequUriPath);
-			log("__cannot accept more streaming clients at the moment");
-			gPHndCltData->respHttpMsgString = "too many clients";
+		resB = getOptionalCidFromQuery(gPHndCltData->streamingClientId);
+		if (resB) {
+			gPHndCltData->isNewStreamingClientAccepted = gPHndCltData->cbIncStreamingClientCount(
+					gPHndCltData->thrIx,
+					gPHndCltData->streamingClientId
+				);
+			if (! gPHndCltData->isNewStreamingClientAccepted) {
+				log("500 Path=" + gRequUriPath);
+				log("__cannot accept more streaming clients at the moment");
+				gPHndCltData->respHttpMsgString = "too many clients";
+			} else {
+				log("200 Path=" + gRequUriPath);
+			}
 		} else {
-			log("200 Path=" + gRequUriPath);
-			resB = true;
+			log("500 Path=" + gRequUriPath);
+			log("__Error: " + gPHndCltData->respErrMsg);
 		}
+
 		return resB;
 	}
 
@@ -67,10 +76,18 @@ namespace http {
 	}
 
 	bool HandleRouteGet::_handleRoute_STATUS() {
-		/**log("200 Path=" + gRequUriPath);**/
-		gPHndCltData->respReturnJson = true;
+		bool resB;
 
-		return true;
+		resB = getOptionalCidFromQuery(gPHndCltData->streamingClientId);
+		if (resB) {
+			/**log("200 Path=" + gRequUriPath);**/
+			gPHndCltData->respReturnJson = true;
+		} else {
+			log("500 Path=" + gRequUriPath);
+			log("__Error: " + gPHndCltData->respErrMsg);
+		}
+
+		return resB;
 	}
 
 	// -----------------------------------------------------------------------------
