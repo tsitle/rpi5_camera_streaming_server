@@ -52,6 +52,7 @@ add_executable( HttpCamServer
 		frame/subprocessor/subproc_roi.cpp
 		frame/subprocessor/subproc_text.cpp
 		frame/subprocessor/subproc_tr.cpp
+		md5/md5.cpp
 	)
 
 target_link_libraries( HttpCamServer PRIVATE ${OpenCV_LIBS} Threads::Threads )
