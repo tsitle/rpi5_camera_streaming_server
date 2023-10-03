@@ -81,7 +81,7 @@ namespace fcapsettings {
 	/**
 	 * Algorithm to use for Brightness/Contrast
 	 */
-	const fcapconstants::ProcBncAlgoEn PROC_BNC_USE_ALGO = fcapconstants::ProcBncAlgoEn::TYPE1;
+	const fcapconstants::ProcBncAlgoEn PROC_BNC_USE_ALGO = fcapconstants::ProcBncAlgoEn::TYPE2;
 
 	// -------------------------------------------------------------------------
 
