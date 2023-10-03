@@ -357,7 +357,7 @@ namespace frame {
 						lastOutputCams = optsRt.outputCams;
 					}
 					//
-					toOpts = 10;
+					toOpts = (optsRt.cameraFps > 5 ? optsRt.cameraFps / 5 : 1);
 				}
 
 				// grab frames in a synchronized manner
