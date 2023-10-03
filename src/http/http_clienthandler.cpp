@@ -11,6 +11,8 @@
 #include "../httpparser/urlparser.hpp"
 #include "../json/json.hpp"
 #include "http_clienthandler.hpp"
+#include "http_handleroute_get.hpp"
+#include "http_handleroute_post.hpp"
 
 using namespace std::chrono_literals;
 using json = nlohmann::json;
@@ -43,8 +45,6 @@ namespace http {
 		gHndCltData.staticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 		gHndCltData.rtOptsCur = fcapshared::Shared::getRuntimeOptions();
 		gHndCltData.rtOptsNew = gHndCltData.rtOptsCur;
-		//
-		gPHandleRouteGet = new HandleRouteGet(&gHndCltData);
 
 		//
 		char buffer[BUFFER_SIZE] = {0};
@@ -151,6 +151,7 @@ namespace http {
 	void ClientHandler::handleRequest(const char *buffer, const uint32_t bufSz) {
 		bool methOk;
 		bool methIsGet;
+		bool methIsPost;
 		bool methIsOptions;
 		bool requUriOk = false;
 		bool success = false;
@@ -168,8 +169,9 @@ namespace http {
 
 		/**log(gHndCltData.thrIx, request.inspect());**/
 		methIsGet = (request.method.compare("GET") == 0);
-		methIsOptions = (request.method.compare("OPTIONS") == 0);
-		methOk = (methIsGet || methIsOptions);
+		methIsPost = (! methIsGet && request.method.compare("POST") == 0);
+		methIsOptions = (! (methIsGet || methIsPost) && request.method.compare("OPTIONS") == 0);
+		methOk = (methIsGet || methIsPost || methIsOptions);
 		if (! methOk) {
 			log(gHndCltData.thrIx, "405 Method Not Allowed");
 			gHndCltData.respHttpStat = 405;
@@ -185,12 +187,27 @@ namespace http {
 			gRequUriPath = urlparser.path();
 			requUriOk = (! gRequUriPath.empty());
 			if (requUriOk) {
-				gRequUriQuery = urlparser.query();
+				if (methIsGet) {
+					gRequUriQuery = urlparser.query();
+				} else if (methIsPost) {
+					std::vector<char> *tmpData = &request.content;
+					if (! tmpData->empty()) {
+						gRequUriQuery = std::string(tmpData->begin(), tmpData->end());
+					}
+				}
 			}
 		}
 
-		if (methIsGet && requUriOk) {
-			success = gPHandleRouteGet->handleRequest(gRequUriPath, gRequUriQuery);
+		if ((methIsGet || methIsPost) && requUriOk) {
+			HandleRoute *pHndRoute;
+
+			if (methIsGet) {
+				pHndRoute = new HandleRouteGet(&gHndCltData);
+			} else {
+				pHndRoute = new HandleRoutePost(&gHndCltData);
+			}
+
+			success = pHndRoute->handleRequest(gRequUriPath, gRequUriQuery);
 		} else if (methIsOptions && requUriOk) {
 			// the browser is doing a "preflight" check of this API endpoint
 			/**log(gHndCltData.thrIx, "200 OPTIONS");**/
@@ -210,7 +227,7 @@ namespace http {
 				log(gHndCltData.thrIx, "__ERR " + gHndCltData.respErrMsg);
 			}
 			//
-			if (methIsGet) {
+			if (methIsGet || methIsPost) {
 				gHndCltData.respHttpMsgString = buildJsonResult(success);
 			} else {
 				gHndCltData.respHttpMsgString = "";
@@ -252,7 +269,7 @@ namespace http {
 		ss << "Cache-Control: no-cache, private" << "\r\n";
 		ss << "Pragma: no-cache" << "\r\n";
 		ss << "Access-Control-Allow-Origin: *" << "\r\n";
-		ss << "Access-Control-Allow-Methods: GET" << "\r\n";
+		ss << "Access-Control-Allow-Methods: GET,POST" << "\r\n";
 		ss << "Access-Control-Allow-Headers: API-Key,Content-Type,If-Modified-Since,Cache-Control" << "\r\n";
 		ss << "Access-Control-Max-Age: 0" << "\r\n";
 		ss << "Content-Type: " << *pHttpContentType;

@@ -29,10 +29,20 @@ find_package( Threads REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_executable( HttpCamServer
-		main.cpp shared.cpp cfgfile.cpp
+		main.cpp
+		shared.cpp
+		cfgfile.cpp
 		cputemp/cputemp.cpp
-		http/http_tcp_server.cpp http/http_clienthandler.cpp http/http_handleroute_get.cpp
-		frame/frame_producer.cpp frame/frame_consumer.cpp frame/frame_processor.cpp frame/frame_queue_jpeg.cpp frame/frame_queue_rawinput.cpp
+		http/http_tcp_server.cpp
+		http/http_clienthandler.cpp
+		http/http_handleroute.cpp
+		http/http_handleroute_get.cpp
+		http/http_handleroute_post.cpp
+		frame/frame_producer.cpp
+		frame/frame_consumer.cpp
+		frame/frame_processor.cpp
+		frame/frame_queue_jpeg.cpp
+		frame/frame_queue_rawinput.cpp
 		frame/subprocessor/subproc.cpp
 		frame/subprocessor/subproc_bnc.cpp
 		frame/subprocessor/subproc_calibrate.cpp

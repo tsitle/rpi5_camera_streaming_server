@@ -10,11 +10,6 @@
 
 namespace http {
 
-	const std::string URL_PATH_STREAM = "/stream.mjpeg";
-	const std::string URL_PATH_OUTPUT_CAMS_ENABLE = "/output/cams/enable";
-	const std::string URL_PATH_OUTPUT_CAMS_DISABLE = "/output/cams/disable";
-	const std::string URL_PATH_OUTPUT_CAMS_SWAP = "/output/cams/swap";
-
 	struct HandleClientDataStc {
 		uint32_t thrIx;
 		CbIncStreamingClientCount cbIncStreamingClientCount;
