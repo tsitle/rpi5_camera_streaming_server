@@ -85,11 +85,12 @@ namespace cputemp {
 			bool valid = false;
 			try {
 				while (std::getline(inpFileStream, line)) {
-					if (line.compare(TYPE_CPU_CPU) == 0) {
+					line = stringReplace(line, "-", "_");
+					if (line.compare(stringReplace(TYPE_CPU_CPU, "-", "_")) == 0) {
 						valid = true;
-					} else if (line.compare(TYPE_CPU_SOC) == 0) {
+					} else if (line.compare(stringReplace(TYPE_CPU_SOC, "-", "_")) == 0) {
 						valid = true;
-					} else if (line.compare(TYPE_CPU_X86) == 0) {
+					} else if (line.compare(stringReplace(TYPE_CPU_X86, "-", "_")) == 0) {
 						valid = true;
 					}
 					break;
