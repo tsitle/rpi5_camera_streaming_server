@@ -15,7 +15,7 @@ namespace http {
 	class QueryParamException : public std::exception {
 		public:
 			QueryParamException(const std::string &msg) : gMessage(msg) {};
-			const char* what() {
+			const char* what() const noexcept {
 				return gMessage.c_str();
 			};
 
