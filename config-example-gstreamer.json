@@ -19,7 +19,7 @@
 	},
 	"png_output_path": "/media/usbhd",
 	"output_pngs": false,
-	"calib_output_path": ".",
+	"calib_output_path": "./yamls",
 	"processing_enabled": {
 		"bnc": true,
 		"cal": false,
