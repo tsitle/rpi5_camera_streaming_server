@@ -17,6 +17,9 @@ config-*.json
 
 run-remote.sh
 
+generate_pattern/venv/
+generate_pattern/__pycache__/
+
 
 # =========================
 # IDE Files
