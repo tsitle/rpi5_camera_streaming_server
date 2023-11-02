@@ -5,5 +5,4 @@ CUSTOM_GSTREAMER_PLUGIN_PATH="/usr/local/lib/arm-linux-gnueabihf/gstreamer-1.0/l
 export GST_PLUGIN_PATH="$CUSTOM_GSTREAMER_PLUGIN_PATH"
 
 ./comp.sh || exit 1
-cd build
-./HttpCamServer $@
+./build/HttpCamServer $@
