@@ -26,9 +26,10 @@ namespace framesubproc {
 			aspectRatio = 16.0 / 9.0;
 			patternEn = PatternEn::CHESSBOARD;
 			boardSize = cv::Size(fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW, fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL);
-			gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * (boardSize.width - 1);
 			if (patternEn == PatternEn::CHARUCOBOARD) {
 				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * (boardSize.width - 2);
+			} else {
+				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * (boardSize.width - 1);
 			}
 		}
 	};

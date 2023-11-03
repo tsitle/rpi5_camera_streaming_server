@@ -166,16 +166,22 @@ namespace framesubproc {
 				cv::Point tmpPoint = translatePoint(gOptRectCorners[x - 1]);
 				cv::Scalar tmpColor = (x <= fcapconstants::PROC_PT_RECTCORNERS_MAX ? cv::Scalar(255, 0, 0) : cv::Scalar(255, 255, 0));
 				cv::circle(frame, tmpPoint, 5, tmpColor, -1);
-				/**log("cirle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
+				/**log("U circle " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));**/
 			}
 			return;
 		}
 		//
 		/**
+		if (gFrameNr % 50 == 0) {
+			log("D circles ----");
+		}
 		cv::Point tmpLastPoint = cv::Point(-1, -1);
 		for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
 			cv::Point tmpPoint = gPtDataStc.ptsSrc[x - 1];
 			cv::Scalar tmpColor;
+			if (gFrameNr % 50 == 0) {
+				log("D circle S " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));
+			}
 			switch (x) {
 				case 1:
 					tmpColor = cv::Scalar(255, 0, 0);  // blue
@@ -201,6 +207,13 @@ namespace framesubproc {
 			}
 			tmpLastPoint = tmpPoint;
 		}
+		if (gFrameNr % 50 == 0) {
+			for (uint8_t x = 1; x <= fcapconstants::PROC_PT_RECTCORNERS_MAX; x++) {
+				cv::Point tmpPoint = gPtDataStc.ptsDst[x - 1];
+				log("D circle D " + std::to_string(tmpPoint.x) + "/" + std::to_string(tmpPoint.y));
+			}
+		}
+		//return;
 		**/
 		//
 		cv::Mat transMatrix = cv::getPerspectiveTransform(gPtDataStc.ptsSrc, gPtDataStc.ptsDst);
