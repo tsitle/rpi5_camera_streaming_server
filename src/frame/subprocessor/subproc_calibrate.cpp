@@ -88,30 +88,26 @@ namespace framesubproc {
 					std::to_string(rowCnt * colCnt) + ")");
 			return resVect;
 		}
-		resVect.push_back(
-				cv::Point(
-						(int32_t)lastPnts[rowCnt * (colCnt - 1)].x,
-						(int32_t)lastPnts[rowCnt * (colCnt - 1)].y
-					)
+		cv::Point tmpPnt1 = cv::Point(
+				(int32_t)lastPnts[0].x,
+				(int32_t)lastPnts[0].y
 			);
-		resVect.push_back(
-				cv::Point(
-						(int32_t)lastPnts[(rowCnt * colCnt) - 1].x,
-						(int32_t)lastPnts[(rowCnt * colCnt) - 1].y
-					)
+		cv::Point tmpPnt2 = cv::Point(
+				(int32_t)lastPnts[rowCnt * (colCnt - 1)].x,
+				(int32_t)lastPnts[rowCnt * (colCnt - 1)].y
 			);
-		resVect.push_back(
-				cv::Point(
-						(int32_t)lastPnts[0].x,
-						(int32_t)lastPnts[0].y
-					)
+		cv::Point tmpPnt3 = cv::Point(
+				(int32_t)lastPnts[rowCnt - 1].x,
+				(int32_t)lastPnts[rowCnt - 1].y
 			);
-		resVect.push_back(
-				cv::Point(
-						(int32_t)lastPnts[rowCnt - 1].x,
-						(int32_t)lastPnts[rowCnt - 1].y
-					)
+		cv::Point tmpPnt4 = cv::Point(
+				(int32_t)lastPnts[(rowCnt * colCnt) - 1].x,
+				(int32_t)lastPnts[(rowCnt * colCnt) - 1].y
 			);
+		resVect.push_back(tmpPnt1);
+		resVect.push_back(tmpPnt2);
+		resVect.push_back(tmpPnt3);
+		resVect.push_back(tmpPnt4);
 		return resVect;
 	}
 
