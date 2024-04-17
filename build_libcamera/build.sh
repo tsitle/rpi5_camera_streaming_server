@@ -1,8 +1,12 @@
 #!/bin/bash
 
 #
-# by TS, Sep 2023
+# Building libcamera appears to be unnecessary on Rasp Pi 5 with Debian 12.5 Bookworm
 #
+# by TS, Aug 2023, Apr 2024
+#
+
+exit 0
 
 sudo apt-get install -y \
 		g++ \
@@ -11,11 +15,8 @@ sudo apt-get install -y \
 		libudev-dev \
 		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
 		libevent-dev libdrm-dev libjpeg-dev libsdl2-dev \
-		ninja-build pkg-config \
+		ninja-build pkg-config python3-pip meson \
 		|| exit 1
-
-sudo pip3 install --system meson || exit 1
-sudo pip3 install --system --upgrade meson || exit 1
 
 test -d libcamera && rm -fr libcamera
 git clone https://git.libcamera.org/libcamera/libcamera.git || exit 1
