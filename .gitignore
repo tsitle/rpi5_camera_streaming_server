@@ -2,9 +2,9 @@
 
 build_libcamera/libcamera/
 
-build_opencv/opencv-*/
-build_opencv/opencv-*.gz
-build_opencv/opencv-*.tgz
+build_opencv/**/opencv-*/
+build_opencv/**/opencv-*.gz
+build_opencv/**/opencv-*.tgz
 
 build/
 .cache/
