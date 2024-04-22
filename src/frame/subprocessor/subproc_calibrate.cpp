@@ -160,7 +160,6 @@ namespace framesubproc {
 				}
 			}
 		} else {
-			log("is cal");
 			// draw the last found corners
 			if (gOptShowCalibChessboardPoints && ! gCalibrationDataStc.imagePoints.empty()) {
 				cv::drawChessboardCorners(
