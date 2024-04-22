@@ -5,4 +5,11 @@ CUSTOM_GSTREAMER_PLUGIN_PATH="/usr/local/lib/arm-linux-gnueabihf/gstreamer-1.0/l
 export GST_PLUGIN_PATH="$CUSTOM_GSTREAMER_PLUGIN_PATH"
 
 ./comp.sh || exit 1
+
+test -d yamls || mkdir yamls
+test -d yamls || {
+	echo "Cannot create dir 'yamls'. Aborting" >>/dev/stderr
+	exit 1
+}
+
 ./build/HttpCamServer $@
