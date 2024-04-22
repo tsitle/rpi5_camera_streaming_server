@@ -130,6 +130,11 @@ namespace framesubproc {
 
 	void FrameSubProcessorCalibrate::processFrame(cv::Mat &frame, const uint32_t frameNr) {
 		if (gTries == MAX_TRIES || gWriteToFileFailed) {
+			/**if (gTries == MAX_TRIES) {
+				log("exit cal - MAXTRIES");
+			} else {
+				log("exit cal - gWriteToFileFailed");
+			}**/
 			return;
 		}
 		//
@@ -155,6 +160,7 @@ namespace framesubproc {
 				}
 			}
 		} else {
+			log("is cal");
 			// draw the last found corners
 			if (gOptShowCalibChessboardPoints && ! gCalibrationDataStc.imagePoints.empty()) {
 				cv::drawChessboardCorners(

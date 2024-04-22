@@ -295,7 +295,9 @@ namespace frame {
 			if (tmpDoStart || gPOptsRt->procCalDone[subProcsStc.camId]) {
 				/**log("procDefaults CAL CAM" + std::to_string((int)subProcsStc.camId));**/
 				subProcsStc.cal.processFrame(frame, frameNr);
-			}
+			} /**else {
+				log("procDefaults no CAL CAM" + std::to_string((int)subProcsStc.camId));
+			}**/
 			//
 			tmpBool = subProcsStc.cal.getIsCalibrated();
 			if (tmpBool != gPOptsRt->procCalDone[subProcsStc.camId]) {
