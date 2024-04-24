@@ -6,6 +6,9 @@
 
 namespace http {
 
+	const std::string HTTP_URL_PATH_ROOT = "/";
+	const std::string HTTP_URL_PATH_FAVICON = "/favicon.ico";
+
 	class HandleRouteGet : public HandleRoute {
 		public:
 			HandleRouteGet(httppriv::HandleClientDataStc *pHndCltData);
@@ -16,9 +19,9 @@ namespace http {
 			typedef bool (HandleRouteGet::*HandleRouteGetFnc)(void);
 			//
 			std::map<const std::string, const HandleRouteGetFnc> HANDLEROUTE_LUT = {
-					{"/", &HandleRouteGet::_handleRoute_ROOT},
+					{HTTP_URL_PATH_ROOT, &HandleRouteGet::_handleRoute_ROOT},
 					{fcapconstants::HTTP_URL_PATH_STREAM, &HandleRouteGet::_handleRoute_STREAM},
-					{"/favicon.ico", &HandleRouteGet::_handleRoute_FAVICON},
+					{HTTP_URL_PATH_FAVICON, &HandleRouteGet::_handleRoute_FAVICON},
 					{"/status", &HandleRouteGet::_handleRoute_STATUS}
 				};
 			//

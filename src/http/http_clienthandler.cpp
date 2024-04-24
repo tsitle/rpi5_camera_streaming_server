@@ -200,10 +200,12 @@ namespace http {
 		} else if (methOk) {
 			gRequUriPath = urlparser.path();
 			if (gRequUriPath.empty()) {
-				gRequUriPath = "/";
+				gRequUriPath = HTTP_URL_PATH_ROOT;
 			}
 			//
 			apiKeyOk = (
+						(methIsGet && gRequUriPath.compare(HTTP_URL_PATH_ROOT) == 0) ||
+						(methIsGet && gRequUriPath.compare(HTTP_URL_PATH_FAVICON) == 0) ||
 						(methIsGet && gRequUriPath.compare(fcapconstants::HTTP_URL_PATH_STREAM) == 0) ||
 							methIsOptions || checkApiKey((void*)&request.headers)
 					);
