@@ -171,6 +171,7 @@ namespace frame {
 				gStaticOptionsStc.camSource0 : gStaticOptionsStc.camSource1);
 		cv::VideoCapture* pCapInfo;
 		fcapshared::RuntimeOptionsStc optsRt = fcapshared::Shared::getRuntimeOptions();
+		bool needToStop;
 
 		if (gCapL.isOpened()) {
 			gCapL.release();
@@ -188,7 +189,8 @@ namespace frame {
 				gCapL.open(pipeline, cv::CAP_GSTREAMER);
 			}
 
-			if (camSourceR.length() != 0) {
+			needToStop = fcapshared::Shared::getFlagNeedToStop();
+			if (! needToStop && camSourceR.length() != 0) {
 				pipeline = build_gstreamer_pipeline(camSourceR, optsRt.cameraFps);
 				log("CapR: Opening type=GStreamer '" + pipeline + "'...");
 				gCapR.open(pipeline, cv::CAP_GSTREAMER);
@@ -199,7 +201,8 @@ namespace frame {
 				gCapL.open(camSourceL, cv::CAP_ANY);
 			}
 
-			if (camSourceR.length() != 0) {
+			needToStop = fcapshared::Shared::getFlagNeedToStop();
+			if (! needToStop && camSourceR.length() != 0) {
 				log("CapR: Opening type=MJPEG '" + camSourceR + "'...");
 				gCapR.open(camSourceR, cv::CAP_ANY);
 			}
@@ -215,7 +218,8 @@ namespace frame {
 				}
 			}
 
-			if (camSourceR.length() != 0) {
+			needToStop = fcapshared::Shared::getFlagNeedToStop();
+			if (! needToStop && camSourceR.length() != 0) {
 				log("CapR: Opening type=Unspecified '" + camSourceR + "'...");
 				if (camSourceR.compare("0") == 0) {
 					gCapR.open(0, cv::CAP_V4L);
