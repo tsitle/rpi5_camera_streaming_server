@@ -12,10 +12,15 @@
  * Directly access the camera through GStreamer (which then uses Video4Linux)
  * and use threads
  *
- * Requires libcamera >= v0.1.0 for Autofocus support
+ * Requires libcamera >= v0.4.0 for Autofocus support
  *
  * GStreamer help for libcamera:
  *   https://github.com/raspberrypi/libcamera
+ *
+ * See
+ *   https://github.com/raspberrypi/libcamera/blob/v0.4.0/src/libcamera/control_ids_core.yaml
+ * for possible camera controls for the 'libcamerasrc' gstreamer plugin.
+ * The Auto-Focus Modes are under '- AfMode:' for example.
  */
 
 using namespace std::chrono_literals;
@@ -145,7 +150,7 @@ namespace frame {
 		const std::string format1Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT1);
 		const std::string format2Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT2);
 
-		std::string pipeline = "libcamerasrc auto-focus-mode=AfModeContinuous camera-name=";
+		std::string pipeline = "libcamerasrc af-mode=continuous camera-name=";
 		pipeline += camSource;
 		pipeline += " ! video/x-raw,format=" + format1Str +
 				",width=" + std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.width) +
