@@ -70,3 +70,37 @@ Simply run the following commands:
 $ ./comp.sh
 $ ./run.sh
 ```
+
+## Calibrating the Camera Image
+
+Camera calibration requires printing out the PDF `generate_pattern/pattern-chessboard-inner_04x06_05mm-crosshair.pdf`  
+and placing it in front of the camera to be calibrated.  
+After a POST request (which needs to include the API key) to `http://<HOSTNAME_OR_IP>:8090/proc/cal/start`
+the calibration process will begin. See [REST API](#rest-api) for more details.
+
+The frame processors "perspective transformation" and "translation" require the camera image to be calibrated first.
+
+## Accessing the HTTP Server and MJPEG Stream
+
+The HTTP server will provide a very basic HTML page that displays the MJPEG stream.  
+Per default the port is 8090, but it can be adjusted in the `config.json`.
+
+HTML page: `http://<HOSTNAME_OR_IP>:8090/`  
+MJPEG stream: `http://<HOSTNAME_OR_IP>:8090/stream.mjpeg`
+
+## REST API
+
+All POST requests require the header `apikey` for authentication.  
+The value of the API key can be set in the `config.json` file.  
+But the value of the API key must not be transmitted in plain text, but instead in the form of a hashsum that
+has been derived from the value in a specific way.  
+To make it easy to find that hashsum, the application will output something like this at startup:
+
+```
+CFG: API Key 'DEFAULT' = 'fcab525e507275f17fbaf7932048beba'
+```
+
+In this example the value `fcab525e507275f17fbaf7932048beba` is the hashsum of the API key value `xylophon` from
+the example config files.
+
+TODO: Add documentation of API endpoints
