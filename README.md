@@ -85,6 +85,12 @@ constant in its relation to the camera's axis. The distance between the plane an
 The calibration and the subsequent automatic perspective transformation will then attempt
 to straighten out the camera image.
 
+**Screenshot of an uncalibrated camera image:**  
+![Screenshot of an uncalibrated camera image](docs/mjpeg_stream-calibration-step1-uncalibrated-screenshot-sm.png "Screenshot of an uncalibrated camera image")
+
+**Screenshot of a calibrated camera image:**  
+![Screenshot of a calibrated camera image](docs/mjpeg_stream-calibration-step2-calibrated-screenshot-sm.png "Screenshot of a calibrated camera image")
+
 ## Accessing the HTTP Server and MJPEG Stream
 
 The HTTP server will provide a very basic HTML page that displays the MJPEG stream.  
