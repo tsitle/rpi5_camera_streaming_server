@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #
 # by TS, Aug 2023, Apr 2023
 #
@@ -28,7 +26,7 @@ OPENCV_RELEASE="opencv-4.9.0"
 #
 
 if [ ! -f "${OPENCV_RELEASE}.tar.gz" ]; then
-	echo "You'll need to download '' from 'https://github.com/opencv/opencv/releases' first." >>/dev/stderr
+	echo "You'll need to download '${OPENCV_RELEASE}.tar.gz' from 'https://github.com/opencv/opencv/releases' first." >>/dev/stderr
 	exit 1
 fi
 
