@@ -30,7 +30,7 @@
 		"overlay_cam": true,
 		"overlay_cal": false
 	},
-	"enable_adaptive_fps": true,
+	"enable_adaptive_fps": false,
 	"flip": {
 		"cam0": {
 			"horizontal": false,
