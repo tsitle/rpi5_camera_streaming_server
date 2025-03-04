@@ -277,7 +277,7 @@ namespace http {
 			httpparser::Request::HeaderItem hi = (*pHeadersVec)[x];
 			std::string hiKey = fcapshared::Shared::toUpper(hi.name);
 			/**log(gHndCltData.thrIx, "hi " + hiKey + "=" + hi.value);**/
-			if (hiKey.compare("APIKEY") != 0) {
+			if (hiKey.compare("APIKEY") != 0 && hiKey.compare("X-API-KEY") != 0) {
 				continue;
 			}
 			std::string hiVal = fcapshared::Shared::toLower(hi.value);
