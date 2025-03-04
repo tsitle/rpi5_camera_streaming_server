@@ -1,6 +1,6 @@
 00-extfiles/
 
-build_libcamera/libcamera/
+build_libcamera-legacy/
 
 build_opencv/**/opencv-*/
 build_opencv/**/opencv-*.gz
