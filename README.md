@@ -80,6 +80,11 @@ the calibration process will begin. See [REST API](#rest-api) for more details.
 
 The frame processors "perspective transformation" and "translation" require the camera image to be calibrated first.
 
+Camera calibration assumes that the camera is mounted stationary and the plane it is looking at will also remain
+constant in its relation to the camera's axis. The distance between the plane and the camera may vary though.  
+The calibration and the subsequent automatic perspective transformation will then attempt
+to straighten out the camera image.
+
 ## Accessing the HTTP Server and MJPEG Stream
 
 The HTTP server will provide a very basic HTML page that displays the MJPEG stream.  
@@ -90,7 +95,7 @@ MJPEG stream: `http://<HOSTNAME_OR_IP>:8090/stream.mjpeg`
 
 ## REST API
 
-All POST requests require the header `apikey` for authentication.  
+All POST requests require the header `apikey` (or `X-Api-Key`) for authentication.  
 The value of the API key can be set in the `config.json` file.  
 But the value of the API key must not be transmitted in plain text, but instead in the form of a hashsum that
 has been derived from the value in a specific way.  
