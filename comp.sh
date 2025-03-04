@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-test -d build
-if [ $? -ne 0 ]; then
+if ! test -d build; then
 	mkdir build
-	cd build
+	cd build || exit 1
 	cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../src || exit 1
 	cd ..
 fi
-cd build
+cd build || exit 1
 make || exit 1
