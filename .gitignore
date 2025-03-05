@@ -22,6 +22,8 @@ run-remote.sh
 generate_pattern/venv/
 generate_pattern/__pycache__/
 
+src/cmake-build-*
+
 
 # =========================
 # IDE Files
