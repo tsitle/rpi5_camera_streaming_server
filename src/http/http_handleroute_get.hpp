@@ -11,12 +11,11 @@ namespace http {
 
 	class HandleRouteGet : public HandleRoute {
 		public:
-			HandleRouteGet(httppriv::HandleClientDataStc *pHndCltData);
-			~HandleRouteGet();
-			bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery);
+			explicit HandleRouteGet(httppriv::HandleClientDataStc *pHndCltData);
+			bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery) override;
 
 		private:
-			typedef bool (HandleRouteGet::*HandleRouteGetFnc)(void);
+			typedef bool (HandleRouteGet::*HandleRouteGetFnc)();
 			//
 			std::map<const std::string, const HandleRouteGetFnc> HANDLEROUTE_LUT = {
 					{HTTP_URL_PATH_ROOT, &HandleRouteGet::_handleRoute_ROOT},

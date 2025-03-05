@@ -15,9 +15,6 @@ namespace http {
 				HandleRoute(pHndCltData, "POST") {
 	}
 
-	HandleRoutePost::~HandleRoutePost() {
-	}
-
 	// -----------------------------------------------------------------------------
 
 	bool HandleRoutePost::handleRequest(const std::string &requUriPath, const std::string &requUriQuery) {
@@ -190,7 +187,7 @@ namespace http {
 		return resB;
 	}
 
-	void HandleRoutePost::__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn camId, bool newVal) {
+	void HandleRoutePost::_handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn camId, bool newVal) {
 		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 		if (newVal != gPHndCltData->rtOptsCur.procCalShowCalibChessboardPoints[camId]) {
@@ -209,10 +206,10 @@ namespace http {
 		if (resB) {
 			// set flag for one or both cameras
 			if (gPHndCltData->curCamId() != nullptr) {
-				__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(*gPHndCltData->curCamId(), tmpBool);
+				_handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(*gPHndCltData->curCamId(), tmpBool);
 			} else {
-				__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn::CAM_0, tmpBool);
-				__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn::CAM_1, tmpBool);
+				_handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn::CAM_0, tmpBool);
+				_handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn::CAM_1, tmpBool);
 			}
 		}
 		gPHndCltData->respReturnJson = true;
@@ -343,7 +340,7 @@ namespace http {
 		return resB;
 	}
 
-	bool HandleRoutePost::__handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId) {
+	bool HandleRoutePost::_handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId) {
 		bool resB = false;
 		fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 		cv::Point tmpPoint;
@@ -366,11 +363,11 @@ namespace http {
 	}
 
 	bool HandleRoutePost::_handleRoute_PROC_TR_FIXDELTA_L() {
-		return __handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camL);
+		return _handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camL);
 	}
 
 	bool HandleRoutePost::_handleRoute_PROC_TR_FIXDELTA_R() {
-		return __handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camR);
+		return _handleRoute_PROC_TR_FIXDELTA_x(gPHndCltData->staticOptionsStc.camR);
 	}
 
 	bool HandleRoutePost::_handleRoute_PROC_TR_DYNDELTA() {

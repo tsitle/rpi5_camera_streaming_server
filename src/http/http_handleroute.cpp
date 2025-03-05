@@ -14,8 +14,8 @@ namespace http {
 
 	class QueryParamException : public std::exception {
 		public:
-			QueryParamException(const std::string &msg) : gMessage(msg) {};
-			const char* what() const noexcept {
+			explicit QueryParamException(const std::string &msg) : gMessage(msg) {};
+			const char* what() const noexcept override {
 				return gMessage.c_str();
 			};
 
@@ -29,9 +29,6 @@ namespace http {
 	HandleRoute::HandleRoute(httppriv::HandleClientDataStc *pHndCltData, const std::string &httpMethod) :
 				gPHndCltData(pHndCltData),
 				gHttpMethod(httpMethod) {
-	}
-
-	HandleRoute::~HandleRoute() {
 	}
 
 	// -----------------------------------------------------------------------------

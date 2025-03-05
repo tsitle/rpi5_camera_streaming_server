@@ -14,9 +14,6 @@ namespace http {
 				HandleRoute(pHndCltData, "GET") {
 	}
 
-	HandleRouteGet::~HandleRouteGet() {
-	}
-
 	// -----------------------------------------------------------------------------
 
 	bool HandleRouteGet::handleRequest(const std::string &requUriPath, const std::string &requUriQuery) {

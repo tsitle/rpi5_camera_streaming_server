@@ -8,12 +8,11 @@ namespace http {
 
 	class HandleRoutePost : public HandleRoute {
 		public:
-			HandleRoutePost(httppriv::HandleClientDataStc *pHndCltData);
-			~HandleRoutePost();
-			bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery);
+			explicit HandleRoutePost(httppriv::HandleClientDataStc *pHndCltData);
+			bool handleRequest(const std::string &requUriPath, const std::string &requUriQuery) override;
 
 		private:
-			typedef bool (HandleRoutePost::*HandleRoutePostFnc)(void);
+			typedef bool (HandleRoutePost::*HandleRoutePostFnc)();
 			//
 			std::map<const std::string, const HandleRoutePostFnc> HANDLEROUTE_LUT = {
 					{"/output/cams/enable", &HandleRoutePost::_handleRoute_OUTPUT_CAMS_ENABLE},
@@ -43,7 +42,7 @@ namespace http {
 			bool _handleRoute_PROC_BNC_BRIGHTN();
 			bool _handleRoute_PROC_BNC_CONTRAST();
 			bool _handleRoute_PROC_BNC_GAMMA();
-			void __handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn camId, bool newVal);
+			void _handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn camId, bool newVal);
 			bool _handleRoute_PROC_CAL_SHOWCHESSCORNERS();
 			bool _handleRoute_PROC_CAL_START();
 			bool _handleRoute_PROC_CAL_RESET();
@@ -51,7 +50,7 @@ namespace http {
 			bool _handleRoute_PROC_PT_RECTCORNER();
 			bool _handleRoute_PROC_PT_RESET();
 			bool _handleRoute_PROC_ROI_SIZE();
-			bool __handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId);
+			bool _handleRoute_PROC_TR_FIXDELTA_x(fcapconstants::CamIdEn camId);
 			bool _handleRoute_PROC_TR_FIXDELTA_L();
 			bool _handleRoute_PROC_TR_FIXDELTA_R();
 			bool _handleRoute_PROC_TR_DYNDELTA();
