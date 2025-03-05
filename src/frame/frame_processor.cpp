@@ -25,7 +25,7 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 
 	FrameProcessor::FrameProcessor() :
-			gPOptsRt(NULL),
+			gPOptsRt(nullptr),
 			gLastOverlCamsOutputCamsInt(-1),
 			gLastOverlCalIsCalibratedInt(-1),
 			gLastOverlCamsResolutionOutpW(-1),
@@ -51,7 +51,7 @@ namespace frame {
 	}
 
 	void FrameProcessor::processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr) {
-		const std::string* pCamDesc = NULL;
+		const std::string* pCamDesc = nullptr;
 
 		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			pCamDesc = &TEXT_CAM_TXT_SUFFIX_L;
@@ -62,19 +62,19 @@ namespace frame {
 		}
 
 		// check frame size
-		if (pFrameL != NULL && ! checkFrameSize(pFrameL, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_L)) {
+		if (pFrameL != nullptr && ! checkFrameSize(pFrameL, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_L)) {
 			return;
 		}
-		if (pFrameR != NULL && ! checkFrameSize(pFrameR, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_R)) {
+		if (pFrameR != nullptr && ! checkFrameSize(pFrameR, TEXT_CAM_TXT_PREFIX + TEXT_CAM_TXT_SUFFIX_R)) {
 			return;
 		}
 
 		// do the actual processing
 		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING) {
-			if (pFrameL != NULL) {
+			if (pFrameL != nullptr) {
 				procDefaults(gSubProcsL, *pFrameL, frameNr);
 			}
-			if (pFrameR != NULL) {
+			if (pFrameR != nullptr) {
 				procDefaults(gSubProcsR, *pFrameR, frameNr);
 			}
 		}

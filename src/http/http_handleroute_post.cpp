@@ -208,7 +208,7 @@ namespace http {
 		resB = getBoolFromQuery(tmpBool);
 		if (resB) {
 			// set flag for one or both cameras
-			if (gPHndCltData->curCamId() != NULL) {
+			if (gPHndCltData->curCamId() != nullptr) {
 				__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(*gPHndCltData->curCamId(), tmpBool);
 			} else {
 				__handleRoute_PROC_CAL_SHOWCHESSCORNERS_x(fcapconstants::CamIdEn::CAM_0, tmpBool);
@@ -223,7 +223,7 @@ namespace http {
 		bool resB = false;
 
 		log("200 Path=" + gRequUriPath);
-		if (gPHndCltData->curCamId() != NULL) {
+		if (gPHndCltData->curCamId() != nullptr) {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;
@@ -244,7 +244,7 @@ namespace http {
 		bool resB = false;
 
 		log("200 Path=" + gRequUriPath);
-		if (gPHndCltData->curCamId() != NULL) {
+		if (gPHndCltData->curCamId() != nullptr) {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;
@@ -288,7 +288,7 @@ namespace http {
 						gPHndCltData->rtOptsCur.resolutionOutput.height - 1
 					)
 			);
-		if (resB && gPHndCltData->curCamId() == NULL) {
+		if (resB && gPHndCltData->curCamId() == nullptr) {
 			gPHndCltData->respErrMsg = "cannot set corners on both cameras";
 			resB = false;
 		}
@@ -312,7 +312,7 @@ namespace http {
 		bool resB = false;
 
 		log("200 Path=" + gRequUriPath);
-		if (gPHndCltData->curCamId() != NULL) {
+		if (gPHndCltData->curCamId() != nullptr) {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;
@@ -413,7 +413,7 @@ namespace http {
 		bool resB = false;
 
 		log("200 Path=" + gRequUriPath);
-		if (gPHndCltData->curCamId() != NULL) {
+		if (gPHndCltData->curCamId() != nullptr) {
 			fcapshared::RuntimeOptionsStc *pRtOptsOut = &gPHndCltData->rtOptsNew;
 
 			resB = true;

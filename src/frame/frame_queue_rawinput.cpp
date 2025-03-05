@@ -37,9 +37,9 @@ namespace frame {
 		thrLock.lock();
 		for (int camIdInt = (int)fcapconstants::CamIdEn::CAM_0; camIdInt <= (int)fcapconstants::CamIdEn::CAM_1; camIdInt++) {
 			for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
-				if (gPEntries[(fcapconstants::CamIdEn)camIdInt][x] != NULL) {
+				if (gPEntries[(fcapconstants::CamIdEn)camIdInt][x] != nullptr) {
 					::free(gPEntries[(fcapconstants::CamIdEn)camIdInt][x]);
-					gPEntries[(fcapconstants::CamIdEn)camIdInt][x] = NULL;
+					gPEntries[(fcapconstants::CamIdEn)camIdInt][x] = nullptr;
 				}
 				gEntriesRsvdSz[(fcapconstants::CamIdEn)camIdInt][x] = 0;
 				gEntriesUsedSz[(fcapconstants::CamIdEn)camIdInt][x] = 0;

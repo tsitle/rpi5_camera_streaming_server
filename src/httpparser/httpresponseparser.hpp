@@ -418,7 +418,7 @@ namespace httpparser {
 				case ChunkSizeNewLine:
 					if( input == '\n' )
 					{
-						chunkSize = strtol(chunkSizeStr.c_str(), NULL, 16);
+						chunkSize = strtol(chunkSizeStr.c_str(), nullptr, 16);
 						chunkSizeStr.clear();
 						resp.content.reserve(resp.content.size() + chunkSize);
 

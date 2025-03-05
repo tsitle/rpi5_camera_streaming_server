@@ -241,7 +241,7 @@ namespace http {
 
 		//
 		struct protoent *pPeTcp = ::getprotobyname("TCP");
-		if (pPeTcp == NULL) {
+		if (pPeTcp == nullptr) {
 			exitWithError("Cannot get proto name for TCP");
 			return false;
 		}

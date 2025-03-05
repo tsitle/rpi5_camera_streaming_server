@@ -174,10 +174,10 @@ namespace frame {
 					// process frames
 					if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 						pFrameOut = &frameL;
-						gFrameProcessor.processFrame(&frameL, NULL, pFrameOut, frameNr);
+						gFrameProcessor.processFrame(&frameL, nullptr, pFrameOut, frameNr);
 					} else if (optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_R) {
 						pFrameOut = &frameR;
-						gFrameProcessor.processFrame(NULL, &frameR, pFrameOut, frameNr);
+						gFrameProcessor.processFrame(nullptr, &frameR, pFrameOut, frameNr);
 					} else {
 						pFrameOut = &frameBlended;
 						gFrameProcessor.processFrame(&frameL, &frameR, pFrameOut, frameNr);

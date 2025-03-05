@@ -32,7 +32,7 @@ bool initSignalHandlers() {
 	sigIntHandler.sa_handler = sigHandlerCtrlC;
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
-	::sigaction(SIGINT, &sigIntHandler, NULL);
+	::sigaction(SIGINT, &sigIntHandler, nullptr);
 
 	// SIGPIPE will occur e.g. when a TCP client has closed the connection
 	if (::signal(SIGPIPE, SIG_IGN) == SIG_ERR) {  // ignore SIGPIPE

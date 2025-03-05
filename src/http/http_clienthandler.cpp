@@ -315,7 +315,7 @@ namespace http {
 				httpStatus += "500 Internal Server Error";
 		}
 
-		uint32_t cntSz = (pContent != NULL ? pContent->size() : 0);
+		uint32_t cntSz = (pContent != nullptr ? pContent->size() : 0);
 		if (cntSz != 0) {
 			cntSz += 2;
 		}
@@ -386,7 +386,7 @@ namespace http {
 			bool tmpProcPtDone;
 
 			//
-			if (gHndCltData.curCamId() == NULL) {
+			if (gHndCltData.curCamId() == nullptr) {
 				tmpProcCalRunning = (gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_0] ||
 						gHndCltData.rtOptsNew.procCalDoStart[fcapconstants::CamIdEn::CAM_1]);
 				tmpProcCalDone = (gHndCltData.rtOptsNew.procCalDone[fcapconstants::CamIdEn::CAM_0] &&
@@ -511,7 +511,7 @@ namespace http {
 					{"done", tmpProcPtDone}
 				};
 			///
-			if (gHndCltData.curCamId() != NULL &&
+			if (gHndCltData.curCamId() != nullptr &&
 					! (gHndCltData.staticOptionsStc.procEnabled.cal || tmpProcPtDone)) {
 				jsonObj["procPt"]["rectCorners"] = {};
 				uint8_t tmpSz = gHndCltData.rtOptsNew.procPtRectCorners[*gHndCltData.curCamId()].size();
@@ -565,12 +565,12 @@ namespace http {
 		char framerateBuf[32];
 		uint32_t noFrameCnt = 0;
 
-		if (pData == NULL) {
+		if (pData == nullptr) {
 			gCbDecStreamingClientCount(gHndCltData.thrIx);
 			return;
 		}
 		//
-		resB = sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, NULL);
+		resB = sendResponse(&fcapconstants::HTTP_CONTENT_TYPE_MULTIPART, nullptr);
 		if (! resB) {
 			gCbDecStreamingClientCount(gHndCltData.thrIx);
 			return;
@@ -641,7 +641,7 @@ namespace http {
 						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 			}
 		}
-		if (pData != NULL) {
+		if (pData != nullptr) {
 			::free(pData);
 		}
 		//

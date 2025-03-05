@@ -26,7 +26,7 @@ namespace httppriv {
 		HandleClientDataStc() {
 			thrIx = 0;
 			streamingClientId = 0;
-			cbIncStreamingClientCount = NULL;
+			cbIncStreamingClientCount = nullptr;
 			respHttpStat = 500;
 			respReturnJson = false;
 			isNewStreamingClientAccepted = false;
@@ -38,7 +38,7 @@ namespace httppriv {
 						&staticOptionsStc.camL :
 							(rtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R ?
 								&staticOptionsStc.camR :
-									NULL)
+									nullptr)
 				);
 		}
 

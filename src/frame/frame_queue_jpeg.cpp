@@ -30,9 +30,9 @@ namespace frame {
 
 		thrLock.lock();
 		for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
-			if (gPEntries[x] != NULL) {
+			if (gPEntries[x] != nullptr) {
 				::free(gPEntries[x]);
-				gPEntries[x] = NULL;
+				gPEntries[x] = nullptr;
 			}
 			gEntriesRsvdSz[x] = 0;
 			gEntriesUsedSz[x] = 0;
@@ -156,7 +156,7 @@ namespace frame {
 				/**log("get _ra " + std::to_string(dataRsvdSz));**/
 				*ppData = (uint8_t*)::realloc(*ppData, dataRsvdSz);
 			}
-			if (*ppData != NULL) {
+			if (*ppData != nullptr) {
 				/**char strBuf1[128];
 				snprintf(strBuf1, sizeof(strBuf1), "__b 0x%02X%02X 0x%02X%02X", gPEntries[gIxToOutput][0], gPEntries[gIxToOutput][1], gPEntries[gIxToOutput][entrySz - 2], gPEntries[gIxToOutput][entrySz - 1]);
 				log("get _src " + strBuf1);**/
