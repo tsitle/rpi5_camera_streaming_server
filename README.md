@@ -101,7 +101,7 @@ MJPEG stream: `http://<HOSTNAME_OR_IP>:8090/stream.mjpeg`
 
 ## REST API
 
-All POST requests require the header `apikey` (or `X-Api-Key`) for authentication.  
+All requests require the header `apikey` (or `X-Api-Key`) for authorization.  
 The value of the API key can be set in the `config.json` file.  
 But the value of the API key must not be transmitted in plain text, but instead in the form of a hashsum that
 has been derived from the value in a specific way.  
@@ -114,4 +114,14 @@ CFG: API Key 'DEFAULT' = 'fcab525e507275f17fbaf7932048beba'
 In this example the value `fcab525e507275f17fbaf7932048beba` is the hashsum of the API key value `xylophon` from
 the example config files.
 
-TODO: Add documentation of API endpoints
+To poll the status of the server with *curl* you could run the following:
+
+```
+$ curl -X GET 'http://<HOSTNAME_OR_IP>:8090/status' -H 'accept: application/json' -H 'X-Api-Key: fcab525e507275f17fbaf7932048beba'
+```
+
+Full OpenAPI specification of the API can be found here: [docs/api-camera_server.yaml](docs/api-camera_server.yaml).  
+There are many ways of using the specification, but a good starting point would be to load the file into [https://editor.swagger.io/](https://editor.swagger.io/).
+
+**Screenshot of Swagger Editor:**  
+![Screenshot of Swagger Editor](docs/api-camera_server-sm.png "Screenshot of Swagger Editor")
