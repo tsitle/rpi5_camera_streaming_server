@@ -17,6 +17,7 @@ else()
 	# for macOS
 
 	set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+	set(OpenCV_DIR "../build_opencv/4.11.0/build")
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
