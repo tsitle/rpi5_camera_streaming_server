@@ -80,26 +80,26 @@ namespace md5 {
 	}
 
 	// FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
-	// Rotation is separate from addition to prevent recomputation.
+	// Rotation is separate from addition to prevent re-computation.
 	inline void MD5::FF(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac) {
-		a = rotate_left(a+ F(b,c,d) + x + ac, s) + b;
+		a = rotate_left(a+ F(b,c,d) + x + ac, static_cast<int>(s)) + b;
 	}
 
 	inline void MD5::GG(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac) {
-		a = rotate_left(a + G(b,c,d) + x + ac, s) + b;
+		a = rotate_left(a + G(b,c,d) + x + ac, static_cast<int>(s)) + b;
 	}
 
 	inline void MD5::HH(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac) {
-		a = rotate_left(a + H(b,c,d) + x + ac, s) + b;
+		a = rotate_left(a + H(b,c,d) + x + ac, static_cast<int>(s)) + b;
 	}
 
 	inline void MD5::II(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac) {
-		a = rotate_left(a + I(b,c,d) + x + ac, s) + b;
+		a = rotate_left(a + I(b,c,d) + x + ac, static_cast<int>(s)) + b;
 	}
 
 	//////////////////////////////////////////////
 
-	// default ctor, just initailize
+	// default ctor, just initialize
 	MD5::MD5() {
 		init();
 	}
@@ -330,18 +330,18 @@ namespace md5 {
 			return "";
 		}
 
-		char buf[33];
+		char buf[33];  // 32 characters + \0
 		for (int i=0; i<16; i++) {
-			sprintf(buf+i*2, "%02x", digest[i]);
+			snprintf(buf+i*2, 3, "%02x", digest[i]);
 		}
 		buf[32]=0;
 
-		return std::string(buf);
+		return {buf};
 	}
 
 	//////////////////////////////
 
-	std::ostream& operator<<(std::ostream& out, MD5 md5) {
+	std::ostream& operator<<(std::ostream& out, MD5& md5) {
 		return out << md5.hexdigest();
 	}
 
