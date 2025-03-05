@@ -1,0 +1,637 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://your-hostname.local:8090'
+info:
+  description: >-
+    Camera Streaming Server for Raspberry Pi 5
+  version: 1.0.0
+  title: OpenAPI Camera Streaming Server
+paths:
+  /status:
+    get:
+      summary: Get status of server
+      description: Get status of all properties
+      operationId: getStatus
+      parameters:
+        - name: cid
+          in: query
+          description: Optional client ID
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      security:
+        - api_key: []
+  /output/cams/enable:
+    post:
+      summary: Enable one or both cameras
+      description: ''
+      operationId: outputCamEnable
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/OutputCams'
+  /output/cams/disable:
+    post:
+      summary: Disable one of the cameras if both are enabled
+      description: ''
+      operationId: outputCamDisable
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/OutputCams'
+  /output/cams/swap:
+    post:
+      summary: Swap the active camera if only one is enabled and the other available
+      description: ''
+      operationId: outputCamSwap
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+  /proc/bnc/brightness:
+    post:
+      summary: Set brightness for frame processor Brightness
+      description: ''
+      operationId: procBncBrightness
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
+  /proc/bnc/contrast:
+    post:
+      summary: Set contrast for frame processor Brightness
+      description: ''
+      operationId: procBncContrast
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
+  /proc/bnc/gamma:
+    post:
+      summary: Set gamma for frame processor Brightness
+      description: ''
+      operationId: procBncGamma
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
+  /proc/cal/showchesscorners:
+    post:
+      summary: Set show-chesscorners flag for frame processor Calibration
+      description: ''
+      operationId: procCalShowchesscorners
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcCalBoolean'
+  /proc/cal/start:
+    post:
+      summary: Set start-calibration flag for frame processor Calibration
+      description: ''
+      operationId: procCalStart
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+  /proc/cal/reset:
+    post:
+      summary: Set reset-calibration flag for frame processor Calibration
+      description: ''
+      operationId: procCalReset
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+  /proc/grid/show:
+    post:
+      summary: Set show-grid for frame processor Grid
+      description: ''
+      operationId: procGridShow
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcGridBoolean'
+  /proc/pt/rect_corner:
+    post:
+      summary: Set next corner coordinates for frame processor Perspective-Transformation
+      description: ''
+      operationId: procPtRectcorner
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcPtRectcorner'
+  /proc/pt/reset:
+    post:
+      summary: Reset corners for frame processor Perspective-Transformation
+      description: ''
+      operationId: procPtReset
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+  /proc/roi/size:
+    post:
+      summary: Set size flag for frame processor Region-Of-Interest
+      description: ''
+      operationId: procRoiSize
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcRoiSize'
+  /proc/tr/fixdelta/L:
+    post:
+      summary: Set fix-delta-left flag for frame processor Translation
+      description: ''
+      operationId: procTrFixdeltaL
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcTrDeltaSingle'
+  /proc/tr/fixdelta/R:
+    post:
+      summary: Set fix-delta-right flag for frame processor Translation
+      description: ''
+      operationId: procTrFixdeltaR
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcTrDeltaSingle'
+  /proc/tr/dyndelta:
+    post:
+      summary: Set dynamic-delta-left-and-right flag for frame processor Translation
+      description: ''
+      operationId: procTrDyndelta
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+      requestBody:
+        $ref: '#/components/requestBodies/ProcTrDeltaDual'
+  /proc/tr/reset:
+    post:
+      summary: Set reset-deltas flag for frame processor Translation
+      description: ''
+      operationId: procTrReset
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
+      security:
+        - api_key: []
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+components:
+  requestBodies:
+    OutputCams:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetOutputCams'
+      required: true
+    ProcBncBrightnessContrastGamma:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetIntValueMinusPlus100'
+      required: true
+    ProcCalBoolean:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetBooleanAsInt'
+      required: true
+    ProcGridBoolean:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetBooleanAsInt'
+      required: true
+    ProcPtRectcorner:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetRectCorner'
+      required: true
+    ProcRoiSize:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetProcRoiSize'
+      required: true
+    ProcTrDeltaSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetPointDeltaSingle'
+      required: true
+    ProcTrDeltaDual:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SetPointDeltaDual'
+      required: true
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-Api-Key
+      in: header
+  schemas:
+    StatusCams:
+      title: Which camera is being used or can be used
+      description: Which camera is being used or can be used
+      type: string
+      enum:
+        - BOTH
+        - L
+        - R
+    StatusCameraReady:
+      title: Camera ready flags
+      description: Camera ready flags
+      type: object
+      properties:
+        L:
+          type: boolean
+        R:
+          type: boolean
+    StatusEnabledProc:
+      title: Which frame processors are enabled
+      description: Which frame processors are enabled
+      type: object
+      properties:
+        bnc:
+          type: boolean
+        cal:
+          type: boolean
+        flip:
+          type: boolean
+        overlCal:
+          type: boolean
+        overlCam:
+          type: boolean
+        pt:
+          type: boolean
+        roi:
+          type: boolean
+        tr:
+          type: boolean
+    StatusProcBncSub:
+      title: Status of sub-property of frame processor Brightness-and-Contrast
+      description: Status of sub-property of frame processor Brightness-and-Contrast
+      type: object
+      properties:
+        min:
+          type: integer
+          format: int32
+          minimum: -100
+          maximum: 100
+        max:
+          type: integer
+          format: int32
+          minimum: -100
+          maximum: 100
+        val:
+          type: integer
+          format: int32
+          minimum: -100
+          maximum: 100
+        supported:
+          type: boolean
+    StatusProcBnc:
+      title: Status of frame processor Brightness-and-Contrast
+      description: Status of frame processor Brightness-and-Contrast
+      type: object
+      properties:
+        brightness:
+          $ref: '#/components/schemas/StatusProcBncSub'
+        contrast:
+          $ref: '#/components/schemas/StatusProcBncSub'
+        gamma:
+          $ref: '#/components/schemas/StatusProcBncSub'
+    StatusProcCal:
+      title: Status of frame processor Calibration
+      description: Status of frame processor Calibration
+      type: object
+      properties:
+        done:
+          type: boolean
+        running:
+          type: boolean
+        showCalibChessboardPoints:
+          type: boolean
+    StatusProcGridPt:
+      title: Status of frame processors Grid and Perspective-Transformation
+      description: Status of frame processors Grid and Perspective-Transformation
+      type: object
+      properties:
+        show:
+          type: boolean
+    StatusProcRoi:
+      title: Status of frame processor Region-Of-Interest
+      description: Status of frame processor Region-Of-Interest
+      type: object
+      properties:
+        sizePerc:
+          type: integer
+          format: int32
+          minimum: 10
+          maximum: 100
+    StatusProcTrSubXy:
+      title: X and Y translations for frame processor Translate
+      description: X and Y translations for frame processor Translate
+      type: object
+      properties:
+        x:
+          type: integer
+          format: int32
+        y:
+          type: integer
+          format: int32
+    StatusProcTrSub:
+      title: Status of sub-property of frame processor Translate
+      description: Status of sub-property of frame processor Translate
+      type: object
+      properties:
+        L:
+          $ref: '#/components/schemas/StatusProcTrSubXy'
+        R:
+          $ref: '#/components/schemas/StatusProcTrSubXy'
+    StatusResolution:
+      title: Image resolution
+      description: Image resolution
+      type: object
+      properties:
+        h:
+          type: integer
+          format: int32
+        w:
+          type: integer
+          format: int32
+    Status:
+      title: Server status
+      description: Status of all properties
+      type: object
+      properties:
+        result:
+          type: string
+          enum:
+            - success
+            - error
+        availOutputCams:
+          $ref: '#/components/schemas/StatusCams'
+        cameraReady:
+          $ref: '#/components/schemas/StatusCameraReady'
+        cpuTemperature:
+          type: number
+          format: float
+        enabledProc:
+          $ref: '#/components/schemas/StatusEnabledProc'
+        framerate:
+          type: integer
+          format: int32
+          minimum: 0
+        inputStreamSourceType:
+          type: string
+          enum:
+            - gstreamer
+            - mjpeg
+            - unspecified
+        outputCams:
+          $ref: '#/components/schemas/StatusCams'
+        procBnc:
+          $ref: '#/components/schemas/StatusProcBnc'
+        procCal:
+          $ref: '#/components/schemas/StatusProcCal'
+        procGrid:
+          $ref: '#/components/schemas/StatusProcGridPt'
+        procPt:
+          $ref: '#/components/schemas/StatusProcGridPt'
+        procRoi:
+          $ref: '#/components/schemas/StatusProcRoi'
+        procTr:
+          type: object
+          properties:
+            dynDelta:
+              $ref: '#/components/schemas/StatusProcTrSub'
+            fixDelta:
+              $ref: '#/components/schemas/StatusProcTrSub'
+        resolutionInputStream:
+          $ref: '#/components/schemas/StatusResolution'
+        resolutionOutput:
+          $ref: '#/components/schemas/StatusResolution'
+    SetOutputCams:
+      type: object
+      properties:
+        cam:
+          type: string
+          enum:
+            - BOTH
+            - L
+            - R
+    SetIntValueMinusPlus100:
+      type: object
+      properties:
+        v:
+          type: integer
+          format: int32
+          minimum: -100
+          maximum: 100
+    SetBooleanAsInt:
+      type: object
+      properties:
+        v:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 1
+    SetRectCorner:
+      type: object
+      properties:
+        x:
+          type: integer
+          format: int32
+        y:
+          type: integer
+          format: int32
+    SetProcRoiSize:
+      type: object
+      properties:
+        v:
+          type: integer
+          format: int32
+          minimum: 10
+          maximum: 100
+    SetPointDelta:
+        type: integer
+        format: int32
+        minimum: -10000
+        maximum: 10000
+    SetPointDeltaSingle:
+      type: object
+      properties:
+        x:
+          $ref: '#/components/schemas/SetPointDelta'
+        y:
+          $ref: '#/components/schemas/SetPointDelta'
+    SetPointDeltaDual:
+      type: object
+      properties:
+        Lx:
+          $ref: '#/components/schemas/SetPointDelta'
+        Ly:
+          $ref: '#/components/schemas/SetPointDelta'
+        Rx:
+          $ref: '#/components/schemas/SetPointDelta'
+        Ry:
+          $ref: '#/components/schemas/SetPointDelta'
