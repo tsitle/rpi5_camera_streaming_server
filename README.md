@@ -36,18 +36,21 @@ The software has been tested with:
 A custom build of OpenCV is required:
 
 ```
-$ cd build_opencv/4.9.0
+$ cd build_opencv/4.11.0
 $ ./build-opencv-rpi.sh
 ```
 
-Or if you want to test the software on another (Linux) computer you can use `./build-opencv-client.sh` instead.
+Or if you want to test the software on another computer you can use `./build-opencv-client.sh` instead.
 
-This will install all dependencies, build OpenCV with appropriate flags and install it.
+On Linux this will install all dependencies, build OpenCV with appropriate flags and install it.  
+On macOS this will only build OpenCV but not install any dependencies nor install OpenCV into the system.
 
-The dependencies notably include
+The dependencies (on Linux) notably include
 
 - GStreamer (for `build-opencv-rpi.sh` and `build-opencv-client.sh`)
 - libcamera (on `build-opencv-rpi.sh` only)
+
+**Note:** Support for macOS is limited to being able to compile the application. But it most likely won't actually work.
 
 ## Configuration
 
