@@ -436,12 +436,19 @@ components:
           type: boolean
         showCalibChessboardPoints:
           type: boolean
-    StatusProcGridPt:
-      title: Status of frame processors Grid and Perspective-Transformation
-      description: Status of frame processors Grid and Perspective-Transformation
+    StatusProcGrid:
+      title: Status of frame processor Grid
+      description: Status of frame processor Grid
       type: object
       properties:
         show:
+          type: boolean
+    StatusProcPt:
+      title: Status of frame processor Perspective-Transformation
+      description: Status of frame processor Perspective-Transformation
+      type: object
+      properties:
+        done:
           type: boolean
     StatusProcRoi:
       title: Status of frame processor Region-Of-Interest
@@ -520,9 +527,9 @@ components:
         procCal:
           $ref: '#/components/schemas/StatusProcCal'
         procGrid:
-          $ref: '#/components/schemas/StatusProcGridPt'
+          $ref: '#/components/schemas/StatusProcGrid'
         procPt:
-          $ref: '#/components/schemas/StatusProcGridPt'
+          $ref: '#/components/schemas/StatusProcPt'
         procRoi:
           $ref: '#/components/schemas/StatusProcRoi'
         procTr:
