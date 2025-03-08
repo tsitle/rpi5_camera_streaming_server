@@ -31,6 +31,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Status'
+        '401':
+          description: Unauthorized
       security:
         - api_key: []
   /output/cams/enable:
