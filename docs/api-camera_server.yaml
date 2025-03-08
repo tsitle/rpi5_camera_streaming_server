@@ -33,8 +33,6 @@ paths:
                   $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
   /output/cams/enable:
     post:
       summary: Enable one or both cameras
@@ -49,8 +47,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/OutputCams'
   /output/cams/disable:
@@ -67,8 +63,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/OutputCams'
   /output/cams/swap:
@@ -85,8 +79,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
   /proc/bnc/brightness:
     post:
       summary: Set brightness for frame processor Brightness
@@ -101,8 +93,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
   /proc/bnc/contrast:
@@ -119,8 +109,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
   /proc/bnc/gamma:
@@ -137,8 +125,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcBncBrightnessContrastGamma'
   /proc/cal/showchesscorners:
@@ -155,8 +141,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcCalBoolean'
   /proc/cal/start:
@@ -173,8 +157,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
   /proc/cal/reset:
     post:
       summary: Set reset-calibration flag for frame processor Calibration
@@ -189,8 +171,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
   /proc/grid/show:
     post:
       summary: Set show-grid for frame processor Grid
@@ -205,8 +185,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcGridBoolean'
   /proc/pt/rect_corner:
@@ -223,8 +201,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcPtRectcorner'
   /proc/pt/reset:
@@ -241,8 +217,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
   /proc/roi/size:
     post:
       summary: Set size flag for frame processor Region-Of-Interest
@@ -257,8 +231,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcRoiSize'
   /proc/tr/fixdelta/L:
@@ -275,8 +247,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcTrDeltaSingle'
   /proc/tr/fixdelta/R:
@@ -293,8 +263,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcTrDeltaSingle'
   /proc/tr/dyndelta:
@@ -311,8 +279,6 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
       requestBody:
         $ref: '#/components/requestBodies/ProcTrDeltaDual'
   /proc/tr/reset:
@@ -329,65 +295,65 @@ paths:
                 $ref: '#/components/schemas/Status'
         '401':
           description: Unauthorized
-      security:
-        - api_key: []
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
+security:
+  - apiKeyAuth: []
 components:
   requestBodies:
     OutputCams:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetOutputCams'
       required: true
     ProcBncBrightnessContrastGamma:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetIntValueMinusPlus100'
       required: true
     ProcCalBoolean:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetBooleanAsInt'
       required: true
     ProcGridBoolean:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetBooleanAsInt'
       required: true
     ProcPtRectcorner:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetRectCorner'
       required: true
     ProcRoiSize:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetProcRoiSize'
       required: true
     ProcTrDeltaSingle:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetPointDeltaSingle'
       required: true
     ProcTrDeltaDual:
       content:
-        application/json:
+        application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/SetPointDeltaDual'
       required: true
   securitySchemes:
-    api_key:
+    apiKeyAuth:
       type: apiKey
-      name: X-Api-Key
+      name: X-API-KEY
       in: header
   schemas:
     StatusCams:
