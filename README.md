@@ -43,12 +43,16 @@ $ ./build-opencv-rpi.sh
 Or if you want to test the software on another computer you can use `./build-opencv-client.sh` instead.
 
 On Linux this will install all dependencies, build OpenCV with appropriate flags and install it.  
-On macOS this will only build OpenCV but not install any dependencies nor install OpenCV into the system.
+On macOS this will only install the dependency ffmpeg and build OpenCV but not install OpenCV into the system.
 
-The dependencies (on Linux) notably include
+The dependencies on Linux notably include
 
 - GStreamer (for `build-opencv-rpi.sh` and `build-opencv-client.sh`)
 - libcamera (on `build-opencv-rpi.sh` only)
+
+The dependencies on macOS notably include
+
+- ffmpeg (for `build-opencv-client.sh`)
 
 **Note:** Support for macOS is limited to being able to compile the application. But it most likely won't actually work.
 

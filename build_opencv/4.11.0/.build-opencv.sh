@@ -20,8 +20,16 @@ VAR_MYNAME="$(basename "$0")"
 	echo "${VAR_MYNAME}: Missing COMPILE_WITH_GSTREAMER. Aborting." >>/dev/stderr
 	exit 1
 }
+[[ -z "${COMPILE_WITH_JAVA}" ]] && {
+	echo "${VAR_MYNAME}: Missing COMPILE_WITH_JAVA. Aborting." >>/dev/stderr
+	exit 1
+}
 [[ -z "${NEED_LIBCAMERA}" ]] && {
 	echo "${VAR_MYNAME}: Missing NEED_LIBCAMERA. Aborting." >>/dev/stderr
+	exit 1
+}
+[[ -z "${COMPILE_STATIC_LIBS}" ]] && {
+	echo "${VAR_MYNAME}: Missing COMPILE_STATIC_LIBS. Aborting." >>/dev/stderr
 	exit 1
 }
 
@@ -90,8 +98,22 @@ if [ ! -d "${LCFG_OPENCV_RELEASE}" ]; then
 	tar xf "${LCFG_OPENCV_RELEASE}.tar.gz" || exit 1
 fi
 
+if [ -d "build" ]; then
+	cd build || exit 1
+	case "${LVAR_OSNAME}" in
+		linux)
+			echo "${VAR_MYNAME}: running 'make uninstall'"
+			sudo make uninstall
+			;;
+		macos)
+			;;
+	esac
+	cd .. || exit 1
+fi
+
 test -d build && rm -fr build
-mkdir build && cd build
+mkdir build || exit 1
+cd build || exit 1
 
 TMP_OPT_HIGHGUI="OFF"
 if [ "${COMPILE_WITH_GUI}" = "true" ]; then
@@ -131,6 +153,10 @@ if [ "${COMPILE_WITH_FFMPEG}" = "true" ]; then
 					|| exit 1
 			;;
 		macos)
+			echo "${VAR_MYNAME}: running 'brew install [...]'"
+			brew install \
+					ffmpeg \
+					|| exit 1
 			;;
 	esac
 fi
@@ -171,6 +197,26 @@ if [ "${COMPILE_WITH_GSTREAMER}" = "true" ]; then
 	esac
 fi
 
+TMP_OPT_JAVA="OFF"
+if [ "${COMPILE_WITH_JAVA}" = "true" ]; then
+	TMP_OPT_JAVA="ON"
+
+	case "${LVAR_OSNAME}" in
+		linux)
+			echo "${VAR_MYNAME}: running 'apt-get install [...]'"
+			sudo apt-get install -y \
+					ant \
+					|| exit 1
+			;;
+		macos)
+			echo "${VAR_MYNAME}: running 'brew install [...]'"
+			brew install \
+					ant \
+					|| exit 1
+			;;
+	esac
+fi
+
 if [ "${NEED_LIBCAMERA}" = "true" ]; then
 	case "${LVAR_OSNAME}" in
 		linux)
@@ -182,6 +228,11 @@ if [ "${NEED_LIBCAMERA}" = "true" ]; then
 		macos)
 			;;
 	esac
+fi
+
+TMP_OPT_SHARED="ON"
+if [ "${COMPILE_STATIC_LIBS}" = "true" ]; then
+	TMP_OPT_SHARED="OFF"
 fi
 
 LVAR_BIN_CMAKE=""
@@ -222,10 +273,11 @@ ${LVAR_BIN_CMAKE} \
 		-D VIDEOIO_ENABLE_PLUGINS=OFF \
 		-DBUILD_TESTS=OFF \
 		-DBUILD_PERF_TESTS=OFF \
+		-DBUILD_SHARED_LIBS=${TMP_OPT_SHARED} \
 		-DBUILD_opencv_calib3d=ON \
 		-DBUILD_opencv_dnn=OFF \
 		-DBUILD_opencv_highgui=${TMP_OPT_HIGHGUI} \
-		-DBUILD_opencv_java=OFF \
+		-DBUILD_opencv_java=${TMP_OPT_JAVA} \
 		-DBUILD_opencv_js=OFF \
 		-DBUILD_opencv_ml=OFF \
 		-DBUILD_opencv_objc=OFF \
