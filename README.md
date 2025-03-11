@@ -18,6 +18,7 @@ Features:
   - region of interest (removes parts of the image that are blank due to perspective transformation)
   - translation (moves the image in the X- or Y-direction)
   - horizontal and/or vertical image flipping
+  - scaling (scales the output image to a fixed resolution)
   - brightness and contrast
   - grid overlay
   - text overlay

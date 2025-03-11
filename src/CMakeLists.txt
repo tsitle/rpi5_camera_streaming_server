@@ -51,6 +51,7 @@ add_executable( HttpCamServer
 		frame/subprocessor/subproc_grid.cpp
 		frame/subprocessor/subproc_pt.cpp
 		frame/subprocessor/subproc_roi.cpp
+		frame/subprocessor/subproc_scale.cpp
 		frame/subprocessor/subproc_text.cpp
 		frame/subprocessor/subproc_tr.cpp
 		md5/md5.cpp

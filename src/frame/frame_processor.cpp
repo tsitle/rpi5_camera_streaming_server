@@ -26,10 +26,10 @@ namespace frame {
 
 	FrameProcessor::FrameProcessor() :
 			gPOptsRt(nullptr),
-			gLastOverlCamsOutputCamsInt(-1),
 			gLastOverlCalIsCalibratedInt(-1),
-			gLastOverlCamsResolutionOutpW(-1),
-			gLastOverlCalResolutionOutpW(-1) {
+			gLastOverlCalResolutionOutpW(-1),
+			gLastOverlCamsOutputCamsInt(-1),
+			gLastOverlCamsResolutionOutpW(-1) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
 
 		//
@@ -93,6 +93,19 @@ namespace frame {
 			renderMasterOutput(pFrameL, pFrameR, pFrameOut, frameNr);
 		}
 
+		// scale the image
+		if (gStaticOptionsStc.procEnabled.scale) {
+			gOtherSubProcScale.processFrame(*pFrameOut, frameNr);
+		}
+
+		// update output frame size
+		if (pFrameOut->size().width != gPOptsRt->resolutionOutput.width ||
+				pFrameOut->size().height != gPOptsRt->resolutionOutput.height) {
+			fcapshared::Shared::setRtOpts_resolutionOutput(pFrameOut->size());
+			gPOptsRt->resolutionOutput.width = pFrameOut->size().width;
+			gPOptsRt->resolutionOutput.height = pFrameOut->size().height;
+		}
+
 		// add grid
 		if (gPOptsRt->procGridShow) {
 			/**log("processFrame GRID");**/
@@ -101,7 +114,7 @@ namespace frame {
 
 		// add text overlays
 		if (! fcapsettings::DBG_PROC_DISABLE_ALL_PROCESSING &&
-				(!gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40) &&
+				(! gStaticOptionsStc.procEnabled.roi || gPOptsRt->procRoiSizePerc >= 40 || gStaticOptionsStc.procEnabled.scale) &&
 				gPOptsRt->resolutionOutput.width >= 440) {
 			// text overlay "CAM x"
 			if (gStaticOptionsStc.procEnabled.overlCam) {
@@ -165,6 +178,8 @@ namespace frame {
 		// other FrameSubProcs for the master output
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcGrid);
+		///
+		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcScale);
 		///
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCams);
 		_initSubProcs_fspObj(fcapconstants::CamIdEn::CAM_0, fcapconstants::OutputCamsEn::CAM_BOTH, gOtherSubProcTextCal);
@@ -395,14 +410,6 @@ namespace frame {
 			gOtherSubProcRoi.processFrame(frame, frameNr);
 		}
 
-		// update output frame size
-		if (frame.size().width != gPOptsRt->resolutionOutput.width ||
-				frame.size().height != gPOptsRt->resolutionOutput.height) {
-			fcapshared::Shared::setRtOpts_resolutionOutput(frame.size());
-			gPOptsRt->resolutionOutput.width = frame.size().width;
-			gPOptsRt->resolutionOutput.height = frame.size().height;
-		}
-
 		// set Camera-Ready flag
 		if (! gPOptsRt->cameraReady[subProcsStc.camId]) {
 			fcapshared::Shared::setRtOpts_cameraReady(subProcsStc.camId, true);
@@ -464,50 +471,52 @@ namespace frame {
 			const cv::Mat *pFrameL,
 			const cv::Mat *pFrameR,
 			cv::Mat *pFrameOut,
-			__attribute__((unused)) const uint32_t frameNr) const {
+			__attribute__((unused)) const uint32_t frameNr) {
 		/**auto timeStart = std::chrono::steady_clock::now();**/
+		const auto targetWidth = static_cast<uint32_t>(pFrameL->size().width);
+		const auto targetHeight = static_cast<uint32_t>(pFrameL->size().height);
 
 		if (fcapsettings::PROC_DEFAULT_SPLITVIEW_FOR_CAMBOTH) {
 			/**
 			 * split view rendering is faster than blended view rendering
 			 */
-			const int32_t centerX = gPOptsRt->resolutionOutput.width / 2;
-			const cv::Range rowRange(0, gPOptsRt->resolutionOutput.height);
+			const int32_t centerX = static_cast<int32_t>(targetWidth) / 2;
+			const cv::Range rowRange(0, static_cast<int32_t>(targetHeight));
 			const cv::Range colRangeL(0, centerX);
-			const cv::Range colRangeR = cv::Range(centerX, gPOptsRt->resolutionOutput.width);
+			const cv::Range colRangeR = cv::Range(centerX, static_cast<int32_t>(targetWidth));
 
-			*pFrameOut = cv::Mat(gPOptsRt->resolutionOutput.height, gPOptsRt->resolutionOutput.width, CV_8UC3);
+			*pFrameOut = cv::Mat(static_cast<int32_t>(targetHeight), static_cast<int32_t>(targetWidth), CV_8UC3);
 			//
 			cv::Mat insetImageForL(
 					*pFrameOut,
-					cv::Rect(0, 0, centerX, gPOptsRt->resolutionOutput.height)
+					cv::Rect(0, 0, centerX, static_cast<int32_t>(targetHeight))
 				);
 			(*pFrameL)(rowRange, colRangeL).copyTo(insetImageForL);
 			//
 			cv::Mat insetImageForR = cv::Mat(
 					*pFrameOut,
-					cv::Rect(centerX, 0, gPOptsRt->resolutionOutput.width - centerX, gPOptsRt->resolutionOutput.height)
+					cv::Rect(centerX, 0, static_cast<int32_t>(targetWidth) - centerX, static_cast<int32_t>(targetHeight))
 				);
 			(*pFrameR)(rowRange, colRangeR).copyTo(insetImageForR);
 			//
 			cv::line(
 					*pFrameOut,
 					cv::Point(centerX - 1, 0),
-					cv::Point(centerX - 1, gPOptsRt->resolutionOutput.height - 1),
+					cv::Point(centerX - 1, static_cast<int32_t>(targetHeight) - 1),
 					cv::Scalar(0, 0, 0),
 					1
 				);
 			cv::line(
 					*pFrameOut,
 					cv::Point(centerX, 0),
-					cv::Point(centerX, gPOptsRt->resolutionOutput.height - 1),
+					cv::Point(centerX, static_cast<int32_t>(targetHeight) - 1),
 					cv::Scalar(255, 255, 255),
 					1
 				);
 			cv::line(
 					*pFrameOut,
 					cv::Point(centerX + 1, 0),
-					cv::Point(centerX + 1, gPOptsRt->resolutionOutput.height - 1),
+					cv::Point(centerX + 1, static_cast<int32_t>(targetHeight) - 1),
 					cv::Scalar(0, 0, 0),
 					1
 				);

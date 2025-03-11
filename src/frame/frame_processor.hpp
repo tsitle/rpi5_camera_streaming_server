@@ -11,6 +11,7 @@
 #include "subprocessor/subproc_grid.hpp"
 #include "subprocessor/subproc_pt.hpp"
 #include "subprocessor/subproc_roi.hpp"
+#include "subprocessor/subproc_scale.hpp"
 #include "subprocessor/subproc_text.hpp"
 #include "subprocessor/subproc_tr.hpp"
 
@@ -36,16 +37,17 @@ namespace frame {
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
 			fcapshared::RuntimeOptionsStc* gPOptsRt;
 			framesubproc::FrameSubProcessorBrightnAndContrast gOtherSubProcBnc;
-			framesubproc::FrameSubProcessorRoi gOtherSubProcRoi;
 			framesubproc::FrameSubProcessorGrid gOtherSubProcGrid;
-			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
+			framesubproc::FrameSubProcessorRoi gOtherSubProcRoi;
+			framesubproc::FrameSubProcessorScale gOtherSubProcScale;
 			framesubproc::FrameSubProcessorText gOtherSubProcTextCal;
+			framesubproc::FrameSubProcessorText gOtherSubProcTextCams;
 			SubProcsStc gSubProcsL;
 			SubProcsStc gSubProcsR;
-			int8_t gLastOverlCamsOutputCamsInt;
 			int8_t gLastOverlCalIsCalibratedInt;
-			int32_t gLastOverlCamsResolutionOutpW;
 			int32_t gLastOverlCalResolutionOutpW;
+			int8_t gLastOverlCamsOutputCamsInt;
+			int32_t gLastOverlCamsResolutionOutpW;
 			cv::Size gRoiOutputSz;
 
 			//
@@ -70,11 +72,11 @@ namespace frame {
 					fcapconstants::OutputCamsEn outputCams);
 			void procAddTextOverlayCal(cv::Mat &frameOut, uint32_t frameNr, bool isCalibrated);
 			bool checkFrameSize(const cv::Mat *pFrame, const std::string &camName) const;
-			void renderMasterOutput(
+			static void renderMasterOutput(
 					const cv::Mat *pFrameL,
 					const cv::Mat *pFrameR,
 					cv::Mat *pFrameOut,
-					__attribute__((unused)) uint32_t frameNr) const;
+					__attribute__((unused)) uint32_t frameNr);
 	};
 
 }  // namespace frame

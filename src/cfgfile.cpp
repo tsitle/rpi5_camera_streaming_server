@@ -58,17 +58,18 @@ namespace fcapcfgfile {
 				/**std::cout << std::setw(4) << (*pDefConfJson) << std::endl << std::endl;**/
 				//
 				std::map<std::string, std::string> tmpApiKeyMap = (*pDefConfJson)["api_keys"];
-				std::map<std::string, std::string>::iterator tmpIt;
-				for (tmpIt = tmpApiKeyMap.begin(); tmpIt != tmpApiKeyMap.end(); tmpIt++) {
-					std::string tmpAkKey = fcapshared::Shared::toUpper(tmpIt->first);
-					if (tmpAkKey.compare("SOMEID") == 0 || tmpAkKey.compare("OTHERID") == 0) {
+				for (const auto& tmpIt : tmpApiKeyMap) {
+					std::string tmpAkKey = fcapshared::Shared::toUpper(tmpIt.first);
+					if (tmpAkKey == "SOMEID" || tmpAkKey == "OTHERID") {
 						continue;
 					}
-					std::string tmpAkVal = fcapshared::Shared::toLower(tmpIt->second);
+					std::string tmpAkVal = fcapshared::Shared::toLower(tmpIt.second);
 					if (tmpAkVal.empty()) {
 						throw std::invalid_argument("ApiKey may not be empty");
 					}
-					std::string tmpMd5 = fcapconstants::CONFFILE_APIKEY_MD5PRE + tmpAkVal + fcapconstants::CONFFILE_APIKEY_MD5POST;
+					std::string tmpMd5 = fcapconstants::CONFFILE_APIKEY_MD5PRE;
+					tmpMd5 += tmpAkVal;
+					tmpMd5 += fcapconstants::CONFFILE_APIKEY_MD5POST;
 					for (uint32_t tmpRound = 0; tmpRound < fcapconstants::CONFFILE_APIKEY_MD5ROUNDS; tmpRound++) {
 						tmpMd5 = md5::md5(tmpMd5);
 					}
@@ -77,66 +78,72 @@ namespace fcapcfgfile {
 				}
 				//
 				///
-				gThrVarStaticOptions.serverPort = (uint16_t)(*pDefConfJson)["server_port"];
+				gThrVarStaticOptions.serverPort = static_cast<uint16_t>((*pDefConfJson)["server_port"]);
 				if (gThrVarStaticOptions.serverPort == 0) {
 					throw std::invalid_argument("invalid value for server_port");
 				}
 				///
 				gThrVarStaticOptions.resolutionInputStream = getSizeFromString(
-						(std::string)(*pDefConfJson)["resolution_input_stream"],
+						static_cast<std::string>((*pDefConfJson)["resolution_input_stream"]),
 						"resolution_input_stream"
 					);
 				///
 				gThrVarStaticOptions.camL = getCamIdFromString(
-						(std::string)(*pDefConfJson)["camera_assignment"]["left"],
+						static_cast<std::string>((*pDefConfJson)["camera_assignment"]["left"]),
 						"camera_assignment[left]"
 					);
 				gThrVarStaticOptions.camR = getCamIdFromString(
-						(std::string)(*pDefConfJson)["camera_assignment"]["right"],
+						static_cast<std::string>((*pDefConfJson)["camera_assignment"]["right"]),
 						"camera_assignment[right]"
 					);
 				///
 				gThrVarStaticOptions.camSourceType = getCamSourceFromString(
-						(std::string)(*pDefConfJson)["camera_source"]["type"],
+						static_cast<std::string>((*pDefConfJson)["camera_source"]["type"]),
 						"camera_source[type]"
 					);
 				///
-				gThrVarStaticOptions.camSource0 = (std::string)(*pDefConfJson)["camera_source"]["cam0"];
-				gThrVarStaticOptions.camSource1 = (std::string)(*pDefConfJson)["camera_source"]["cam1"];
-				if (gThrVarStaticOptions.camSource0.length() == 0 && gThrVarStaticOptions.camSource1.length() == 0) {
+				gThrVarStaticOptions.camSource0 = static_cast<std::string>((*pDefConfJson)["camera_source"]["cam0"]);
+				gThrVarStaticOptions.camSource1 = static_cast<std::string>((*pDefConfJson)["camera_source"]["cam1"]);
+				if (gThrVarStaticOptions.camSource0.empty() && gThrVarStaticOptions.camSource1.empty()) {
 					throw std::invalid_argument("need at least one of camera_source[cam0|cam1]");
 				}
 				///
 				gThrVarStaticOptions.gstreamerResolutionCapture = getSizeFromString(
-						(std::string)(*pDefConfJson)["camera_source"]["gstreamer"]["resolution_capture"],
+						static_cast<std::string>((*pDefConfJson)["camera_source"]["gstreamer"]["resolution_capture"]),
 						"gstreamer[resolution_capture]"
 					);
 				///
-				gThrVarStaticOptions.cameraFps = (uint8_t)(*pDefConfJson)["camera_source"]["fps"];
+				gThrVarStaticOptions.cameraFps = static_cast<uint8_t>((*pDefConfJson)["camera_source"]["fps"]);
 				if (gThrVarStaticOptions.cameraFps == 0) {
 					throw std::invalid_argument("invalid value for gstreamer[fps]");
 				}
 				///
-				gThrVarStaticOptions.pngOutputPath = (std::string)(*pDefConfJson)["png_output_path"];
-				gThrVarStaticOptions.outputPngs = (bool)(*pDefConfJson)["output_pngs"];
+				gThrVarStaticOptions.pngOutputPath = static_cast<std::string>((*pDefConfJson)["png_output_path"]);
+				gThrVarStaticOptions.outputPngs = static_cast<bool>((*pDefConfJson)["output_pngs"]);
 				///
-				gThrVarStaticOptions.calibOutputPath = (std::string)(*pDefConfJson)["calib_output_path"];
+				gThrVarStaticOptions.calibOutputPath = static_cast<std::string>((*pDefConfJson)["calib_output_path"]);
 				///
-				gThrVarStaticOptions.procEnabled.bnc = (bool)(*pDefConfJson)["processing_enabled"]["bnc"];
-				gThrVarStaticOptions.procEnabled.cal = (bool)(*pDefConfJson)["processing_enabled"]["cal"];
-				gThrVarStaticOptions.procEnabled.flip = (bool)(*pDefConfJson)["processing_enabled"]["flip"];
-				gThrVarStaticOptions.procEnabled.pt = (bool)(*pDefConfJson)["processing_enabled"]["pt"];
-				gThrVarStaticOptions.procEnabled.roi = (bool)(*pDefConfJson)["processing_enabled"]["roi"];
-				gThrVarStaticOptions.procEnabled.tr = (bool)(*pDefConfJson)["processing_enabled"]["tr"];
-				gThrVarStaticOptions.procEnabled.overlCam = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cam"];
-				gThrVarStaticOptions.procEnabled.overlCal = (bool)(*pDefConfJson)["processing_enabled"]["overlay_cal"];
+				gThrVarStaticOptions.procEnabled.bnc = static_cast<bool>((*pDefConfJson)["processing_enabled"]["bnc"]);
+				gThrVarStaticOptions.procEnabled.cal = static_cast<bool>((*pDefConfJson)["processing_enabled"]["cal"]);
+				gThrVarStaticOptions.procEnabled.flip = static_cast<bool>((*pDefConfJson)["processing_enabled"]["flip"]);
+				gThrVarStaticOptions.procEnabled.pt = static_cast<bool>((*pDefConfJson)["processing_enabled"]["pt"]);
+				gThrVarStaticOptions.procEnabled.roi = static_cast<bool>((*pDefConfJson)["processing_enabled"]["roi"]);
+				gThrVarStaticOptions.procEnabled.scale = static_cast<bool>((*pDefConfJson)["processing_enabled"]["scale"]);
+				gThrVarStaticOptions.procEnabled.tr = static_cast<bool>((*pDefConfJson)["processing_enabled"]["tr"]);
+				gThrVarStaticOptions.procEnabled.overlCam = static_cast<bool>((*pDefConfJson)["processing_enabled"]["overlay_cam"]);
+				gThrVarStaticOptions.procEnabled.overlCal = static_cast<bool>((*pDefConfJson)["processing_enabled"]["overlay_cal"]);
 				///
-				gThrVarStaticOptions.enableAdaptFps = (bool)(*pDefConfJson)["enable_adaptive_fps"];
+				gThrVarStaticOptions.enableAdaptFps = static_cast<bool>((*pDefConfJson)["enable_adaptive_fps"]);
 				///
-				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].hor = (bool)(*pDefConfJson)["flip"]["cam0"]["horizontal"];
-				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].ver = (bool)(*pDefConfJson)["flip"]["cam0"]["vertical"];
-				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].hor = (bool)(*pDefConfJson)["flip"]["cam1"]["horizontal"];
-				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].ver = (bool)(*pDefConfJson)["flip"]["cam1"]["vertical"];
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].hor = static_cast<bool>((*pDefConfJson)["flip"]["cam0"]["horizontal"]);
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_0].ver = static_cast<bool>((*pDefConfJson)["flip"]["cam0"]["vertical"]);
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].hor = static_cast<bool>((*pDefConfJson)["flip"]["cam1"]["horizontal"]);
+				gThrVarStaticOptions.flip[fcapconstants::CamIdEn::CAM_1].ver = static_cast<bool>((*pDefConfJson)["flip"]["cam1"]["vertical"]);
+				///
+				gThrVarStaticOptions.scale.resolutionOutputScaled = getSizeFromString(
+						static_cast<std::string>((*pDefConfJson)["scale"]["resolution_output_scaled"]),
+						"scale[resolution_output_scaled]"
+					);
 			} catch (json::type_error &ex) {
 				log("Type error while processing config file '" + fcapconstants::CONFIG_FILENAME + "': " + ex.what());
 				thrLock.unlock();
@@ -214,6 +221,7 @@ namespace fcapcfgfile {
 						{"flip", true},
 						{"pt", true},
 						{"roi", true},
+						{"scale", true},
 						{"tr", true},
 						{"overlay_cam", true},
 						{"overlay_cal", true}
@@ -233,17 +241,17 @@ namespace fcapcfgfile {
 	}
 
 	cv::Size CfgFile::getSizeFromString(const std::string &x, const std::string &nameArg) {
-		size_t ix = x.find("x");
+		const size_t ix = x.find('x');
 		if (ix == std::string::npos) {
 			throw std::invalid_argument("invalid value '" + x + "' for " + nameArg);
 		}
-		std::string strW = x.substr(0, ix);
-		std::string strH = x.substr(ix + 1);
-		int intW = -1;
-		int intH = -1;
+		const std::string strW = x.substr(0, ix);
+		const std::string strH = x.substr(ix + 1);
+		int intW;
+		int intH;
 		try {
 			intW = stoi(strW);
-		} catch (std::exception &err) {
+		} catch (__attribute__((unused)) std::exception &err) {
 			intW = -1;
 		}
 		if (intW < 1 || intW > fcapconstants::IMAGE_SIZE_MAX) {
@@ -251,33 +259,33 @@ namespace fcapcfgfile {
 		}
 		try {
 			intH = stoi(strH);
-		} catch (std::exception &err) {
+		} catch (__attribute__((unused)) std::exception &err) {
 			intH = -1;
 		}
 		if (intH < 1 || intH > fcapconstants::IMAGE_SIZE_MAX) {
 			throw std::invalid_argument("invalid value '" + x + "' for " + nameArg);
 		}
-		return cv::Size(intW, intH);
+		return {intW, intH};
 	}
 
 	fcapconstants::CamSourceEn CfgFile::getCamSourceFromString(const std::string &x, const std::string &nameArg) {
-		if (x.compare(fcapconstants::CONFFILE_CAMSRC_GSTR) == 0) {
+		if (x == fcapconstants::CONFFILE_CAMSRC_GSTR) {
 			return fcapconstants::CamSourceEn::GSTREAMER;
 		}
-		if (x.compare(fcapconstants::CONFFILE_CAMSRC_MJPEG) == 0) {
+		if (x == fcapconstants::CONFFILE_CAMSRC_MJPEG) {
 			return fcapconstants::CamSourceEn::MJPEG;
 		}
-		if (x.compare(fcapconstants::CONFFILE_CAMSRC_UNSPEC) == 0) {
+		if (x == fcapconstants::CONFFILE_CAMSRC_UNSPEC) {
 			return fcapconstants::CamSourceEn::UNSPECIFIED;
 		}
 		throw std::invalid_argument("invalid value '" + x + "' for " + nameArg);
 	}
 
 	fcapconstants::CamIdEn CfgFile::getCamIdFromString(const std::string &x, const std::string &nameArg) {
-		if (x.compare(fcapconstants::CONFFILE_CAMID_0) == 0) {
+		if (x == fcapconstants::CONFFILE_CAMID_0) {
 			return fcapconstants::CamIdEn::CAM_0;
 		}
-		if (x.compare(fcapconstants::CONFFILE_CAMID_1) == 0) {
+		if (x == fcapconstants::CONFFILE_CAMID_1) {
 			return fcapconstants::CamIdEn::CAM_1;
 		}
 		throw std::invalid_argument("invalid value '" + x + "' for " + nameArg);

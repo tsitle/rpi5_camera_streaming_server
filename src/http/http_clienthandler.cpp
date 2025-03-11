@@ -447,6 +447,7 @@ namespace http {
 					{"flip", gHndCltData.staticOptionsStc.procEnabled.flip},
 					{"pt", gHndCltData.staticOptionsStc.procEnabled.pt},
 					{"roi", gHndCltData.staticOptionsStc.procEnabled.roi},
+					{"scale", gHndCltData.staticOptionsStc.procEnabled.scale},
 					{"tr", gHndCltData.staticOptionsStc.procEnabled.tr},
 					{"overlCal", gHndCltData.staticOptionsStc.procEnabled.overlCal},
 					{"overlCam", gHndCltData.staticOptionsStc.procEnabled.overlCam}

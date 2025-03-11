@@ -15,6 +15,7 @@ namespace fcapcfgfile {
 		bool flip;
 		bool pt;
 		bool roi;
+		bool scale;
 		bool tr;
 		bool overlCam;
 		bool overlCal;
@@ -29,6 +30,7 @@ namespace fcapcfgfile {
 			flip = true;
 			pt = true;
 			roi = true;
+			scale = true;
 			tr = true;
 			overlCam = true;
 			overlCal = true;
@@ -49,6 +51,18 @@ namespace fcapcfgfile {
 		}
 	};
 
+	struct ScaleStc {
+		cv::Size resolutionOutputScaled;
+
+		ScaleStc() {
+			reset();
+		}
+
+		void reset() {
+			resolutionOutputScaled = cv::Size(0, 0);
+		}
+	};
+
 	struct StaticOptionsStc {
 		std::vector<std::string> apiKeys;
 		uint16_t serverPort;
@@ -66,6 +80,7 @@ namespace fcapcfgfile {
 		ProcEnabledStc procEnabled;
 		bool enableAdaptFps;
 		std::map<fcapconstants::CamIdEn, FlipStc> flip;
+		ScaleStc scale;
 
 		StaticOptionsStc() {
 			reset();
@@ -89,6 +104,7 @@ namespace fcapcfgfile {
 			enableAdaptFps = fcapsettings::STREAM_DEFAULT_ENABLE_ADAPTIVE_FPS;
 			flip[fcapconstants::CamIdEn::CAM_0] = FlipStc();
 			flip[fcapconstants::CamIdEn::CAM_1] = FlipStc();
+			scale = ScaleStc();
 		}
 	};
 

@@ -4,7 +4,7 @@ servers:
 info:
   description: >-
     Camera Streaming Server for Raspberry Pi 5
-  version: 1.0.0
+  version: 1.1.0
   title: OpenAPI Camera Streaming Server
 paths:
   /status:
@@ -389,6 +389,8 @@ components:
         pt:
           type: boolean
         roi:
+          type: boolean
+        scale:
           type: boolean
         tr:
           type: boolean

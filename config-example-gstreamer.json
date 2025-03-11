@@ -26,6 +26,7 @@
 		"flip": true,
 		"pt": true,
 		"roi": true,
+		"scale": true,
 		"tr": true,
 		"overlay_cam": true,
 		"overlay_cal": false
@@ -40,5 +41,8 @@
 			"horizontal": true,
 			"vertical": true
 		}
+	},
+	"scale": {
+		"resolution_output_scaled": "1280x720"
 	}
 }
