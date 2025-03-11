@@ -28,15 +28,15 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorTranslation : public FrameSubProcessor {
+	class FrameSubProcessorTranslation final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorTranslation();
-			void setFixDelta(const int32_t valDx, const int32_t valDy);
-			void getFixDelta(int32_t &valDx, int32_t &valDy);
-			void setDynDelta(const int32_t valDx, const int32_t valDy);
+			void setFixDelta(int32_t valDx, int32_t valDy);
+			void getFixDelta(int32_t &valDx, int32_t &valDy) const;
+			void setDynDelta(int32_t valDx, int32_t valDy);
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			const TrDataStc EMPTY_TR_DATA = TrDataStc(0, 0);

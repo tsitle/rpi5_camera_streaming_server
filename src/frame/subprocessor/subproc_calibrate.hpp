@@ -27,9 +27,9 @@ namespace framesubproc {
 			patternEn = PatternEn::CHESSBOARD;
 			boardSize = cv::Size(fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW, fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL);
 			if (patternEn == PatternEn::CHARUCOBOARD) {
-				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * (boardSize.width - 2);
+				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * static_cast<float>(boardSize.width - 2);
 			} else {
-				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * (boardSize.width - 1);
+				gridWidth = fcapsettings::PROC_CAL_CHESS_SQUARES_WIDTH_MM * static_cast<float>(boardSize.width - 1);
 			}
 		}
 	};
@@ -48,15 +48,15 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorCalibrate : public FrameSubProcessor {
+	class FrameSubProcessorCalibrate final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorCalibrate();
-			void setShowCalibChessboardPoints(const bool val);
-			bool getIsCalibrated();
+			void setShowCalibChessboardPoints(bool val);
+			bool getIsCalibrated() const;
 			std::vector<cv::Point> getRectCorners();
 			void loadData();
 			void resetData();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			const uint8_t MAX_TRIES = 50;
@@ -73,7 +73,7 @@ namespace framesubproc {
 
 			void findCorners(cv::Mat &frame, bool &foundCorners, std::vector<cv::Point2f> &corners);
 			bool calibrate(cv::Mat &frame);
-			void renderUndistorted(cv::Mat &frame);
+			void renderUndistorted(cv::Mat &frame) const;
 			bool loadCalibrationDataFromFile();
 			void deleteCalibrationDataFile();
 			//
@@ -86,8 +86,8 @@ namespace framesubproc {
 					std::vector<float> &outpReprojErrs, double &outpTotalAvgErr, std::vector<cv::Point3f> &outpNewObjPoints,
 					bool doReleaseObject);
 			void _ocvCalcBoardCornerPositions(
-					float squareSize, std::vector<cv::Point3f> &corners, PatternEn patternType);
-			double _ocvComputeReprojectionErrors(
+					float squareSize, std::vector<cv::Point3f> &corners, PatternEn patternType) const;
+			static double _ocvComputeReprojectionErrors(
 					const std::vector<std::vector<cv::Point3f>> &objectPoints,
 					const std::vector<std::vector<cv::Point2f>> &imagePoints,
 					const std::vector<cv::Mat> &rvecs, const std::vector<cv::Mat> &tvecs,
@@ -95,8 +95,8 @@ namespace framesubproc {
 					std::vector<float> &outpPerViewErrors, bool fisheye);
 			//
 			void _saveCalibrationDataToFile();
-			void _writeFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string flagName, const int flagValue);
-			void _readFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string flagName, const int flagValue);
+			void _writeFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string &flagName, int flagValue) const;
+			void _readFlagFromCalibrationDataFile(cv::FileStorage &fs, const std::string &flagName, int flagValue);
 	};
 
 }  // namespace framesubproc

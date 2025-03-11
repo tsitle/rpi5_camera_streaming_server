@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <chrono>
 
 #include "../shared.hpp"
@@ -49,9 +48,6 @@ namespace frame {
 	FrameProducer::FrameProducer(http::CbGetRunningHandlersCount cbGetRunningHandlersCount) :
 			gCbGetRunningHandlersCount(cbGetRunningHandlersCount) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
-	}
-
-	FrameProducer::~FrameProducer() {
 	}
 
 	bool FrameProducer::waitForCamStreams() {
@@ -146,7 +142,7 @@ namespace frame {
 		return formatStr;
 	}
 
-	std::string FrameProducer::build_gstreamer_pipeline(const std::string camSource, const uint8_t cameraFps) {
+	std::string FrameProducer::build_gstreamer_pipeline(const std::string &camSource, const uint8_t cameraFps) const {
 		const std::string format1Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT1);
 		const std::string format2Str = pipe_format_en_to_str(fcapconstants::GSTREAMER_PIPE_FMT2);
 
@@ -156,7 +152,7 @@ namespace frame {
 				",width=" + std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.width) +
 				",height=" + std::to_string(gStaticOptionsStc.gstreamerResolutionCapture.height) +
 				",framerate=" + std::to_string(cameraFps) + "/1";
-		if (format1Str.compare(format2Str) != 0) {
+		if (format1Str != format2Str) {
 			pipeline += " ! videoconvert";
 		}
 		pipeline += " ! videoscale";
@@ -188,35 +184,35 @@ namespace frame {
 		if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::GSTREAMER) {
 			std::string pipeline;
 
-			if (camSourceL.length() != 0) {
+			if (! camSourceL.empty()) {
 				pipeline = build_gstreamer_pipeline(camSourceL, optsRt.cameraFps);
 				log("CapL: Opening type=GStreamer '" + pipeline + "'...");
 				gCapL.open(pipeline, cv::CAP_GSTREAMER);
 			}
 
 			needToStop = fcapshared::Shared::getFlagNeedToStop();
-			if (! needToStop && camSourceR.length() != 0) {
+			if (! (needToStop || camSourceR.empty())) {
 				pipeline = build_gstreamer_pipeline(camSourceR, optsRt.cameraFps);
 				log("CapR: Opening type=GStreamer '" + pipeline + "'...");
 				gCapR.open(pipeline, cv::CAP_GSTREAMER);
 			}
 		} else if (gStaticOptionsStc.camSourceType == fcapconstants::CamSourceEn::MJPEG) {
-			if (camSourceL.length() != 0) {
+			if (! camSourceL.empty()) {
 				log("CapL: Opening type=MJPEG '" + camSourceL + "'...");
 				gCapL.open(camSourceL, cv::CAP_ANY);
 			}
 
 			needToStop = fcapshared::Shared::getFlagNeedToStop();
-			if (! needToStop && camSourceR.length() != 0) {
+			if (! (needToStop || camSourceR.empty())) {
 				log("CapR: Opening type=MJPEG '" + camSourceR + "'...");
 				gCapR.open(camSourceR, cv::CAP_ANY);
 			}
 		} else {
-			if (camSourceL.length() != 0) {
+			if (! camSourceL.empty()) {
 				log("CapL: Opening type=Unspecified '" + camSourceL + "'...");
-				if (camSourceL.compare("0") == 0) {
+				if (camSourceL == "0") {
 					gCapL.open(0, cv::CAP_V4L);
-				} else if (camSourceL.compare("1") == 0) {
+				} else if (camSourceL == "1") {
 					gCapL.open(1, cv::CAP_V4L);
 				} else {
 					gCapL.open(camSourceL, cv::CAP_ANY);
@@ -224,11 +220,11 @@ namespace frame {
 			}
 
 			needToStop = fcapshared::Shared::getFlagNeedToStop();
-			if (! needToStop && camSourceR.length() != 0) {
+			if (! (needToStop || camSourceR.empty())) {
 				log("CapR: Opening type=Unspecified '" + camSourceR + "'...");
-				if (camSourceR.compare("0") == 0) {
+				if (camSourceR == "0") {
 					gCapR.open(0, cv::CAP_V4L);
-				} else if (camSourceR.compare("1") == 0) {
+				} else if (camSourceR == "1") {
 					gCapR.open(1, cv::CAP_V4L);
 				} else {
 					gCapR.open(camSourceR, cv::CAP_ANY);
@@ -236,14 +232,14 @@ namespace frame {
 			}
 		}
 
-		if (camSourceL.length() != 0 && ! gCapL.isOpened()) {
+		if (! camSourceL.empty() && ! gCapL.isOpened()) {
 			log("CapL: Couldn't open device");
 			if (gCapR.isOpened()) {
 				gCapR.release();
 			}
 			return false;
 		}
-		if (camSourceR.length() != 0 && ! gCapR.isOpened()) {
+		if (! camSourceR.empty() && ! gCapR.isOpened()) {
 			log("CapR: Couldn't open device");
 			if (gCapL.isOpened()) {
 				gCapL.release();
@@ -252,14 +248,14 @@ namespace frame {
 		}
 
 		//
-		if (camSourceL.length() == 0 && optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
+		if (camSourceL.empty() && optsRt.outputCams == fcapconstants::OutputCamsEn::CAM_L) {
 			optsRt.outputCams = fcapconstants::OutputCamsEn::CAM_R;
 			fcapshared::Shared::setRtOpts_outputCams(optsRt.outputCams);
 		}
 
 		//
 		///
-		pCapInfo = (camSourceL.length() != 0 ? &gCapL : &gCapR);
+		pCapInfo = (camSourceL.empty() ? &gCapR : &gCapL);
 		///
 		/**int inpCodecTypeInt = static_cast<int>(pCapInfo->get(cv::CAP_PROP_FOURCC));
 		char inpCodecTypeCh[] = {
@@ -272,12 +268,12 @@ namespace frame {
 		log("Input Codec: " + std::to_string(inpCodecTypeInt) + " / '" + inpCodecTypeCh + "'");**/
 		///
 		cv::Size inpVideoSz = cv::Size(
-				(int)pCapInfo->get(cv::CAP_PROP_FRAME_WIDTH),
-				(int)pCapInfo->get(cv::CAP_PROP_FRAME_HEIGHT)
+				static_cast<int>(pCapInfo->get(cv::CAP_PROP_FRAME_WIDTH)),
+				static_cast<int>(pCapInfo->get(cv::CAP_PROP_FRAME_HEIGHT))
 			);
 		log("Input Framesize: " + std::to_string(inpVideoSz.width) + "x" + std::to_string(inpVideoSz.height));
 		///
-		int inpFps = pCapInfo->get(cv::CAP_PROP_FPS);
+		const int inpFps = static_cast<int>(pCapInfo->get(cv::CAP_PROP_FPS));
 		log("Input FPS: " + std::to_string(inpFps) +
 				(gStaticOptionsStc.camSourceType != fcapconstants::CamSourceEn::GSTREAMER ?
 					" (expecting " + std::to_string(optsRt.cameraFps) + ")" : ""));
@@ -285,11 +281,11 @@ namespace frame {
 		return true;
 	}
 
-	void FrameProducer::runX1(void) {
+	void FrameProducer::runX1() {
 		const uint32_t _MAX_EMPTY_FRAMES = 3;
 
 		try {
-			uint32_t frameNr = 0;
+			__attribute__((unused)) uint32_t frameNr = 0;
 			uint32_t emptyFrameCnt = 0;
 			bool needToStop = false;
 			bool haveClients = false;

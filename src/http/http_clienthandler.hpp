@@ -9,8 +9,8 @@ namespace http {
 	class ClientHandler {
 		public:
 			ClientHandler(
-					const uint32_t thrIx,
-					const int32_t socket,
+					uint32_t thrIx,
+					int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -20,8 +20,8 @@ namespace http {
 					CbGetFramerateInfo cbGetFramerateInfo);
 			~ClientHandler();
 			static std::thread startThread(
-					const uint32_t thrIx,
-					const int32_t socket,
+					uint32_t thrIx,
+					int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -45,8 +45,8 @@ namespace http {
 			//
 
 			static void _startThread_internal(
-					const uint32_t thrIx,
-					const int32_t socket,
+					uint32_t thrIx,
+					int32_t socket,
 					CbAddRunningHandler cbAddRunningHandler,
 					CbRemoveRunningHandler cbRemoveRunningHandler,
 					CbIncStreamingClientCount cbIncStreamingClientCount,
@@ -54,19 +54,19 @@ namespace http {
 					CbGetFrameFromQueue cbGetFrameFromQueue,
 					CbSetFramerateInfo cbSetFramerateInfo,
 					CbGetFramerateInfo cbGetFramerateInfo);
-			static void log(const uint32_t thrIx, const std::string &message);
+			static void log(uint32_t thrIx, const std::string &message);
 			//
-			void handleRequest(const char *buffer, const uint32_t bufSz);
+			void handleRequest(const char *buffer, uint32_t bufSz);
 			//
 			bool checkApiKey(void *pHeaders);
 			//
-			std::string buildResponse(const std::string *pHttpContentType, const std::string *pContent);
+			std::string buildResponse(const std::string *pHttpContentType, const std::string *pContent) const;
 			bool sendResponse(const std::string *pHttpContentType, const std::string *pContent);
-			void buildJsonResult_procTrDeltaX(void *pJsonObj, const std::string key, std::map<fcapconstants::CamIdEn, cv::Point> &val);
-			std::string buildJsonResult(const bool success);
+			void buildJsonResult_procTrDeltaX(void *pJsonObj, std::string key, std::map<fcapconstants::CamIdEn, cv::Point> &val);
+			std::string buildJsonResult(bool success);
 			//
 			void startStreaming();
-			bool sendFrame(uint8_t *pData, const uint32_t bufferSz);
+			bool sendFrame(uint8_t *pData, uint32_t bufferSz);
 	};
 
 }  // namespace http

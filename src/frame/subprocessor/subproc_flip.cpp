@@ -1,5 +1,3 @@
-#include "../../settings.hpp"
-#include "../../shared.hpp"
 #include "subproc_flip.hpp"
 
 namespace framesubproc {
@@ -28,7 +26,7 @@ namespace framesubproc {
 		//
 		gFrameNr = frameNr;
 		//
-		cv::Mat frameIn = frame.clone();
+		const cv::Mat frameIn = frame.clone();
 		frame = cv::Mat();
 		cv::flip(frameIn, frame, gFlipDataStc.flag);
 	}

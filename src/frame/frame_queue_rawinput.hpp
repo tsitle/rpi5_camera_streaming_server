@@ -14,8 +14,8 @@ namespace frame {
 		public:
 			FrameQueueRawInput();
 			~FrameQueueRawInput();
-			bool isQueueEmpty();
-			uint32_t getDroppedFramesCount();
+			bool isQueueEmpty() const;
+			uint32_t getDroppedFramesCount() const;
 			void resetDroppedFramesCount();
 			void appendFramesToQueue(const cv::Mat *pFrameRawL, const cv::Mat *pFrameRawR);
 			bool getFramesFromQueue(cv::Mat *pFrameRawL, cv::Mat *pFrameRawR);
@@ -37,7 +37,7 @@ namespace frame {
 
 			//
 
-			void log(const std::string &message);
+			static void log(const std::string &message);
 			void appendFrameToQueue(const fcapconstants::CamIdEn camId, const cv::Mat &frameRaw);
 			void appendFrameToQueueBytes(const fcapconstants::CamIdEn camId, const void *pData, const uint32_t dataSz);
 	};

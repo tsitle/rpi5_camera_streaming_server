@@ -21,11 +21,11 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorFlip : public FrameSubProcessor {
+	class FrameSubProcessorFlip final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorFlip();
-			void setData(const bool flipHor, const bool flipVer);
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void setData(bool flipHor, bool flipVer);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			FlipDataStc gFlipDataStc;

@@ -2,6 +2,8 @@
 #include "../../shared.hpp"
 #include "subproc_calibrate.hpp"
 
+#include <sys/stat.h>
+
 namespace framesubproc {
 
 	FrameSubProcessorCalibrate::FrameSubProcessorCalibrate() :
@@ -61,7 +63,7 @@ namespace framesubproc {
 		gOptShowCalibChessboardPoints = val;
 	}
 
-	bool FrameSubProcessorCalibrate::getIsCalibrated() {
+	bool FrameSubProcessorCalibrate::getIsCalibrated() const {
 		return gCalibrated;
 	}
 
@@ -77,9 +79,9 @@ namespace framesubproc {
 			return resVect;
 		}
 
-		const uint8_t rowCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW;
-		const uint8_t colCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL;
-		std::vector<cv::Point2f> lastPnts = gCalibrationDataStc.imagePoints.back();
+		constexpr uint8_t rowCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_ROW;
+		constexpr uint8_t colCnt = fcapsettings::PROC_CAL_CHESS_SQUARES_INNERCORNERS_COL;
+		const std::vector<cv::Point2f> lastPnts = gCalibrationDataStc.imagePoints.back();
 
 		if (lastPnts.size() < rowCnt * colCnt) {
 			log("invalid vector size (is:" +
@@ -223,8 +225,8 @@ namespace framesubproc {
 		return resB;
 	}
 
-	void FrameSubProcessorCalibrate::renderUndistorted(cv::Mat &frame) {
-		cv::Mat frameOrg = frame.clone();
+	void FrameSubProcessorCalibrate::renderUndistorted(cv::Mat &frame) const {
+		const cv::Mat frameOrg = frame.clone();
 		frame = cv::Mat();
 		if (gOcvSettingsStc.useFisheye) {
 			/**log("render undistorted fisheye");**/
@@ -312,7 +314,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::deleteCalibrationDataFile() {
-		std::string outpFn = buildDataFilename("");
+		const std::string outpFn = buildDataFilename("");
 
 		deleteDataFile(outpFn);
 		gLoadedFromFile = false;
@@ -483,7 +485,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::_ocvCalcBoardCornerPositions(
-			float squareSize, std::vector<cv::Point3f> &corners, PatternEn patternType) {
+			float squareSize, std::vector<cv::Point3f> &corners, PatternEn patternType) const {
 		corners.clear();
 
 		switch(patternType) {
@@ -522,7 +524,7 @@ namespace framesubproc {
 			std::vector<float> &outpPerViewErrors, bool fisheye) {
 		std::vector<cv::Point2f> imagePoints2;
 		size_t totalPoints = 0;
-		double totalErr = 0, err;
+		double totalErr = 0;
 		outpPerViewErrors.resize(objectPoints.size());
 
 		for (size_t i = 0; i < objectPoints.size(); ++i) {
@@ -538,15 +540,16 @@ namespace framesubproc {
 			} else {
 				cv::projectPoints(objectPoints[i], rvecs[i], tvecs[i], cameraMatrix, distCoeffs, imagePoints2);
 			}
-			err = cv::norm(imagePoints[i], imagePoints2, cv::NORM_L2);
+
+			const double err = cv::norm(imagePoints[i], imagePoints2, cv::NORM_L2);
 
 			size_t n = objectPoints[i].size();
-			outpPerViewErrors[i] = (float)std::sqrt(err * err / n);
+			outpPerViewErrors[i] = static_cast<float>(std::sqrt(err * err / static_cast<double>(n)));
 			totalErr += err * err;
 			totalPoints += n;
 		}
 
-		return std::sqrt(totalErr / totalPoints);
+		return std::sqrt(totalErr / static_cast<double>(totalPoints));
 	}
 
 	// -----------------------------------------------------------------------------
@@ -585,7 +588,7 @@ namespace framesubproc {
 			_writeFlagFromCalibrationDataFile(fs, "ocvSettings_default_flags_CALIB_FIX_K6", cv::CALIB_FIX_K6);
 		}
 		fs << "ocvSettings_aspectRatio" << gOcvSettingsStc.aspectRatio;
-		fs << "ocvSettings_patternEn" << (int)gOcvSettingsStc.patternEn;
+		fs << "ocvSettings_patternEn" << static_cast<int>(gOcvSettingsStc.patternEn);
 		fs << "ocvSettings_boardSize" << gOcvSettingsStc.boardSize;
 		fs << "ocvSettings_gridWidth" << gOcvSettingsStc.gridWidth;
 		//
@@ -600,12 +603,12 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorCalibrate::_writeFlagFromCalibrationDataFile(
-			cv::FileStorage &fs, const std::string flagName, const int flagValue) {
+			cv::FileStorage &fs, const std::string &flagName, const int flagValue) const {
 		fs << flagName << ((gOcvSettingsStc.flags & flagValue) != 0);
 	}
 
 	void FrameSubProcessorCalibrate::_readFlagFromCalibrationDataFile(
-			cv::FileStorage &fs, const std::string flagName, const int flagValue) {
+			cv::FileStorage &fs, const std::string &flagName, const int flagValue) {
 		bool cfileBool;
 
 		fs[flagName] >> cfileBool;

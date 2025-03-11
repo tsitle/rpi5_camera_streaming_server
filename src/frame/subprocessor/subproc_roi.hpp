@@ -21,16 +21,16 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorRoi : public FrameSubProcessor {
+	class FrameSubProcessorRoi final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorRoi();
-			void setInputFrameSize(const cv::Size &frameSz);
-			void setData(const uint8_t roiSizePercent);
-			cv::Size getOutputSz();
-			uint8_t getSizePercent();
+			void setInputFrameSize(const cv::Size &frameSz) override;
+			void setData(uint8_t roiSizePercent);
+			cv::Size getOutputSz() const;
+			uint8_t getSizePercent() const;
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			RoiDataStc gRoiDataStc;

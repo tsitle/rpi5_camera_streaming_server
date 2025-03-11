@@ -13,7 +13,7 @@ namespace fcapconstants {
 
 	const std::string CONFIG_FILENAME = "config.json";
 
-	const uint16_t IMAGE_SIZE_MAX = 4608;
+	constexpr uint16_t IMAGE_SIZE_MAX = 4608;
 
 	const cv::Size PIPE_CAPTURE_SZ_1536X864 = cv::Size(1536, 864);
 	const cv::Size PIPE_CAPTURE_SZ_2304X1296 = cv::Size(2304, 1296);
@@ -37,11 +37,11 @@ namespace fcapconstants {
 	/**
 	 * GStreamer Pipe Format for input (from camera to GStreamer)
 	 */
-	const GstreamerPipeFmtEn GSTREAMER_PIPE_FMT1 = GstreamerPipeFmtEn::BGRX;
+	constexpr GstreamerPipeFmtEn GSTREAMER_PIPE_FMT1 = GstreamerPipeFmtEn::BGRX;
 	/**
 	 * GStreamer Pipe Format for output (from GStreamer to application)
 	 */
-	const GstreamerPipeFmtEn GSTREAMER_PIPE_FMT2 = GstreamerPipeFmtEn::BGR;
+	constexpr GstreamerPipeFmtEn GSTREAMER_PIPE_FMT2 = GstreamerPipeFmtEn::BGR;
 
 	const std::string HTTP_CONTENT_TYPE_HTML = "text/html";
 	const std::string HTTP_CONTENT_TYPE_JPEG = "image/jpeg";
@@ -74,7 +74,7 @@ namespace fcapconstants {
 	const std::string CONFFILE_CAMSRC_MJPEG = "mjpeg";
 	const std::string CONFFILE_CAMSRC_UNSPEC = "unspecified";
 
-	const uint32_t CONFFILE_APIKEY_MD5ROUNDS = 10;
+	constexpr uint32_t CONFFILE_APIKEY_MD5ROUNDS = 10;
 	const std::string CONFFILE_APIKEY_MD5PRE = "pre00";
 	const std::string CONFFILE_APIKEY_MD5POST = "11post";
 
@@ -86,7 +86,7 @@ namespace fcapconstants {
 		TYPE2 = 1  // just Brightness/Contrast using image blending
 	};
 
-	const uint8_t PROC_PT_RECTCORNERS_MAX = 4;
+	constexpr uint8_t PROC_PT_RECTCORNERS_MAX = 4;
 
 }  // namespace fcapconstants
 

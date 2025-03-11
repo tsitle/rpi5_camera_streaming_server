@@ -23,17 +23,17 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorPerspectiveTransf : public FrameSubProcessor {
+	class FrameSubProcessorPerspectiveTransf final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorPerspectiveTransf();
 			void setManualRectCorners(const std::vector<cv::Point> &val);
 			void setCalRectCorners(const std::vector<cv::Point> &val);
 			std::vector<cv::Point> getManualRectCorners();
-			bool getNeedRectCorners();
+			bool getNeedRectCorners() const;
 			void setRoiOutputSz(const cv::Size &val);
 			void resetData();
 			void loadData();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			std::vector<cv::Point> gOptRectCorners;
@@ -48,7 +48,7 @@ namespace framesubproc {
 			//
 
 			cv::Point translatePoint(const cv::Point &pnt);
-			cv::Point getUntranslatedCorner(const uint8_t ix);
+			cv::Point getUntranslatedCorner(uint8_t ix);
 			void savePtDataToFile();
 			bool loadPtDataFromFile();
 			void deletePtDataFile();

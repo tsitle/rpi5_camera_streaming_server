@@ -30,7 +30,7 @@ namespace framesubproc {
 		updateTranslMtx();
 	}
 
-	void FrameSubProcessorTranslation::getFixDelta(int32_t &valDx, int32_t &valDy) {
+	void FrameSubProcessorTranslation::getFixDelta(int32_t &valDx, int32_t &valDy) const {
 		valDx = gTrDataFixStc.dx;
 		valDy = gTrDataFixStc.dy;
 	}

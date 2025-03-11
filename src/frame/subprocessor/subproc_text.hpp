@@ -27,12 +27,12 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorText : public FrameSubProcessor {
+	class FrameSubProcessorText final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorText();
-			void setText(const std::string valText, const cv::Point coord, cv::Scalar textColor, double scale = 1.0);
-			int32_t getTextBottomY();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void setText(const std::string &valText, cv::Point coord, cv::Scalar textColor, double scale = 1.0);
+			int32_t getTextBottomY() const;
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 
 		private:
 			TextOverlayPropsStc gTextOverlayPropsStc;
@@ -42,7 +42,7 @@ namespace framesubproc {
 
 			//
 
-			cv::Size getTextSize(const std::string &text);
+			cv::Size getTextSize(const std::string &text) const;
 	};
 
 }  // namespace framesubproc

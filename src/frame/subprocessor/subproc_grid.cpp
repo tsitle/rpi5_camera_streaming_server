@@ -1,4 +1,3 @@
-#include "../../settings.hpp"
 #include "../../shared.hpp"
 #include "subproc_grid.hpp"
 
@@ -13,10 +12,10 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorGrid::processFrame(cv::Mat &frame, const uint32_t frameNr) {
-		uint32_t imgW = frame.size().width;
-		uint32_t imgH = frame.size().height;
-		const int32_t centerX = (int32_t)((imgW - 1) / 2);
-		const int32_t centerY = (int32_t)((imgH - 1) / 2);
+		const uint32_t imgW = frame.size().width;
+		const uint32_t imgH = frame.size().height;
+		const auto centerX = static_cast<int32_t>((imgW - 1) / 2);
+		const auto centerY = static_cast<int32_t>((imgH - 1) / 2);
 
 		//
 		gFrameNr = frameNr;
@@ -24,14 +23,14 @@ namespace framesubproc {
 		cv::line(
 				frame,
 				cv::Point(centerX, 0),
-				cv::Point(centerX, imgH - 1),
+				cv::Point(centerX, static_cast<int>(imgH) - 1),
 				cv::Scalar(0, 0, 255),
 				1
 			);
 		cv::line(
 				frame,
 				cv::Point(0, centerY),
-				cv::Point(imgW - 1, centerY),
+				cv::Point(static_cast<int>(imgW) - 1, centerY),
 				cv::Scalar(0, 0, 255),
 				1
 			);
@@ -41,7 +40,7 @@ namespace framesubproc {
 		}
 
 		//
-		const int32_t GRID_DIVS = 30;
+		constexpr int32_t GRID_DIVS = 30;
 		int32_t tmpLineX;
 		int32_t tmpLineY;
 
@@ -51,7 +50,7 @@ namespace framesubproc {
 				cv::line(
 						frame,
 						cv::Point(tmpLineX, 0),
-						cv::Point(tmpLineX, imgH - 1),
+						cv::Point(tmpLineX, static_cast<int>(imgH) - 1),
 						cv::Scalar(127, 0, 127),
 						1
 					);
@@ -61,7 +60,7 @@ namespace framesubproc {
 				cv::line(
 						frame,
 						cv::Point(tmpLineX, 0),
-						cv::Point(tmpLineX, imgH - 1),
+						cv::Point(tmpLineX, static_cast<int>(imgH) - 1),
 						cv::Scalar(127, 0, 127),
 						1
 					);
@@ -73,7 +72,7 @@ namespace framesubproc {
 				cv::line(
 						frame,
 						cv::Point(0, tmpLineY),
-						cv::Point(imgW - 1, tmpLineY),
+						cv::Point(static_cast<int>(imgW) - 1, tmpLineY),
 						cv::Scalar(127, 127, 0),
 						1
 					);
@@ -83,7 +82,7 @@ namespace framesubproc {
 				cv::line(
 						frame,
 						cv::Point(0, tmpLineY),
-						cv::Point(imgW - 1, tmpLineY),
+						cv::Point(static_cast<int>(imgW) - 1, tmpLineY),
 						cv::Scalar(127, 127, 0),
 						1
 					);

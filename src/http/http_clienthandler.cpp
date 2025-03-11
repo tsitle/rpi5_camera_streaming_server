@@ -4,6 +4,7 @@
 #include <sys/socket.h>  // ::setsockopt()
 #include <unistd.h>  // ::write()
 #include <opencv2/opencv.hpp>
+#include <thread>
 
 #include "../settings.hpp"
 #include "../httpparser/httprequestparser.hpp"
@@ -182,9 +183,9 @@ namespace http {
 		}
 
 		/**log(gHndCltData.thrIx, request.inspect());**/
-		methIsGet = (request.method.compare("GET") == 0);
-		methIsPost = (! methIsGet && request.method.compare("POST") == 0);
-		methIsOptions = (! (methIsGet || methIsPost) && request.method.compare("OPTIONS") == 0);
+		methIsGet = (request.method == "GET");
+		methIsPost = (! methIsGet && request.method == "POST");
+		methIsOptions = (! (methIsGet || methIsPost) && request.method == "OPTIONS");
 		methOk = (methIsGet || methIsPost || methIsOptions);
 		if (! methOk) {
 			log(gHndCltData.thrIx, "405 Method Not Allowed");
@@ -204,9 +205,9 @@ namespace http {
 			}
 			//
 			apiKeyOk = (
-						(methIsGet && gRequUriPath.compare(HTTP_URL_PATH_ROOT) == 0) ||
-						(methIsGet && gRequUriPath.compare(HTTP_URL_PATH_FAVICON) == 0) ||
-						(methIsGet && gRequUriPath.compare(fcapconstants::HTTP_URL_PATH_STREAM) == 0) ||
+						(methIsGet && gRequUriPath == HTTP_URL_PATH_ROOT) ||
+						(methIsGet && gRequUriPath == HTTP_URL_PATH_FAVICON) ||
+						(methIsGet && gRequUriPath == fcapconstants::HTTP_URL_PATH_STREAM) ||
 							methIsOptions || checkApiKey((void*)&request.headers)
 					);
 			if (! apiKeyOk) {
@@ -271,20 +272,18 @@ namespace http {
 
 	bool ClientHandler::checkApiKey(void *pHeaders) {
 		bool resB = false;
-		std::vector<httpparser::Request::HeaderItem> *pHeadersVec = static_cast<std::vector<httpparser::Request::HeaderItem>*>(pHeaders);
+		const auto *pHeadersVec = static_cast<std::vector<httpparser::Request::HeaderItem>*>(pHeaders);
 
-		for (uint32_t x = 0; x < pHeadersVec->size(); x++) {
-			httpparser::Request::HeaderItem hi = (*pHeadersVec)[x];
-			std::string hiKey = fcapshared::Shared::toUpper(hi.name);
+		for (const auto& hi : *pHeadersVec) {
+				std::string hiKey = fcapshared::Shared::toUpper(hi.name);
 			/**log(gHndCltData.thrIx, "hi " + hiKey + "=" + hi.value);**/
-			if (hiKey.compare("APIKEY") != 0 && hiKey.compare("X-API-KEY") != 0) {
+			if (hiKey != "APIKEY" && hiKey != "X-API-KEY") {
 				continue;
 			}
-			std::string hiVal = fcapshared::Shared::toLower(hi.value);
-			for (uint32_t akIx = 0; akIx < gHndCltData.staticOptionsStc.apiKeys.size(); akIx++) {
-				std::string sosAk = gHndCltData.staticOptionsStc.apiKeys[akIx];
-				/**log(gHndCltData.thrIx, "sosAk[" + std::to_string(akIx) + "]='" + sosAk + "'");**/
-				if (hiVal.compare(sosAk) == 0) {
+			const std::string hiVal = fcapshared::Shared::toLower(hi.value);
+			for (const auto& sosAk : gHndCltData.staticOptionsStc.apiKeys) {
+					/**log(gHndCltData.thrIx, "sosAk[" + std::to_string(akIx) + "]='" + sosAk + "'");**/
+				if (hiVal == sosAk) {
 					resB = true;
 					break;
 				}
@@ -296,7 +295,7 @@ namespace http {
 
 	// -----------------------------------------------------------------------------
 
-	std::string ClientHandler::buildResponse(const std::string *pHttpContentType, const std::string *pContent) {
+	std::string ClientHandler::buildResponse(const std::string *pHttpContentType, const std::string *pContent) const {
 		std::string httpStatus = "HTTP/1.1 ";
 		switch (gHndCltData.respHttpStat) {
 			case 200:
@@ -332,14 +331,14 @@ namespace http {
 		ss << "Access-Control-Allow-Headers: Apikey,Content-Type,If-Modified-Since,Cache-Control" << "\r\n";
 		ss << "Access-Control-Max-Age: 0" << "\r\n";
 		ss << "Content-Type: " << *pHttpContentType;
-		if (pHttpContentType->compare(fcapconstants::HTTP_CONTENT_TYPE_MULTIPART) == 0) {
+		if (*pHttpContentType == fcapconstants::HTTP_CONTENT_TYPE_MULTIPART) {
 			ss << "; boundary=" << fcapconstants::HTTP_BOUNDARY_SEPARATOR;
 		}
 		ss << "\r\n";
 		if (cntSz != 0) {
 			ss << "Content-Length: " << cntSz << "\r\n";
 			ss << "\r\n";
-			ss << *pContent;
+			ss << (pContent == nullptr ? "" : *pContent);
 			ss << "\r\n";
 		}
 

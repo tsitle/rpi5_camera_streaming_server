@@ -17,11 +17,11 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorGrid : public FrameSubProcessor {
+	class FrameSubProcessorGrid final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorGrid();
-			void setData(const bool fullgrid);
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void setData(bool fullgrid);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			GridDataStc gGridDataStc;

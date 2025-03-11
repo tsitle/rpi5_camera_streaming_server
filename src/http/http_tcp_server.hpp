@@ -1,10 +1,7 @@
 #ifndef HTTP_TCP_SERVER_HPP_
 #define HTTP_TCP_SERVER_HPP_
 
-#include <stdio.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
 #include <string>
 
 #include "../settings.hpp"
@@ -71,14 +68,14 @@ namespace http {
 			bool isSocketOk() { return gCanListen; }
 			void startListen();
 			static uint32_t getRunningHandlersCount();
-			static bool addRunningHandler(const uint32_t thrIx);
-			static void removeRunningHandler(const uint32_t thrIx);
-			static bool incStreamingClientCount(const uint32_t thrIx, const uint32_t cid);
-			static void decStreamingClientCount(const uint32_t thrIx);
+			static bool addRunningHandler(uint32_t thrIx);
+			static void removeRunningHandler(uint32_t thrIx);
+			static bool incStreamingClientCount(uint32_t thrIx, uint32_t cid);
+			static void decStreamingClientCount(uint32_t thrIx);
 			static void broadcastFrameToStreamingClients(std::vector<unsigned char> &frameJpeg);
-			static bool getFrameFromQueueForClient(const uint32_t thrIx, uint8_t** ppData, uint32_t &dataRsvdSz, uint32_t &dataSzOut);
-			static void setFramerateInfo(const uint32_t cid, const uint32_t fps);
-			static uint32_t getFramerateInfo(const uint32_t cid);
+			static bool getFrameFromQueueForClient(uint32_t thrIx, uint8_t** ppData, uint32_t &dataRsvdSz, uint32_t &dataSzOut);
+			static void setFramerateInfo(uint32_t cid, uint32_t fps);
+			static uint32_t getFramerateInfo(uint32_t cid);
 
 		private:
 			static httppriv::RunningCltsStc gThrVarRunningCltsStc;

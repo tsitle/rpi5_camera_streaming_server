@@ -209,7 +209,7 @@ namespace fcapshared {
 		thrLock.unlock();
 	}
 
-	void Shared::setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val) {
+	void Shared::setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> &val) {
 		std::unique_lock<std::mutex> thrLock{gThrMtxRuntimeOptions, std::defer_lock};
 
 		thrLock.lock();

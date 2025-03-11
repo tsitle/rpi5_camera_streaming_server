@@ -2,12 +2,9 @@
 #define SHARED_HPP_
 
 #include <condition_variable>
-#include <mutex>
-#include <thread>
 #include <opencv2/opencv.hpp>
 
 #include "constants.hpp"
-#include "settings.hpp"
 
 namespace fcapshared {
 
@@ -91,37 +88,37 @@ namespace fcapshared {
 			///
 			static RuntimeOptionsStc getRuntimeOptions();
 			///
-			static void setRtOpts_outputCams(const fcapconstants::OutputCamsEn val);
-			static void setRtOpts_cameraFps(const uint8_t val);
+			static void setRtOpts_outputCams(fcapconstants::OutputCamsEn val);
+			static void setRtOpts_cameraFps(uint8_t val);
 			static void setRtOpts_resolutionOutput(const cv::Size &val);
-			static void setRtOpts_cameraReady(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_cameraReady(fcapconstants::CamIdEn camId, bool val);
 			///
-			static void setRtOpts_procBncChanged(const bool val);
-			static void setRtOpts_procBncAdjBrightness(const int16_t val);
-			static void setRtOpts_procBncAdjContrast(const int16_t val);
-			static void setRtOpts_procBncAdjGamma(const int16_t val);
+			static void setRtOpts_procBncChanged(bool val);
+			static void setRtOpts_procBncAdjBrightness(int16_t val);
+			static void setRtOpts_procBncAdjContrast(int16_t val);
+			static void setRtOpts_procBncAdjGamma(int16_t val);
 			///
-			static void setRtOpts_procCalDone(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procCalDoStart(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procCalDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procCalChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procCalShowCalibChessboardPoints(const fcapconstants::CamIdEn camId, const bool val);
+			static void setRtOpts_procCalDone(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procCalDoStart(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procCalDoReset(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procCalChanged(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procCalShowCalibChessboardPoints(fcapconstants::CamIdEn camId, bool val);
 			///
-			static void setRtOpts_procGridChanged(const bool val);
-			static void setRtOpts_procGridShow(const bool val);
+			static void setRtOpts_procGridChanged(bool val);
+			static void setRtOpts_procGridShow(bool val);
 			///
-			static void setRtOpts_procPtDone(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procPtDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procPtChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procPtRectCorners(const fcapconstants::CamIdEn camId, const std::vector<cv::Point> val);
+			static void setRtOpts_procPtDone(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procPtDoReset(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procPtChanged(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procPtRectCorners(fcapconstants::CamIdEn camId, const std::vector<cv::Point> &val);
 			///
-			static void setRtOpts_procRoiChanged(const bool val);
-			static void setRtOpts_procRoiSizePerc(const uint8_t val);
+			static void setRtOpts_procRoiChanged(bool val);
+			static void setRtOpts_procRoiSizePerc(uint8_t val);
 			///
-			static void setRtOpts_procTrDoReset(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procTrChanged(const fcapconstants::CamIdEn camId, const bool val);
-			static void setRtOpts_procTrFixDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
-			static void setRtOpts_procTrDynDelta(const fcapconstants::CamIdEn camId, const cv::Point val);
+			static void setRtOpts_procTrDoReset(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procTrChanged(fcapconstants::CamIdEn camId, bool val);
+			static void setRtOpts_procTrFixDelta(fcapconstants::CamIdEn camId, cv::Point val);
+			static void setRtOpts_procTrDynDelta(fcapconstants::CamIdEn camId, cv::Point val);
 			//
 			static bool fileExists(const std::string &fname);
 			static std::string toLower(const std::string &inp);

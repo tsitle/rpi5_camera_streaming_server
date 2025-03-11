@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include <thread>
 
 #include "../settings.hpp"
@@ -42,9 +42,6 @@ namespace frame {
 				std::to_string(gStaticOptionsStc.resolutionInputStream.height));
 	}
 
-	FrameProcessor::~FrameProcessor() {
-	}
-
 	void FrameProcessor::setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt) {
 		gPOptsRt = pOptsRt;
 		updateSubProcsSettings();
@@ -82,9 +79,9 @@ namespace frame {
 		//
 		if (gPOptsRt->outputCams == fcapconstants::OutputCamsEn::CAM_BOTH) {
 			// adjust color channels
-			if (pFrameR->channels() != pFrameL->channels()) {
-				int channL = pFrameL->channels();
-				int channR = pFrameR->channels();
+			if (pFrameR != nullptr && pFrameL != nullptr && pFrameR->channels() != pFrameL->channels()) {
+				const int channL = pFrameL->channels();
+				const int channR = pFrameR->channels();
 				if (channL > channR) {
 					cv::cvtColor(*pFrameL, *pFrameL, cv::COLOR_BGR2GRAY);
 				} else {
@@ -209,7 +206,7 @@ namespace frame {
 	void FrameProcessor::_initSubProcs_fspObj(
 			fcapconstants::CamIdEn camId,
 			fcapconstants::OutputCamsEn outputCams,
-			framesubproc::FrameSubProcessor &fsp) {
+			framesubproc::FrameSubProcessor &fsp) const {
 		fsp.setCamIdAndOutputCams(camId, outputCams);
 		fsp.setInputFrameSize(gStaticOptionsStc.resolutionInputStream);
 	}
@@ -236,7 +233,7 @@ namespace frame {
 		_updateSubProcsSettings_stc(gSubProcsR);
 	}
 
-	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) {
+	void FrameProcessor::_updateSubProcsSettings_stc(SubProcsStc &subProcsStc) const {
 		if (gStaticOptionsStc.procEnabled.cal && gPOptsRt->procCalChanged[subProcsStc.camId]) {
 			subProcsStc.cal.setShowCalibChessboardPoints(gPOptsRt->procCalShowCalibChessboardPoints[subProcsStc.camId]);
 			//
@@ -338,7 +335,7 @@ namespace frame {
 
 					subProcsStc.pt.setCalRectCorners(tmpCalCorners);
 					tmpBool = true;
-					gPOptsRt->procPtDone[subProcsStc.camId] = ! tmpBool;
+					gPOptsRt->procPtDone[subProcsStc.camId] = false;
 				}
 				if (tmpBool != gPOptsRt->procPtDone[subProcsStc.camId]) {
 					fcapshared::Shared::setRtOpts_procPtDone(subProcsStc.camId, tmpBool);
@@ -420,9 +417,9 @@ namespace frame {
 			const fcapconstants::OutputCamsEn outputCams) {
 		if (gLastOverlCamsOutputCamsInt == -1 || gLastOverlCamsOutputCamsInt != (int8_t)outputCams ||
 				gLastOverlCamsResolutionOutpW != gPOptsRt->resolutionOutput.width) {
-			double scale = (double)gPOptsRt->resolutionOutput.width / 1280.0;
+			const double scale = static_cast<double>(gPOptsRt->resolutionOutput.width) / 1280.0;
 			gOtherSubProcTextCams.setText(TEXT_CAM_TXT_PREFIX + camDesc, TEXT_CAM_COORD, TEXT_CAM_COLOR, scale);
-			gLastOverlCamsOutputCamsInt = (int)outputCams;
+			gLastOverlCamsOutputCamsInt = static_cast<int8_t>(outputCams);
 			gLastOverlCamsResolutionOutpW = gPOptsRt->resolutionOutput.width;
 		}
 		gOtherSubProcTextCams.processFrame(frameOut, frameNr);
@@ -434,20 +431,20 @@ namespace frame {
 		}
 		if (gLastOverlCalIsCalibratedInt == -1 || gLastOverlCalIsCalibratedInt != (int8_t)isCalibrated ||
 				gLastOverlCalResolutionOutpW != gPOptsRt->resolutionOutput.width) {
-			double scale = (double)gPOptsRt->resolutionOutput.width / 1280.0;
+			const double scale = static_cast<double>(gPOptsRt->resolutionOutput.width) / 1280.0;
 			gOtherSubProcTextCal.setText(
 					isCalibrated ? TEXT_CAL_TXT_ISCAL : TEXT_CAL_TXT_UNCAL,
 					TEXT_CAL_COORD + cv::Point(0, gOtherSubProcTextCams.getTextBottomY() + 5),
 					isCalibrated ? TEXT_CAL_COLOR_ISCAL : TEXT_CAL_COLOR_UNCAL,
 					scale
 				);
-			gLastOverlCalIsCalibratedInt = (int8_t)isCalibrated;
+			gLastOverlCalIsCalibratedInt = static_cast<int8_t>(isCalibrated);
 			gLastOverlCalResolutionOutpW = gPOptsRt->resolutionOutput.width;
 		}
 		gOtherSubProcTextCal.processFrame(frameOut, frameNr);
 	}
 
-	bool FrameProcessor::checkFrameSize(const cv::Mat *pFrame, const std::string camName) {
+	bool FrameProcessor::checkFrameSize(const cv::Mat *pFrame, const std::string &camName) const {
 		if (pFrame->size().width == gStaticOptionsStc.resolutionInputStream.width &&
 				pFrame->size().height == gStaticOptionsStc.resolutionInputStream.height) {
 			return true;
@@ -464,10 +461,10 @@ namespace frame {
 	}
 
 	void FrameProcessor::renderMasterOutput(
-			cv::Mat *pFrameL,
-			cv::Mat *pFrameR,
+			const cv::Mat *pFrameL,
+			const cv::Mat *pFrameR,
 			cv::Mat *pFrameOut,
-			__attribute__((unused)) const uint32_t frameNr) {
+			__attribute__((unused)) const uint32_t frameNr) const {
 		/**auto timeStart = std::chrono::steady_clock::now();**/
 
 		if (fcapsettings::PROC_DEFAULT_SPLITVIEW_FOR_CAMBOTH) {

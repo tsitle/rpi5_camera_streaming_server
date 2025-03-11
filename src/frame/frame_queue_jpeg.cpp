@@ -1,5 +1,4 @@
 #include <chrono>
-#include <stdio.h>
 
 #include "frame_queue_jpeg.hpp"
 
@@ -14,10 +13,6 @@ namespace frame {
 			gIxToOutput(0),
 			gDroppedFrames(0),
 			gStreamingClientIx(streamingClientIx) {
-		#define _UNUSED(x) (void)(x)
-		_UNUSED(gIsForJpegs);
-		#undef _UNUSED
-		//
 		for (uint8_t x = 0; x < fcapsettings::IF_QUEUE_SIZE; x++) {
 			gEntriesRsvdSz[x] = 64 * 1024;
 			gPEntries[x] = (uint8_t*)::malloc(gEntriesRsvdSz[x]);
@@ -72,7 +67,7 @@ namespace frame {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	void FrameQueue::log(const std::string &message) {
+	void FrameQueue::log(const std::string &message) const {
 		std::cout << "FQUEUE: [" << (gIsForJpegs ? "J" : "R") << "] " << message << std::endl;
 	}
 
@@ -123,9 +118,6 @@ namespace frame {
 
 	FrameQueueJpeg::FrameQueueJpeg(const uint32_t streamingClientIx) :
 			FrameQueue(streamingClientIx, true) {
-	}
-
-	FrameQueueJpeg::~FrameQueueJpeg() {
 	}
 
 	void FrameQueueJpeg::appendFrameToQueue(std::vector<unsigned char> &frameJpeg) {

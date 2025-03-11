@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include <chrono>
 
 #include "../shared.hpp"
@@ -39,9 +39,6 @@ namespace frame {
 		//
 		gCompressionParams.push_back(cv::IMWRITE_JPEG_QUALITY);
 		gCompressionParams.push_back(fcapsettings::PROC_JPEG_QUALITY);
-	}
-
-	FrameConsumer::~FrameConsumer() {
 	}
 
 	// -----------------------------------------------------------------------------
@@ -250,11 +247,8 @@ namespace frame {
 		log("ENDED");
 	}
 
-	void FrameConsumer::outputFrameToQueue(const cv::Mat &frame) {
-		bool haveClients;
-
-		//
-		haveClients = (gCbGetRunningHandlersCount() > 0);
+	void FrameConsumer::outputFrameToQueue(const cv::Mat &frame) const {
+		bool haveClients = (gCbGetRunningHandlersCount() > 0);
 		if (! haveClients) {
 			/**log("output no clients");**/
 			return;

@@ -1,10 +1,8 @@
 #include <chrono>
 #include <iostream>
-#include <sstream>
 #include <string>  // for stoi()
 #include <opencv2/opencv.hpp>
 
-#include "../settings.hpp"
 #include "http_handleroute_post.hpp"
 
 using namespace std::chrono_literals;
@@ -25,8 +23,8 @@ namespace http {
 		try {
 			const HandleRoutePostFnc fncPnt = HANDLEROUTE_LUT.at(gRequUriPath);
 
-			return ((*this).*(fncPnt))();
-		} catch (std::out_of_range &ex) {
+			return (this->*fncPnt)();
+		} catch (__attribute__((unused)) std::out_of_range &ex) {
 			/**log("404 invalid path '" + gRequUriPath + "'");**/
 			log("404 invalid path");
 			gPHndCltData->respHttpStat = 404;
@@ -45,16 +43,14 @@ namespace http {
 		log("200 Path=" + gRequUriPath);
 		resB = getOutputCamsFromQuery(tmpVal);
 		if (resB) {
-			if (tmpVal == fcapconstants::OutputCamsEn::CAM_L &&
-					gPHndCltData->rtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R &&
-					gPHndCltData->isCameraAvailabelL()) {
-				pRtOptsOut->outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_R &&
-					gPHndCltData->rtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L &&
-					gPHndCltData->isCameraAvailabelR()) {
-				pRtOptsOut->outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
-			} else if (tmpVal == fcapconstants::OutputCamsEn::CAM_BOTH &&
-					gPHndCltData->isCameraAvailabelL() && gPHndCltData->isCameraAvailabelR()) {
+			if ((tmpVal == fcapconstants::OutputCamsEn::CAM_L &&
+						gPHndCltData->rtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_R &&
+						gPHndCltData->isCameraAvailabelL()) ||
+					(tmpVal == fcapconstants::OutputCamsEn::CAM_R &&
+						gPHndCltData->rtOptsCur.outputCams == fcapconstants::OutputCamsEn::CAM_L &&
+						gPHndCltData->isCameraAvailabelR()) ||
+					(tmpVal == fcapconstants::OutputCamsEn::CAM_BOTH &&
+						gPHndCltData->isCameraAvailabelL() && gPHndCltData->isCameraAvailabelR())) {
 				pRtOptsOut->outputCams = fcapconstants::OutputCamsEn::CAM_BOTH;
 			} else {
 				gPHndCltData->respErrMsg = "cannot enable camera";

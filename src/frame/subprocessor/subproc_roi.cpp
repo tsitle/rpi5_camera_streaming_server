@@ -1,4 +1,3 @@
-#include "../../settings.hpp"
 #include "../../shared.hpp"
 #include "subproc_roi.hpp"
 
@@ -20,8 +19,8 @@ namespace framesubproc {
 		uint8_t lastPerc = gRoiDataStc.percent;
 
 		gRoiDataStc.percent = (roiSizePercent < 10 ? 10 : roiSizePercent);
-		gRoiDataStc.sizeW = (uint32_t)((double)gInpFrameSz.height * ((double)gRoiDataStc.percent / 100.0));
-		gRoiDataStc.sizeH = (uint32_t)(((double)gRoiDataStc.sizeW / 16.0) * 9.0);
+		gRoiDataStc.sizeW = static_cast<uint32_t>(static_cast<double>(gInpFrameSz.height) * (static_cast<double>(gRoiDataStc.percent) / 100.0));
+		gRoiDataStc.sizeH = static_cast<uint32_t>((static_cast<double>(gRoiDataStc.sizeW) / 16.0) * 9.0);
 		if (lastPerc != gRoiDataStc.percent) {
 			saveRoiDataToFile();
 		}
@@ -29,11 +28,11 @@ namespace framesubproc {
 				std::to_string(gRoiDataStc.sizeW) + "x" + std::to_string(gRoiDataStc.sizeH));**/
 	}
 
-	cv::Size FrameSubProcessorRoi::getOutputSz() {
-		return cv::Size(gRoiDataStc.sizeW, gRoiDataStc.sizeH);
+	cv::Size FrameSubProcessorRoi::getOutputSz() const {
+		return {static_cast<int>(gRoiDataStc.sizeW), static_cast<int>(gRoiDataStc.sizeH)};
 	}
 
-	uint8_t FrameSubProcessorRoi::getSizePercent() {
+	uint8_t FrameSubProcessorRoi::getSizePercent() const {
 		return gRoiDataStc.percent;
 	}
 
@@ -58,15 +57,15 @@ namespace framesubproc {
 		//
 		int32_t imgW = frame.cols;
 		int32_t imgH = frame.rows;
-		int32_t centerX = (int32_t)((imgW - 1) / 2);
-		int32_t centerY = (int32_t)((imgH - 1) / 2);
+		int32_t centerX = (imgW - 1) / 2;
+		int32_t centerY = (imgH - 1) / 2;
 		cv::Mat frameRot;
 
 		// rotate
 		///
-		const float rotAngle = 90.0;
+		constexpr float rotAngle = 90.0;
 		cv::Mat transMtx = cv::getRotationMatrix2D(
-				cv::Point2f(centerX, centerY),
+				cv::Point2f(static_cast<float>(centerX), static_cast<float>(centerY)),
 				rotAngle,
 				1
 			);
@@ -81,10 +80,10 @@ namespace framesubproc {
 		imgH = frameRot.rows;
 
 		// crop
-		centerX = (int32_t)((imgW - 1) / 2);
-		centerY = (int32_t)((imgH - 1) / 2);
-		const int32_t roiHalfW = (int32_t)(gRoiDataStc.sizeW / 2);
-		const int32_t roiHalfH = (int32_t)(gRoiDataStc.sizeH / 2);
+		centerX = (imgW - 1) / 2;
+		centerY = (imgH - 1) / 2;
+		const int32_t roiHalfW = static_cast<int32_t>(gRoiDataStc.sizeW) / 2;
+		const int32_t roiHalfH = static_cast<int32_t>(gRoiDataStc.sizeH) / 2;
 		cv::Range rowRange(centerY - roiHalfH + 1, centerY + roiHalfH);
 		cv::Range colRange(centerX - roiHalfW + 1, centerX + roiHalfW);
 

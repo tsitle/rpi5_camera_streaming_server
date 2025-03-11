@@ -5,6 +5,7 @@
 #include <sys/socket.h>  // ::shutdown(), ::accept(), ::setsockopt, SO_LINGER, struct linger
 #include <fcntl.h>  // ::fcntl(), F_GETFL, O_NONBLOCK
 #include <netdb.h>  // getprotobyname(), struct protoent
+#include <thread>
 
 #include "../shared.hpp"
 #include "http_tcp_server.hpp"
@@ -21,7 +22,7 @@ namespace http {
 	// -----------------------------------------------------------------------------
 
 	TcpServer::TcpServer(std::string ipAddress, uint16_t port) :
-			gServerIpAddr(ipAddress),
+			gServerIpAddr(std::move(ipAddress)),
 			gServerPort(port),
 			gServerSocket(),
 			gServerSocketAddress(),

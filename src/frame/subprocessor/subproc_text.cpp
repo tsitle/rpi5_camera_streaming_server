@@ -10,7 +10,7 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorText::setText(
-			const std::string valText,
+			const std::string &valText,
 			const cv::Point coord,
 			cv::Scalar textColor,
 			double scale) {
@@ -25,7 +25,7 @@ namespace framesubproc {
 				gCoord.x + _BORDER,
 				gCoord.y + _BORDER + tmpSz.height - 6
 			);
-		gTextColor = textColor;
+		gTextColor = std::move(textColor);
 		//
 		gTextOverlayPropsStc.rectEndPoint = cv::Point(
 				gCoord.x + _BORDER + tmpSz.width + _BORDER,
@@ -35,7 +35,7 @@ namespace framesubproc {
 		gTextOverlayPropsStc.outputScale = scale;
 	}
 
-	int32_t FrameSubProcessorText::getTextBottomY() {
+	int32_t FrameSubProcessorText::getTextBottomY() const {
 		return gTextOverlayPropsStc.textBottomYinOutput;
 	}
 
@@ -97,7 +97,7 @@ namespace framesubproc {
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
 
-	cv::Size FrameSubProcessorText::getTextSize(const std::string &text) {
+	cv::Size FrameSubProcessorText::getTextSize(const std::string &text) const {
 		int32_t baseline = 0;
 		cv::Size resSz = cv::getTextSize(
 				text,

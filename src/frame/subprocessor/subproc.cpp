@@ -1,20 +1,17 @@
-#include <stdio.h>
 #include <ctime>  // for time(), localtime(), strftime()
+#include <utility>
 
 #include "../../shared.hpp"
 #include "subproc.hpp"
 
 namespace framesubproc {
 
-	FrameSubProcessor::FrameSubProcessor(const std::string spName) :
+	FrameSubProcessor::FrameSubProcessor(std::string spName) :
 			gCamId(fcapconstants::CamIdEn::CAM_0),
 			gOutputCams(fcapconstants::OutputCamsEn::CAM_BOTH),
 			gFrameNr(0),
-			gSpName(spName) {
+			gSpName(std::move(spName)) {
 		gStaticOptionsStc = fcapcfgfile::CfgFile::getStaticOptions();
-	}
-
-	FrameSubProcessor::~FrameSubProcessor() {
 	}
 
 	void FrameSubProcessor::setCamIdAndOutputCams(fcapconstants::CamIdEn camId, fcapconstants::OutputCamsEn outputCams) {

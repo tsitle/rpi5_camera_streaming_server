@@ -24,8 +24,8 @@ namespace http {
 		try {
 			const HandleRouteGetFnc fncPnt = HANDLEROUTE_LUT.at(gRequUriPath);
 
-			return ((*this).*(fncPnt))();
-		} catch (std::out_of_range &ex) {
+			return (this->*fncPnt)();
+		} catch (__attribute__((unused)) std::out_of_range &ex) {
 			/**log("404 invalid path '" + gRequUriPath + "'");**/
 			log("404 invalid path");
 			gPHndCltData->respHttpStat = 404;

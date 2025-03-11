@@ -1,7 +1,6 @@
 #ifndef FRAME_PROCESSOR_HPP_
 #define FRAME_PROCESSOR_HPP_
 
-#include <string>
 #include <opencv2/opencv.hpp>
 
 #include "../cfgfile.hpp"
@@ -29,9 +28,9 @@ namespace frame {
 	class FrameProcessor {
 		public:
 			FrameProcessor();
-			~FrameProcessor();
+			~FrameProcessor() = default;
 			void setRuntimeOptionsPnt(fcapshared::RuntimeOptionsStc *pOptsRt);
-			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, const uint32_t frameNr);
+			void processFrame(cv::Mat *pFrameL, cv::Mat *pFrameR, cv::Mat *pFrameOut, uint32_t frameNr);
 
 		private:
 			fcapcfgfile::StaticOptionsStc gStaticOptionsStc;
@@ -51,7 +50,7 @@ namespace frame {
 
 			//
 
-			void log(const std::string &message);
+			static void log(const std::string &message);
 			void initSubProcs();
 			void _initSubProcs_stc(
 					fcapconstants::CamIdEn camId,
@@ -60,22 +59,22 @@ namespace frame {
 			void _initSubProcs_fspObj(
 					fcapconstants::CamIdEn camId,
 					fcapconstants::OutputCamsEn outputCams,
-					framesubproc::FrameSubProcessor &fsp);
+					framesubproc::FrameSubProcessor &fsp) const;
 			void updateSubProcsSettings();
-			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc);
-			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame, const uint32_t frameNr);
+			void _updateSubProcsSettings_stc(SubProcsStc &subProcsStc) const;
+			void procDefaults(SubProcsStc &subProcsStc, cv::Mat &frame, uint32_t frameNr);
 			void procAddTextOverlayCams(
 					cv::Mat &frameOut,
-					const uint32_t frameNr,
+					uint32_t frameNr,
 					const std::string &camDesc,
-					const fcapconstants::OutputCamsEn outputCams);
-			void procAddTextOverlayCal(cv::Mat &frameOut, const uint32_t frameNr, const bool isCalibrated);
-			bool checkFrameSize(const cv::Mat *pFrame, const std::string camName);
+					fcapconstants::OutputCamsEn outputCams);
+			void procAddTextOverlayCal(cv::Mat &frameOut, uint32_t frameNr, bool isCalibrated);
+			bool checkFrameSize(const cv::Mat *pFrame, const std::string &camName) const;
 			void renderMasterOutput(
-					cv::Mat *pFrameL,
-					cv::Mat *pFrameR,
+					const cv::Mat *pFrameL,
+					const cv::Mat *pFrameR,
 					cv::Mat *pFrameOut,
-					__attribute__((unused)) const uint32_t frameNr);
+					__attribute__((unused)) uint32_t frameNr) const;
 	};
 
 }  // namespace frame

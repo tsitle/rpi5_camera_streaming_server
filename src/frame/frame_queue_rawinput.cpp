@@ -1,5 +1,4 @@
 #include <chrono>
-#include <stdio.h>
 
 #include "frame_queue_rawinput.hpp"
 
@@ -49,7 +48,7 @@ namespace frame {
 		thrLock.unlock();
 	}
 
-	bool FrameQueueRawInput::isQueueEmpty() {
+	bool FrameQueueRawInput::isQueueEmpty() const {
 		bool resB;
 		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
@@ -59,7 +58,7 @@ namespace frame {
 		return resB;
 	}
 
-	uint32_t FrameQueueRawInput::getDroppedFramesCount() {
+	uint32_t FrameQueueRawInput::getDroppedFramesCount() const {
 		uint32_t resI;
 		std::unique_lock<std::mutex> thrLock(gThrMtx, std::defer_lock);
 
@@ -163,7 +162,7 @@ namespace frame {
 		gIxToStore = 0;
 		gIxToOutput = 0;
 		gDroppedFrames = 0;
-		gThrVarHaveFrames = 0;
+		gThrVarHaveFrames = false;
 		thrLock.unlock();
 	}
 
@@ -188,7 +187,7 @@ namespace frame {
 			gFrameSz.height = frameRaw.rows;
 		}
 		//
-		uint32_t newEntrySz = (uint32_t)(frameRaw.total() * frameRaw.channels());
+		uint32_t newEntrySz = frameRaw.total() * frameRaw.channels();
 		appendFrameToQueueBytes(camId, reinterpret_cast<unsigned char*>(&frameRaw.data[0]), newEntrySz);
 	}
 

@@ -4,18 +4,18 @@
 
 namespace framesubproc {
 
-	const double AT1_MIN_BRIGHTNESS = -100;
-	const double AT1_MAX_BRIGHTNESS = 100;
-	const double AT1_MIN_CONTRAST = 1.0;
-	const double AT1_MAX_CONTRAST = 3.0;
-	const double AT1_MIN_GAMMA = 0.5;
-	const double AT1_CENTER_GAMMA = 1.0;
-	const double AT1_MAX_GAMMA = 1.5;
+	constexpr double AT1_MIN_BRIGHTNESS = -100.0;
+	constexpr double AT1_MAX_BRIGHTNESS = 100.0;
+	constexpr double AT1_MIN_CONTRAST = 1.0;
+	constexpr double AT1_MAX_CONTRAST = 3.0;
+	constexpr double AT1_MIN_GAMMA = 0.5;
+	constexpr double AT1_CENTER_GAMMA = 1.0;
+	constexpr double AT1_MAX_GAMMA = 1.5;
 	//
-	const int16_t AT2_MAX_BRIGHTNESS = 127;
-	const int16_t AT2_MIN_BRIGHTNESS = -254;
-	const int16_t AT2_MAX_CONTRAST = 63;
-	const int16_t AT2_MIN_CONTRAST = -127;
+	constexpr int16_t AT2_MAX_BRIGHTNESS = 127;
+	constexpr int16_t AT2_MIN_BRIGHTNESS = -254;
+	constexpr int16_t AT2_MAX_CONTRAST = 63;
+	constexpr int16_t AT2_MIN_CONTRAST = -127;
 
 	// -----------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ namespace framesubproc {
 		//
 		double halfBr;
 		double minBr;
-		
+
 		if (fcapsettings::PROC_BNC_USE_ALGO == fcapconstants::ProcBncAlgoEn::TYPE1) {
 			halfBr = (AT1_MAX_BRIGHTNESS - AT1_MIN_BRIGHTNESS) / 2.0;
 			minBr = AT1_MIN_BRIGHTNESS;
@@ -75,10 +75,10 @@ namespace framesubproc {
 		double minCo;
 
 		if (fcapsettings::PROC_BNC_USE_ALGO == fcapconstants::ProcBncAlgoEn::TYPE1) {
-			halfCo = (AT1_MAX_CONTRAST - AT1_MIN_CONTRAST) / 2.0;
+			halfCo = (AT1_MAX_CONTRAST - AT1_MIN_CONTRAST) / 2.0f;
 			minCo = AT1_MIN_CONTRAST;
 		} else {
-			halfCo = (AT2_MAX_CONTRAST - AT2_MIN_CONTRAST) / 2.0;
+			halfCo = (AT2_MAX_CONTRAST - AT2_MIN_CONTRAST) / 2.0f;
 			minCo = AT2_MIN_CONTRAST;
 		}
 
@@ -117,7 +117,7 @@ namespace framesubproc {
 		gInitdGamma = true;
 	}
 
-	void FrameSubProcessorBrightnAndContrast::getData(int16_t &brightn, int16_t &contr, int16_t &gamma) {
+	void FrameSubProcessorBrightnAndContrast::getData(int16_t &brightn, int16_t &contr, int16_t &gamma) const {
 		brightn = gBncDataStc.brightness;
 		contr = gBncDataStc.contrast;
 		gamma = gBncDataStc.gamma;
@@ -170,7 +170,7 @@ namespace framesubproc {
 		}**/
 	}
 
-	void FrameSubProcessorBrightnAndContrast::processFrame_algo2(cv::Mat &frame) {
+	void FrameSubProcessorBrightnAndContrast::processFrame_algo2(cv::Mat &frame) const {
 		if (gBncDataStc.brightness == 0 && gBncDataStc.contrast == 0) {
 			return;
 		}
@@ -186,7 +186,7 @@ namespace framesubproc {
 		cv::Mat *pFrameOut = &brightnFrameOut;
 
 		if (gBncDataStc.brightness != 0) {
-			const int16_t intBrightn = (int16_t)gDblBrightn;
+			const auto intBrightn = static_cast<int16_t>(gDblBrightn);
 			int16_t shadow = intBrightn;
 			int16_t highlight = 255;
 			if (intBrightn > 0) {
@@ -208,7 +208,7 @@ namespace framesubproc {
 			pContrFrameInp = pFrameOut;
 		}
 		if (gBncDataStc.contrast != 0) {
-			const int16_t intContr = (int16_t)gDblContr;
+			const auto intContr = static_cast<int16_t>(gDblContr);
 			double alpha_c = 131.0 * (double)(intContr + 127) / (double)(127 * (131 - intContr));
 			double gamma_c = 127.0 * (double)(1.0 - alpha_c);
 			
@@ -293,8 +293,8 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorBrightnAndContrast::deleteBncDataFile() {
-		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename(extraQual, false);
+		const std::string extraQual = buildFnExtraQual();
+		const std::string outpFn = buildDataFilename(extraQual, false);
 
 		deleteDataFile(outpFn);
 		gLoadedFromFile = false;

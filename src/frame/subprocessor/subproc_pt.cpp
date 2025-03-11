@@ -1,6 +1,5 @@
 #include <stdexcept>
 
-#include "../../settings.hpp"
 #include "../../shared.hpp"
 #include "subproc_pt.hpp"
 
@@ -126,7 +125,7 @@ namespace framesubproc {
 		return resV;
 	}
 
-	bool FrameSubProcessorPerspectiveTransf::getNeedRectCorners() {
+	bool FrameSubProcessorPerspectiveTransf::getNeedRectCorners() const {
 		return (! gHaveAllCorners);
 	}
 
@@ -216,8 +215,8 @@ namespace framesubproc {
 		//return;
 		**/
 		//
-		cv::Mat transMatrix = cv::getPerspectiveTransform(gPtDataStc.ptsSrc, gPtDataStc.ptsDst);
-		cv::Mat frameIn = frame.clone();
+		const cv::Mat transMatrix = cv::getPerspectiveTransform(gPtDataStc.ptsSrc, gPtDataStc.ptsDst);
+		const cv::Mat frameIn = frame.clone();
 		frame = cv::Mat();
 		cv::warpPerspective(frameIn, frame, transMatrix, frame.size());
 	}
@@ -250,56 +249,56 @@ namespace framesubproc {
 		if (gStaticOptionsStc.procEnabled.flip) {
 			if (gStaticOptionsStc.flip[gCamId].hor && ! gStaticOptionsStc.flip[gCamId].ver) {
 				if (gStaticOptionsStc.procEnabled.roi) {
-					resPnt.x = resPnt.x;
-					resPnt.y = imgRotH - 1 - resPnt.y;
+					resPnt.x = static_cast<int>(resPnt.x);
+					resPnt.y = static_cast<int>(imgRotH) - 1 - resPnt.y;
 				} else {
-					resPnt.x = imgRotW - 1 - resPnt.x;
-					resPnt.y = resPnt.y;
+					resPnt.x = static_cast<int>(imgRotW) - 1 - resPnt.x;
+					resPnt.y = static_cast<int>(resPnt.y);
 				}
 			} else if (! gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
 				if (gStaticOptionsStc.procEnabled.roi) {
-					resPnt.x = imgRotW - 1 - resPnt.x;
-					resPnt.y = resPnt.y;
+					resPnt.x = static_cast<int>(imgRotW) - 1 - resPnt.x;
+					resPnt.y = static_cast<int>(resPnt.y);
 				} else {
-					resPnt.x = resPnt.x;
-					resPnt.y = imgRotH - 1 - resPnt.y;
+					resPnt.x = static_cast<int>(resPnt.x);
+					resPnt.y = static_cast<int>(imgRotH) - 1 - resPnt.y;
 				}
 			} else if (gStaticOptionsStc.flip[gCamId].hor && gStaticOptionsStc.flip[gCamId].ver) {
-				resPnt.x = imgRotW - 1 - resPnt.x;
-				resPnt.y = imgRotH - 1 - resPnt.y;
+				resPnt.x = static_cast<int>(imgRotW) - 1 - resPnt.x;
+				resPnt.y = static_cast<int>(imgRotH) - 1 - resPnt.y;
 			}
 		}
 		if (gStaticOptionsStc.procEnabled.roi) {
-			const int32_t centerRotX = (int32_t)((imgRotW - 1) / 2);  // use center of rotated image
-			const int32_t centerRotY = (int32_t)((imgRotH - 1) / 2);
-			const float rotAngle = -90.0;
+			const auto centerRotX = static_cast<int32_t>((imgRotW - 1) / 2);  // use center of rotated image
+			const auto centerRotY = static_cast<int32_t>((imgRotH - 1) / 2);
+			constexpr float rotAngle = -90.0;
 
 			//
 			///
 			/**std::cout << "__ getRotationMatrix2D (" << imgRotW << "x" << imgRotH << ")" << std::endl;**/
 			cv::Mat transMtx = cv::getRotationMatrix2D(cv::Point(centerRotX, centerRotY), rotAngle, 1);
 			/// determine bounding rectangle, center not relevant
-			cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), cv::Size(imgRotW, imgRotH), rotAngle).boundingRect2f();
+			cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), cv::Size(static_cast<int>(imgRotW), static_cast<int>(imgRotH)), rotAngle).boundingRect2f();
 			/// adjust transformation matrix
 			transMtx.at<double>(0, 2) += (bbox.width / 2.0) - (imgRotW / 2.0);
 			transMtx.at<double>(1, 2) += (bbox.height / 2.0) - (imgRotH / 2.0);
 			/**std::cout << "__ tm x" << bbox.x << ", y" << bbox.y << ", w" << bbox.width << ", h" << bbox.height << std::endl;**/
 
-			cv::Point3d pnt3d = cv::Point3d(resPnt.x, resPnt.y, 1);
+			const auto pnt3d = cv::Point3d(resPnt.x, resPnt.y, 1);
 			cv::Mat pntDst = (transMtx * cv::Mat(pnt3d)).t();
 
-			resPnt.x = (int32_t)pntDst.at<double>(0) /*- (gInpFrameSz.width - gRoiOutputSz.height)*/;
-			resPnt.y = (int32_t)pntDst.at<double>(1) /*- (gInpFrameSz.height - gRoiOutputSz.width)*/;
+			resPnt.x = static_cast<int>(pntDst.at<double>(0)) /*- (gInpFrameSz.width - gRoiOutputSz.height)*/;
+			resPnt.y = static_cast<int>(pntDst.at<double>(1)) /*- (gInpFrameSz.height - gRoiOutputSz.width)*/;
 			/**std::cout << "__ roi " << pnt3d << " ---> " << pntDst << " ---> ";**/
 			if (resPnt.x < 0) {
 				resPnt.x = 0;
-			} else if (resPnt.x >= (int32_t)imgW) {
-				resPnt.x = imgW - 1;
+			} else if (resPnt.x >= static_cast<int>(imgW)) {
+				resPnt.x = static_cast<int>(imgW) - 1;
 			}
 			if (resPnt.y < 0) {
 				resPnt.y = 0;
-			} else if (resPnt.y >= (int32_t)imgH) {
-				resPnt.y = imgH - 1;
+			} else if (resPnt.y >= static_cast<int>(imgH)) {
+				resPnt.y = static_cast<int>(imgH) - 1;
 			}
 			/**std::cout << resPnt << std::endl;**/
 		}
@@ -378,8 +377,8 @@ namespace framesubproc {
 			return;
 		}
 
-		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename(extraQual);
+		const std::string extraQual = buildFnExtraQual();
+		const std::string outpFn = buildDataFilename(extraQual);
 
 		log("writing PersTransf data to file '" + outpFn + "'");
 		cv::FileStorage fs(outpFn, cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
@@ -403,8 +402,8 @@ namespace framesubproc {
 			return false;
 		}
 
-		std::string extraQual = buildFnExtraQual();
-		std::string inpFn = buildDataFilename(extraQual);
+		const std::string extraQual = buildFnExtraQual();
+		const std::string inpFn = buildDataFilename(extraQual);
 
 		if (! fcapshared::Shared::fileExists(inpFn)) {
 			gLoadFromFileFailed = true;
@@ -437,8 +436,8 @@ namespace framesubproc {
 	}
 
 	void FrameSubProcessorPerspectiveTransf::deletePtDataFile() {
-		std::string extraQual = buildFnExtraQual();
-		std::string outpFn = buildDataFilename(extraQual);
+		const std::string extraQual = buildFnExtraQual();
+		const std::string outpFn = buildDataFilename(extraQual);
 
 		deleteDataFile(outpFn);
 		gLoadedFromFile = false;

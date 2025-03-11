@@ -25,25 +25,25 @@ namespace framesubproc {
 		}
 	};
 
-	class FrameSubProcessorBrightnAndContrast : public FrameSubProcessor {
+	class FrameSubProcessorBrightnAndContrast final : public FrameSubProcessor {
 		public:
 			FrameSubProcessorBrightnAndContrast();
-			void setBrightness(const int16_t val);
-			void setContrast(const int16_t val);
-			void setGamma(const int16_t val);
-			void getData(int16_t &brightn, int16_t &contr, int16_t &gamma);
+			void setBrightness(int16_t val);
+			void setContrast(int16_t val);
+			void setGamma(int16_t val);
+			void getData(int16_t &brightn, int16_t &contr, int16_t &gamma) const;
 			void loadData();
-			void processFrame(cv::Mat &frame, const uint32_t frameNr);
+			void processFrame(cv::Mat &frame, uint32_t frameNr) override;
 		
 		private:
 			BncDataStc gBncDataStc;
 			BncDataStc gLastBncDataStc;
 			double gDblBrightn;
-			double gInitdBrightn;
+			bool gInitdBrightn;
 			double gDblContr;
-			double gInitdContr;
+			bool gInitdContr;
 			cv::Mat gGammaLookUpTable;
-			double gInitdGamma;
+			bool gInitdGamma;
 			bool gLoadedFromFile;
 			bool gLoadFromFileFailed;
 			bool gWriteToFileFailed;
@@ -51,11 +51,11 @@ namespace framesubproc {
 			//
 
 			inline void processFrame_algo1(cv::Mat &frame);
-			inline void processFrame_algo2(cv::Mat &frame);
+			inline void processFrame_algo2(cv::Mat &frame) const;
 			void saveBncDataToFile();
 			bool loadBncDataFromFile();
 			void deleteBncDataFile();
-			std::string buildFnExtraQual();
+			static std::string buildFnExtraQual();
 	};
 
 }  // namespace framesubproc

@@ -1,10 +1,8 @@
 #include <iostream>
-#include <signal.h>
+#include <csignal>
 #include <thread>
-#include <opencv2/opencv.hpp>
 
 #include "shared.hpp"
-#include "settings.hpp"
 #include "cfgfile.hpp"
 #include "frame/frame_producer.hpp"
 #include "frame/frame_consumer.hpp"
@@ -18,10 +16,6 @@ void log(const std::string &message) {
 }
 
 void sigHandlerCtrlC(__attribute__((unused)) int s) {
-	/*#define _UNUSED(x) (void)(x)
-	_UNUSED(s);
-	#undef _UNUSED*/
-
 	log("Caught CTRL-C");
 	fcapshared::Shared::setFlagNeedToStop();
 }
@@ -56,12 +50,12 @@ bool parseCmdlineArgs(int argc, char** argv, std::string &cfgfileFn) {
 		return false;
 	}
 
-	std::string sArgv1(argv[1]);
-	if (sArgv1.compare("-h") == 0 || sArgv1.compare("--h") == 0 || sArgv1.compare("--help") == 0) {
+	const std::string sArgv1(argv[1]);
+	if (sArgv1 == "-h" || sArgv1 == "--h" || sArgv1 == "--help") {
 		printHelp(argv);
 		return false;
 	}
-	if (sArgv1.compare("-c") != 0) {
+	if (sArgv1 != "-c") {
 		log("Invalid arg '" + std::string(argv[1]) + "'");
 		printHelp(argv);
 		return false;
@@ -100,12 +94,12 @@ int main(int argc, char** argv) {
 	}
 
 	// start frame producer thread
-	std::thread threadProdObj = frame::FrameProducer::startThread(server.getRunningHandlersCount);
+	std::thread threadProdObj = frame::FrameProducer::startThread(http::TcpServer::getRunningHandlersCount);
 
 	// start frame consumer thread
 	std::thread threadConsObj = frame::FrameConsumer::startThread(
-			server.getRunningHandlersCount,
-			server.broadcastFrameToStreamingClients
+			http::TcpServer::getRunningHandlersCount,
+			http::TcpServer::broadcastFrameToStreamingClients
 		);
 
 	// start HTTP server
@@ -119,7 +113,7 @@ int main(int argc, char** argv) {
 	uint32_t runningClts = 1;
 	log("Wait for threads #CLIENT...");
 	while (runningClts > 0) {
-		runningClts = server.getRunningHandlersCount();
+		runningClts = http::TcpServer::getRunningHandlersCount();
 		//
 		if (runningClts > 0) {
 			log("still waiting for threads... (" + std::to_string(runningClts) + " running)");

@@ -32,7 +32,7 @@ namespace http {
 			bool _handleRoute_STREAM();
 			bool _handleRoute_FAVICON();
 			//
-			std::string buildWebsite();
+			static std::string buildWebsite();
 	};
 
 }  // namespace http
