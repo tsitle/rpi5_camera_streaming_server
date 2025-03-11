@@ -38,16 +38,12 @@ bool initSignalHandlers() {
 }
 
 void printHelp(char** argv) {
-	std::cout << "Usage: " + std::string(argv[0]) + " [-c FILENAME]" << std::endl;
+	std::cout << "Usage: " + std::string(argv[0]) + " [[--version] | [-c FILENAME]]" << std::endl;
 }
 
 bool parseCmdlineArgs(int argc, char** argv, std::string &cfgfileFn) {
 	if (argc == 1) {
 		return true;
-	}
-	if (argc == 2 || argc > 3) {
-		printHelp(argv);
-		return false;
 	}
 
 	const std::string sArgv1(argv[1]);
@@ -55,8 +51,16 @@ bool parseCmdlineArgs(int argc, char** argv, std::string &cfgfileFn) {
 		printHelp(argv);
 		return false;
 	}
+	if (sArgv1 == "--version") {
+		std::cout << fcapconstants::HTTP_SERVER_NAME + " v" + fcapconstants::HTTP_SERVER_VERSION << std::endl;
+		return false;
+	}
 	if (sArgv1 != "-c") {
 		log("Invalid arg '" + std::string(argv[1]) + "'");
+		printHelp(argv);
+		return false;
+	}
+	if (argc != 3) {
 		printHelp(argv);
 		return false;
 	}
