@@ -7,7 +7,7 @@
 namespace fcapconstants {
 
 	const std::string HTTP_SERVER_NAME = "HttpCamServer";
-	const std::string HTTP_SERVER_VERSION = "0.1";
+	const std::string HTTP_SERVER_VERSION = "1.1";
 
 	const std::string HTTP_URL_PATH_STREAM = "/stream.mjpeg";
 
