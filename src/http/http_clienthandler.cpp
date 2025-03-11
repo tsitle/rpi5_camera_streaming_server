@@ -402,6 +402,9 @@ namespace http {
 			}
 
 			//
+			jsonObj["version"] = fcapconstants::HTTP_SERVER_VERSION;
+
+			//
 			std::string tmpAvail;
 
 			if (gHndCltData.isCameraAvailabelL() && gHndCltData.isCameraAvailabelR()) {

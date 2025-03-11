@@ -545,6 +545,8 @@ components:
           $ref: '#/components/schemas/StatusResolution'
         resolutionOutput:
           $ref: '#/components/schemas/StatusResolution'
+        version:
+          type: string
     SetOutputCams:
       type: object
       properties:
