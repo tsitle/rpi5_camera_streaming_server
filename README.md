@@ -116,7 +116,7 @@ has been derived from the value in a specific way.
 To make it easy to find that hashsum, the application will output something like this at startup:
 
 ```
-CFG: API Key 'DEFAULT' = 'fcab525e507275f17fbaf7932048beba'
+CFG: API Key Hash for 'DEFAULT' = 'fcab525e507275f17fbaf7932048beba'
 ```
 
 In this example the value `fcab525e507275f17fbaf7932048beba` is the hashsum of the API key value `xylophon` from
