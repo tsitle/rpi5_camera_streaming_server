@@ -74,7 +74,7 @@ namespace fcapcfgfile {
 						tmpMd5 = md5::md5(tmpMd5);
 					}
 					gThrVarStaticOptions.apiKeys.push_back(tmpMd5);
-					log("API Key '" + tmpAkKey + "' = '" + tmpMd5 + "'");
+					log("API Key Hash for '" + tmpAkKey + "' = '" + tmpMd5 + "'");
 				}
 				//
 				///
