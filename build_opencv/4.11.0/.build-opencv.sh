@@ -8,28 +8,36 @@ VAR_MYNAME="$(basename "$0")"
 
 #
 
-[[ -z "${COMPILE_WITH_GUI}" ]] && {
-	echo "${VAR_MYNAME}: Missing COMPILE_WITH_GUI. Aborting." >>/dev/stderr
+[[ -z "${CFG_COMPILE_WITH_GUI}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_WITH_GUI. Aborting." >>/dev/stderr
 	exit 1
 }
-[[ -z "${COMPILE_WITH_FFMPEG}" ]] && {
-	echo "${VAR_MYNAME}: Missing COMPILE_WITH_FFMPEG. Aborting." >>/dev/stderr
+[[ -z "${CFG_COMPILE_WITH_FFMPEG}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_WITH_FFMPEG. Aborting." >>/dev/stderr
 	exit 1
 }
-[[ -z "${COMPILE_WITH_GSTREAMER}" ]] && {
-	echo "${VAR_MYNAME}: Missing COMPILE_WITH_GSTREAMER. Aborting." >>/dev/stderr
+[[ -z "${CFG_COMPILE_WITH_GSTREAMER}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_WITH_GSTREAMER. Aborting." >>/dev/stderr
 	exit 1
 }
-[[ -z "${COMPILE_WITH_JAVA}" ]] && {
-	echo "${VAR_MYNAME}: Missing COMPILE_WITH_JAVA. Aborting." >>/dev/stderr
+[[ -z "${CFG_COMPILE_WITH_PYTHON3}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_WITH_PYTHON3. Aborting." >>/dev/stderr
 	exit 1
 }
-[[ -z "${NEED_LIBCAMERA}" ]] && {
-	echo "${VAR_MYNAME}: Missing NEED_LIBCAMERA. Aborting." >>/dev/stderr
+[[ -z "${CFG_COMPILE_WITH_JAVA}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_WITH_JAVA. Aborting." >>/dev/stderr
 	exit 1
 }
-[[ -z "${COMPILE_STATIC_LIBS}" ]] && {
-	echo "${VAR_MYNAME}: Missing COMPILE_STATIC_LIBS. Aborting." >>/dev/stderr
+[[ -z "${CFG_NEED_LIBCAMERA}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_NEED_LIBCAMERA. Aborting." >>/dev/stderr
+	exit 1
+}
+[[ -z "${CFG_COMPILE_STATIC_LIBS}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_COMPILE_STATIC_LIBS. Aborting." >>/dev/stderr
+	exit 1
+}
+[[ -z "${CFG_INSTALL_TO_SYSTEM}" ]] && {
+	echo "${VAR_MYNAME}: Missing CFG_INSTALL_TO_SYSTEM. Aborting." >>/dev/stderr
 	exit 1
 }
 
@@ -130,7 +138,7 @@ test -d build && rm -fr build
 mkdir build && cd build
 
 TMP_OPT_HIGHGUI="OFF"
-if [ "${COMPILE_WITH_GUI}" = "true" ]; then
+if [ "${CFG_COMPILE_WITH_GUI}" = "true" ]; then
 	TMP_OPT_HIGHGUI="ON"
 
 	case "${LVAR_OSNAME}" in
@@ -151,7 +159,7 @@ if [ "${COMPILE_WITH_GUI}" = "true" ]; then
 fi
 
 TMP_OPT_FFMPEG="OFF"
-if [ "${COMPILE_WITH_FFMPEG}" = "true" ]; then
+if [ "${CFG_COMPILE_WITH_FFMPEG}" = "true" ]; then
 	TMP_OPT_FFMPEG="ON"
 
 	case "${LVAR_OSNAME}" in
@@ -185,16 +193,18 @@ if [ "${COMPILE_WITH_FFMPEG}" = "true" ]; then
 					|| exit 1
 			;;
 		macos)
-			echo "${VAR_MYNAME}: running 'brew install [...]'"
-			brew install \
-					ffmpeg \
-					|| exit 1
+			if ! command -v ffmpeg >/dev/null 2>&1; then
+				echo "${VAR_MYNAME}: running 'brew install [...]'"
+				brew install \
+						ffmpeg \
+						|| exit 1
+			fi
 			;;
 	esac
 fi
 
 TMP_OPT_GSTREAMER="OFF"
-if [ "${COMPILE_WITH_GSTREAMER}" = "true" ]; then
+if [ "${CFG_COMPILE_WITH_GSTREAMER}" = "true" ]; then
 	TMP_OPT_GSTREAMER="ON"
 
 	case "${LVAR_OSNAME}" in
@@ -232,7 +242,7 @@ if [ "${COMPILE_WITH_GSTREAMER}" = "true" ]; then
 			sudo ${LVAR_LX_PKGMAN} install -y \
 					${TMP_PACKS} \
 					|| exit 1
-			if [ "${COMPILE_WITH_GUI}" = "true" ] && [ "${LVAR_IS_DEBIAN}" = "true" ]; then
+			if [ "${CFG_COMPILE_WITH_GUI}" = "true" ] && [ "${LVAR_IS_DEBIAN}" = "true" ]; then
 				echo "${VAR_MYNAME}: running '${LVAR_LX_PKGMAN} install [...]'"
 				sudo ${LVAR_LX_PKGMAN} install -y \
 						gstreamer1.0-x \
@@ -246,27 +256,34 @@ if [ "${COMPILE_WITH_GSTREAMER}" = "true" ]; then
 	esac
 fi
 
-TMP_OPT_JAVA="OFF"
-if [ "${COMPILE_WITH_JAVA}" = "true" ]; then
-	TMP_OPT_JAVA="ON"
-
-	case "${LVAR_OSNAME}" in
-		linux)
-			echo "${VAR_MYNAME}: running '${LVAR_LX_PKGMAN} install [...]'"
-			sudo ${LVAR_LX_PKGMAN} install -y \
-					ant \
-					|| exit 1
-			;;
-		macos)
-			echo "${VAR_MYNAME}: running 'brew install [...]'"
-			brew install \
-					ant \
-					|| exit 1
-			;;
-	esac
+TMP_OPT_PY3="OFF"
+if [ "${CFG_COMPILE_WITH_PYTHON3}" = "true" ]; then
+	TMP_OPT_PY3="ON"
 fi
 
-if [ "${NEED_LIBCAMERA}" = "true" ]; then
+TMP_OPT_JAVA="OFF"
+if [ "${CFG_COMPILE_WITH_JAVA}" = "true" ]; then
+	TMP_OPT_JAVA="ON"
+
+	if ! command -v ant >/dev/null 2>&1; then
+		case "${LVAR_OSNAME}" in
+			linux)
+				echo "${VAR_MYNAME}: running '${LVAR_LX_PKGMAN} install [...]'"
+				sudo ${LVAR_LX_PKGMAN} install -y \
+						ant \
+						|| exit 1
+				;;
+			macos)
+				echo "${VAR_MYNAME}: running 'brew install [...]'"
+				brew install \
+						ant \
+						|| exit 1
+				;;
+		esac
+	fi
+fi
+
+if [ "${CFG_NEED_LIBCAMERA}" = "true" ]; then
 	case "${LVAR_OSNAME}" in
 		linux)
 			echo "${VAR_MYNAME}: running '${LVAR_LX_PKGMAN} install [...]'"
@@ -284,17 +301,28 @@ if [ "${NEED_LIBCAMERA}" = "true" ]; then
 fi
 
 TMP_OPT_SHARED="ON"
-if [ "${COMPILE_STATIC_LIBS}" = "true" ]; then
+if [ "${CFG_COMPILE_STATIC_LIBS}" = "true" ]; then
 	TMP_OPT_SHARED="OFF"
 fi
 
+TMP_OPT_V4L="OFF"
+if [ "${LVAR_OSNAME}" = "linux" ]; then
+	TMP_OPT_V4L="ON"
+fi
+
 LVAR_BIN_CMAKE=""
-if command -v cmake >/dev/null; then
+if command -v cmake >/dev/null 2>&1; then
 	LVAR_BIN_CMAKE="cmake"
 else
 	LTMP_OS="$(getOsName)"
-	if [ "${LTMP_OS}" = "macos" -a -x "${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake" ]; then
+	if [ "${LTMP_OS}" = "macos" ] && [ -x "${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake" ]; then
 		LVAR_BIN_CMAKE="${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake"
+	elif [ "${LTMP_OS}" = "macos" ]; then
+		echo "${VAR_MYNAME}: running 'brew install [...]'"
+		brew install \
+				cmake \
+				|| exit 1
+		LVAR_BIN_CMAKE="$(command -v cmake)"
 	elif [ "${LTMP_OS}" = "linux" ]; then
 		TMP_FIND_FN="tmp.find-$$.tmp"
 		test -f "${TMP_FIND_FN}" && rm "${TMP_FIND_FN}"
@@ -312,44 +340,56 @@ if [ -z "${LVAR_BIN_CMAKE}" ]; then
 	exit 1
 fi
 
-echo "${VAR_MYNAME}: running 'cmake [...]'"
+echo -e "\n${VAR_MYNAME}: running 'cmake [...]'"
 ${LVAR_BIN_CMAKE} \
-		-D WITH_LIBV4L=ON \
-		-D WITH_V4L=ON \
-		-D WITH_FFMPEG=${TMP_OPT_FFMPEG} \
-		-D WITH_GSTREAMER=${TMP_OPT_GSTREAMER} \
-		-D WITH_MSMF=OFF \
-		-D WITH_DSHOW=OFF \
-		-D WITH_AVFOUNDATION=OFF \
-		-D WITH_1394=OFF \
-		-D WITH_ANDROID_MEDIANDK=OFF \
-		-D VIDEOIO_ENABLE_PLUGINS=OFF \
+		-DWITH_LIBV4L=${TMP_OPT_V4L} \
+		-DWITH_V4L=${TMP_OPT_V4L} \
+		-DWITH_FFMPEG=${TMP_OPT_FFMPEG} \
+		-DWITH_GSTREAMER=${TMP_OPT_GSTREAMER} \
+		-DWITH_OPENEXR=OFF \
+		-DWITH_MSMF=OFF \
+		-DWITH_DSHOW=OFF \
+		-DWITH_AVFOUNDATION=OFF \
+		-DWITH_1394=OFF \
+		-DWITH_ANDROID_MEDIANDK=OFF \
+		-DVIDEOIO_ENABLE_PLUGINS=OFF \
 		-DBUILD_TESTS=OFF \
 		-DBUILD_PERF_TESTS=OFF \
 		-DBUILD_SHARED_LIBS=${TMP_OPT_SHARED} \
+		-DBUILD_OPENEXR=OFF \
 		-DBUILD_opencv_calib3d=ON \
 		-DBUILD_opencv_dnn=OFF \
 		-DBUILD_opencv_highgui=${TMP_OPT_HIGHGUI} \
 		-DBUILD_opencv_java=${TMP_OPT_JAVA} \
+		-DOPENCV_JAVA_TARGET_VERSION=1.8 \
 		-DBUILD_opencv_js=OFF \
 		-DBUILD_opencv_ml=OFF \
 		-DBUILD_opencv_objc=OFF \
-		-DBUILD_opencv_python=OFF \
+		-DBUILD_opencv_python2=OFF \
+		-DBUILD_opencv_python3=${TMP_OPT_PY3} \
 		-DOPENCV_FORCE_LIBATOMIC_COMPILER_CHECK=1 \
 		"../${LCFG_OPENCV_RELEASE}" || exit 1
 
 #
 
-echo "${VAR_MYNAME}: running 'make [...]'"
-make -j4 || exit 1
+nproc_polyfill() {
+	if [ "${LVAR_OSNAME}" = "linux" ]; then
+		nproc --all
+	elif [ "${LVAR_OSNAME}" = "macos" ] || [ "$(uname -s | grep -q BSD)" = "BSD" ]; then
+		sysctl -n hw.ncpu
+	else
+		getconf _NPROCESSORS_ONLN  # glibc/coreutils fallback
+	fi
+}
 
-echo
-case "${LVAR_OSNAME}" in
-	linux)
-		echo "${VAR_MYNAME}: running 'make install'"
-		sudo make install
-		;;
-	macos)
-		echo "${VAR_MYNAME}: Not installing OpenCV in system"
-		;;
-esac
+echo -e "\n${VAR_MYNAME}: running 'make [...]'"
+make -j"$(nproc_polyfill)" || exit 1
+
+if [ "${CFG_INSTALL_TO_SYSTEM}" = "true" ]; then
+	echo "${VAR_MYNAME}: running 'make install'"
+	sudo make install || exit 1
+
+	echo -e "\n${VAR_MYNAME}: (run '\$ sudo make uninstall' to uninstall it again)"
+else
+	echo -e "\n${VAR_MYNAME}: Not installing OpenCV into system"
+fi
