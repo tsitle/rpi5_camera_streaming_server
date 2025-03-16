@@ -31,10 +31,9 @@ LVAR_BIN_CMAKE=""
 if command -v cmake >/dev/null; then
 	LVAR_BIN_CMAKE="cmake"
 else
-	LTMP_OS="$(getOsName)"
-	if [ "${LTMP_OS}" = "macos" -a -x "${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake" ]; then
+	if [ "${LVAR_OSNAME}" = "macos" ] && [ -x "${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake" ]; then
 		LVAR_BIN_CMAKE="${HOME}/Applications/CLion.app/Contents/bin/cmake/mac/x64/bin/cmake"
-	elif [ "${LTMP_OS}" = "linux" ]; then
+	elif [ "${LVAR_OSNAME}" = "linux" ]; then
 		TMP_FIND_FN="tmp.find-$$.tmp"
 		test -f "${TMP_FIND_FN}" && rm "${TMP_FIND_FN}"
 		find /opt -maxdepth 1 -type d -name "clion-*" | sort -r > "${TMP_FIND_FN}"
@@ -59,5 +58,17 @@ if ! test -d build; then
 	${LVAR_BIN_CMAKE} -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../src || exit 1
 	cd ..
 fi
+
 cd build || exit 1
-make || exit 1
+
+nproc_polyfill() {
+	if [ "${LVAR_OSNAME}" = "linux" ]; then
+		nproc --all
+	elif [ "${LVAR_OSNAME}" = "macos" ] || [ "$(uname -s | grep -q BSD)" = "BSD" ]; then
+		sysctl -n hw.ncpu
+	else
+		getconf _NPROCESSORS_ONLN  # glibc/coreutils fallback
+	fi
+}
+
+make -j"$(nproc_polyfill)" || exit 1
