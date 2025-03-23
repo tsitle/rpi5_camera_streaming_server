@@ -32,6 +32,9 @@ The software has been tested with:
 - with two Raspberry Camera Module v3 (IMX708) cameras
 - on Debian Bookworm 12.9
 
+There is a demo application that demonstrates the usage of the server's REST API available here: [https://github.com/tsitle/javafx_camera_server_client](https://github.com/tsitle/javafx_camera_server_client).  
+It is written in Java/Kotlin though. But it also demonstrates how to generate an API client with the [OpenAPI spec file](docs/api-camera_server.yaml).
+
 ## Prerequisites
 
 A custom build of OpenCV is required:
