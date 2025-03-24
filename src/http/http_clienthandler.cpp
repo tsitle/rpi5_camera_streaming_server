@@ -593,6 +593,7 @@ namespace http {
 				timeStart = std::chrono::steady_clock::now();
 			}
 			haveFrame = gCbGetFrameFromQueue(gHndCltData.thrIx, &pData, rsvdBufSz, bufSz);
+			// ReSharper disable once CppDFAConstantConditions
 			if (! haveFrame) {
 				if (++noFrameCnt > 10000 / 5) {
 					log(gHndCltData.thrIx, "__no frames for client - closing connection");
@@ -601,11 +602,15 @@ namespace http {
 				std::this_thread::sleep_for(std::chrono::milliseconds(5));
 				continue;
 			}
+
+			// ReSharper disable once CppDFAUnreachableCode
+
 			if (_MEASURE_TIME_COPY) {
 				timeEnd = std::chrono::steady_clock::now();
 				log(gHndCltData.thrIx, "__copy frame took " +
 						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 			}
+
 			noFrameCnt = 0;
 
 			// send frame to client
@@ -644,6 +649,7 @@ namespace http {
 						std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count()) + " us");
 			}
 		}
+		// ReSharper disable once CppDFAConstantConditions
 		if (pData != nullptr) {
 			::free(pData);
 		}
