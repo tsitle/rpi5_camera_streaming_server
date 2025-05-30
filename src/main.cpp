@@ -22,7 +22,7 @@ void sigHandlerCtrlC(__attribute__((unused)) int s) {
 
 bool initSignalHandlers() {
 	// SIGINT
-	struct sigaction sigIntHandler;
+	struct sigaction sigIntHandler{};
 	sigIntHandler.sa_handler = sigHandlerCtrlC;
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
